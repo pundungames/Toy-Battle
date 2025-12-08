@@ -27,6 +27,11 @@ public class CurrencyManager : MonoBehaviour
     }
 
     #region Cash
+    public bool HasGold(float gold)
+    {
+        if (gold <= baseCash) return true;
+        else return false;
+    }
     void LevelComplete()
     {
         PlayerPrefs.SetFloat("_baseCash", baseCash);
