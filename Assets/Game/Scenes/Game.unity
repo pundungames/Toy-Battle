@@ -209,7 +209,7 @@ PrefabInstance:
     - target: {fileID: 176470353668442286, guid: 7524e83b4dc038346b2fe5440e798448,
         type: 3}
       propertyPath: _length
-      value: 1127.6191
+      value: 1080
       objectReference: {fileID: 0}
     - target: {fileID: 707813182123426287, guid: 7524e83b4dc038346b2fe5440e798448,
         type: 3}
@@ -318,8 +318,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5633562215554261419, guid: 7524e83b4dc038346b2fe5440e798448,
         type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 2059529281}
+    - target: {fileID: 5633562215554261419, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: ModeChangeButton
+      value: StartButton
+      objectReference: {fileID: 0}
+    - target: {fileID: 5633562215554261419, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: GameManager, Assembly-CSharp
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1018,7 +1028,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &967579925
 MonoBehaviour:
   m_ObjectHideFlags: 0

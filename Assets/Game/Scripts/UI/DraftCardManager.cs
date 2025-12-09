@@ -1,6 +1,7 @@
 ﻿// ============================================================================
 // DRAFT CARD MANAGER - Kart seçim sistemini yönetir
 // Her turn 3 kart gösterir: 2 Toy Unit + 1 Bonus (veya 3 Unit)
+// ✅ FIX: Aynı kart birden fazla gelmez (no duplicates)
 // ============================================================================
 
 using DG.Tweening;
@@ -30,7 +31,6 @@ public class DraftCardManager : MonoBehaviour
     [SerializeField] GameObject ribbon;
     [SerializeField] TextMeshProUGUI rerollPriceText;
     [SerializeField] Button rerollButton;
-    [SerializeField] Button confirmButton;
 
     [Header("Settings")]
     [SerializeField] bool isShopMode = false;
@@ -64,12 +64,14 @@ public class DraftCardManager : MonoBehaviour
         GenerateDraftCards();
         DisplayCards();
         SetupUI();
+
+        // ✅ GameObject'i aktif et
+        gameObject.SetActive(true);
     }
 
     private void SetupUI()
     {
         ribbon.SetActive(true);
-        confirmButton.gameObject.SetActive(false);
 
         if (rerollButton != null)
         {
@@ -83,7 +85,7 @@ public class DraftCardManager : MonoBehaviour
         CheckCurrency();
     }
 
-    // ===== CARD GENERATION =====
+    // ===== CARD GENERATION (NO DUPLICATES) =====
 
     private void GenerateDraftCards()
     {
@@ -92,17 +94,23 @@ public class DraftCardManager : MonoBehaviour
         // Get unlocked units
         List<ToyUnitData> unlockedUnits = unlockSystem.GetUnlockedUnits(allToyUnits);
 
-        // Add 2 toy units
+        // ✅ FIX: Create a temporary pool to prevent duplicates
+        List<ToyUnitData> availableUnits = new List<ToyUnitData>(unlockedUnits);
+
+        // Add 2 unique toy units
         for (int i = 0; i < 2; i++)
         {
-            ToyUnitData randomUnit = GetWeightedRandomUnit(unlockedUnits);
+            if (availableUnits.Count == 0) break;
+
+            ToyUnitData randomUnit = GetWeightedRandomUnit(availableUnits);
             if (randomUnit != null)
             {
                 currentDraftPool.Add(randomUnit);
+                availableUnits.Remove(randomUnit); // ✅ Remove to prevent duplicate
             }
         }
 
-        // 15% chance for bonus card, otherwise add third unit
+        // 15% chance for bonus card, otherwise add third unique unit
         if (Random.value < 0.15f && allBonusCards.Count > 0)
         {
             BonusCardData randomBonus = allBonusCards[Random.Range(0, allBonusCards.Count)];
@@ -110,10 +118,14 @@ public class DraftCardManager : MonoBehaviour
         }
         else
         {
-            ToyUnitData randomUnit = GetWeightedRandomUnit(unlockedUnits);
-            if (randomUnit != null)
+            if (availableUnits.Count > 0)
             {
-                currentDraftPool.Add(randomUnit);
+                ToyUnitData randomUnit = GetWeightedRandomUnit(availableUnits);
+                if (randomUnit != null)
+                {
+                    currentDraftPool.Add(randomUnit);
+                    availableUnits.Remove(randomUnit); // ✅ Remove to prevent duplicate
+                }
             }
         }
     }
@@ -196,7 +208,6 @@ public class DraftCardManager : MonoBehaviour
         Taptic.Medium();
         ribbon.SetActive(false);
         rerollButton.gameObject.SetActive(false);
-        confirmButton.gameObject.SetActive(true);
 
         SetAllCardsInteractable(false);
 
@@ -255,8 +266,22 @@ public class DraftCardManager : MonoBehaviour
 
     private void FinishDraft()
     {
-        EventManager.OnDraftComplete();
-        gameObject.SetActive(false);
+        // ✅ Kartları gizle ama GameObject'i kapatma
+        HideCards();
+
+        // Turn indicator güncelle
+        Debug.Log("Player draft complete, waiting for AI...");
+    }
+
+    private void HideCards()
+    {
+        foreach (var card in activeCards)
+        {
+            card.gameObject.SetActive(false);
+        }
+
+        if (ribbon != null) ribbon.SetActive(false);
+        if (rerollButton != null) rerollButton.gameObject.SetActive(false);
     }
 
     public void CancelSelection()
@@ -270,7 +295,6 @@ public class DraftCardManager : MonoBehaviour
         hasCardBeenChosen = false;
         ribbon.SetActive(true);
         rerollButton.gameObject.SetActive(true);
-        confirmButton.gameObject.SetActive(false);
         SetAllCardsInteractable(true);
     }
 

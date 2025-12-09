@@ -1,9 +1,8 @@
-// ============================================================================
+﻿// ============================================================================
 // SCENE INSTALLER - Zenject Dependency Injection
-// T�m manager'lar� burada bind ediyoruz
+// Tüm manager'ları burada bind ediyoruz
 // ============================================================================
 
-using DG.Tweening.Core.Easing;
 using UnityEngine;
 using Zenject;
 
@@ -32,6 +31,7 @@ public class SceneInstaller : MonoInstaller
 
         // AI & Tutorial
         Container.Bind<AIController>().FromComponentInHierarchy().AsSingle().NonLazy();
+        Container.Bind<AITurnManager>().FromComponentInHierarchy().AsSingle().NonLazy(); // ✅ NEW
         Container.Bind<TutorialController>().FromComponentInHierarchy().AsSingle().NonLazy();
 
     }

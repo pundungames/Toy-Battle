@@ -1,6 +1,6 @@
 // ============================================================================
 // GAME MANAGER - Ana oyun state machine'i
-// Tüm turn progression ve state geçişlerini kontrol eder
+// ✅ AI Turn integration - Player seçim yaptıktan sonra AI seçim yapar
 // ============================================================================
 
 using UnityEngine;
@@ -13,12 +13,17 @@ public class GameManager : MonoBehaviour
     [Inject] BattleManager battleManager;
     [Inject] CurrencyManager currencyManager;
     [Inject] TutorialController tutorialController;
+    [Inject] AITurnManager aiTurnManager; // ✅ NEW
 
     [Header("Game State")]
     [SerializeField] internal GameState currentState;
     [SerializeField] internal int currentTurn = 1;
     [SerializeField] internal int playerWins = 0;
-    [SerializeField] internal bool isTutorial = true;
+    [SerializeField] internal bool isTutorial = false;
+
+    [Header("Turn Control")]
+    [SerializeField] private bool isPlayerTurnComplete = false;
+    [SerializeField] private bool isAITurnComplete = false;
 
     private void Start()
     {
@@ -27,22 +32,22 @@ public class GameManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.onDraftComplete += OnDraftComplete;
+        EventManager.onCardSelected += OnPlayerCardSelected; // ✅ Player seçim yaptı
+        EventManager.onDraftComplete += OnBothTurnsComplete; // ✅ AI de seçim yaptı
         EventManager.onBattleComplete += OnBattleComplete;
-        EventManager.onGameStateChange += ChangeState;
     }
 
     private void OnDisable()
     {
-        EventManager.onDraftComplete -= OnDraftComplete;
+        EventManager.onCardSelected -= OnPlayerCardSelected;
+        EventManager.onDraftComplete -= OnBothTurnsComplete;
         EventManager.onBattleComplete -= OnBattleComplete;
-       EventManager.onGameStateChange -= ChangeState;
     }
 
     private void InitializeGame()
     {
         // Tutorial check
-        if (!isTutorial && PlayerPrefs.GetInt("TutorialComplete", 0) == 0)
+        if (isTutorial && PlayerPrefs.GetInt("TutorialComplete", 0) == 0)
         {
             isTutorial = true;
             tutorialController.StartTutorial();
@@ -53,7 +58,11 @@ public class GameManager : MonoBehaviour
             ChangeState(GameState.MainMenu);
         }
     }
-
+    public void StartButton()
+    {
+        currentTurn = 1;
+        ChangeState(GameState.Draft);
+    }
     public void ChangeState(GameState newState)
     {
         currentState = newState;
@@ -89,6 +98,15 @@ public class GameManager : MonoBehaviour
 
     private void StartDraftPhase()
     {
+        // Reset turn flags
+        isPlayerTurnComplete = false;
+        isAITurnComplete = false;
+
+        Debug.Log($"🎴 Starting Draft Phase - Turn {currentTurn}");
+
+        // Show UI
+        uiManager.ShowDraftPanel();
+
         // Skill selection turns: 8, 16, 24
         if (currentTurn == 8 || currentTurn == 16 || currentTurn == 24)
         {
@@ -96,19 +114,57 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            draftCardManager.Open(false); // false = not shop mode
+            // ✅ Kısa delay sonra draft aç (UI animation için)
+            Invoke(nameof(OpenPlayerDraft), 0.3f);
         }
     }
 
-    private void StartBattlePhase()
+    private void OpenPlayerDraft()
     {
-        battleManager.StartBattle();
+        draftCardManager.Open(false); // Player draft başlar
     }
 
-    private void OnDraftComplete()
+    // ===== PLAYER CARD SELECTED =====
+
+    private void OnPlayerCardSelected(ToyUnitData unitData)
+    {
+        Debug.Log($"✅ Player selected: {unitData.toyName}");
+        isPlayerTurnComplete = true;
+
+        // Player seçim yaptı, şimdi AI'ın sırası
+        StartAITurn();
+    }
+
+    // ===== START AI TURN =====
+
+    private void StartAITurn()
+    {
+        Debug.Log("🤖 Starting AI turn...");
+        aiTurnManager.StartAITurn();
+    }
+
+    // ===== BOTH TURNS COMPLETE =====
+
+    private void OnBothTurnsComplete()
+    {
+        // AI turn complete olduğunda EventManager.OnDraftComplete() çağrılır
+        isAITurnComplete = true;
+
+        if (isPlayerTurnComplete && isAITurnComplete)
+        {
+            Debug.Log("✅ Both player and AI turns complete!");
+            AdvanceTurn();
+        }
+    }
+
+    // ===== ADVANCE TURN =====
+
+    private void AdvanceTurn()
     {
         currentTurn++;
         EventManager.OnTurnChange(currentTurn);
+
+        Debug.Log($"📊 Turn {currentTurn}/{GameConstants.TOTAL_TURNS}");
 
         // Battle turns: 5, 10, 15, 20, 25, 30
         if (currentTurn == 5 || currentTurn == 10 || currentTurn == 15 ||
@@ -122,8 +178,19 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            ChangeState(GameState.Draft);
+            // ✅ FIX: Yeni turn başlatmadan önce kısa delay
+            Invoke(nameof(StartNextDraftTurn), 0.5f);
         }
+    }
+
+    private void StartNextDraftTurn()
+    {
+        ChangeState(GameState.Draft);
+    }
+
+    private void StartBattlePhase()
+    {
+        battleManager.StartBattle();
     }
 
     private void OnBattleComplete(bool playerWon)
@@ -131,11 +198,11 @@ public class GameManager : MonoBehaviour
         if (playerWon)
         {
             playerWins++;
-            currencyManager.UpdateCash(GameConstants.WIN_GOLD);
+            currencyManager.UpdateCashAndSave(GameConstants.WIN_GOLD);
         }
         else
         {
-            currencyManager.UpdateCash(GameConstants.LOSE_GOLD);
+            currencyManager.UpdateCashAndSave(GameConstants.LOSE_GOLD);
         }
 
         // Chest drop check

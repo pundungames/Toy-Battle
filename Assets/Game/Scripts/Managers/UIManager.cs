@@ -1,5 +1,5 @@
-// ============================================================================
-// UI MANAGER - Tüm panel geçiþlerini yönetir (DOTween ile)
+ï»¿// ============================================================================
+// UI MANAGER - TÃ¼m panel geÃ§iÅŸlerini yÃ¶netir (DOTween ile)
 // ============================================================================
 
 using DG.Tweening;
@@ -7,7 +7,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Zenject;
-using Zenject.Asteroids;
 
 public class UIManager : MonoBehaviour
 {
@@ -31,8 +30,6 @@ public class UIManager : MonoBehaviour
     [Header("Wave Indicator")]
     [SerializeField] Transform waveIndicator;
     [SerializeField] TextMeshProUGUI waveText;
-
-    [SerializeField] GameState gameState;
 
     private void Start()
     {
@@ -64,15 +61,16 @@ public class UIManager : MonoBehaviour
         skillSelectionPanel.SetActive(false);
         tutorialPanel.SetActive(false);
     }
-    public void ModeChangeButton()
-    {
-        if (gameState == GameState.Draft) EventManager.OnGameStateChange(GameState.Battle);
-        else EventManager.OnGameStateChange(GameState.Draft);
-    }
+
     private void OnGameStateChange(GameState newState)
     {
-        gameState = newState;
-        // State deðiþimlerinde otomatik panel gösterimi yapýlabilir
+        // State deÄŸiÅŸimlerinde otomatik panel gÃ¶sterimi
+        switch (newState)
+        {
+            case GameState.Draft:
+                ShowDraftPanel();
+                break;
+        }
     }
 
     // ===== PANEL SHOW METHODS =====
@@ -88,6 +86,12 @@ public class UIManager : MonoBehaviour
     {
         HideAllPanels();
         draftPanel.SetActive(true);
+        // âœ… DraftCardManager'Ä± aktif et (child component)
+        DraftCardManager draftManager = draftPanel.GetComponentInChildren<DraftCardManager>(true);
+        if (draftManager != null)
+        {
+            draftManager.gameObject.SetActive(true);
+        }
         AnimatePanelIn(draftPanel.transform);
     }
 

@@ -331,8 +331,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 6937016478028697816}
-        m_TargetAssemblyTypeName: TowerCardContent, Assembly-CSharp
-        m_MethodName: SelectTower
+        m_TargetAssemblyTypeName: DraftCardContent, Assembly-CSharp
+        m_MethodName: SelectCard
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -632,7 +632,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: -52.765747}
+  m_AnchoredPosition: {x: 0, y: -53.69995}
   m_SizeDelta: {x: 357.7, y: 565.3346}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &6937016478028697816
@@ -647,27 +647,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f3ca127d7e220f41a68e768a22795df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  towerName: {fileID: 3422390033743216223}
-  towerInfo: {fileID: 534933524208628515}
+  cardName: {fileID: 3422390033743216223}
+  cardInfo: {fileID: 534933524208628515}
   priceText: {fileID: 5763477257354341534}
-  towerImage: {fileID: 2527402289371375259}
-  focus: {fileID: 7173506637448444858}
-  sold: {fileID: 2994438755813541527}
-  border: {fileID: 4910758676335227424}
-  button: {fileID: 3914708579796856952}
-  cardRarity:
+  cardImage: {fileID: 2527402289371375259}
+  borderImage: {fileID: 4910758676335227424}
+  focusVisual: {fileID: 7173506637448444858}
+  soldVisual: {fileID: 2994438755813541527}
+  pipCostVisual: {fileID: 2956724464262975153}
+  pipCostText: {fileID: 5763477257354341534}
+  rarityVisuals:
   - visuals:
     - {fileID: 7449062323684300354}
-    mask: {fileID: 0}
     border: {fileID: 21300000, guid: 718ee3240d47748c2af7765c7ce0c276, type: 3}
   - visuals:
     - {fileID: 2932748165180013630}
-    mask: {fileID: 0}
     border: {fileID: 21300000, guid: 7ea4de09435e74725a0e2634aadfdc25, type: 3}
   - visuals:
     - {fileID: 5281786451855257891}
-    mask: {fileID: 0}
     border: {fileID: 21300000, guid: 174b85ac2c2f64076b6cfc6cf62c57c8, type: 3}
+  button: {fileID: 3914708579796856952}
 --- !u!1 &4042094509709173788
 GameObject:
   m_ObjectHideFlags: 0
