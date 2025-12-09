@@ -16,8 +16,8 @@ MonoBehaviour:
   toyName: RoboCore Mk-I
   toyInfo: Scaling robot that grows stronger each wave (+25% per wave)
   level: 1
-  baseHP: 0
-  baseDamage: 0
+  baseHP: 60
+  baseDamage: 10
   unitType: 0
   toyRarityType: 2
   unitPrefab: {fileID: 0}

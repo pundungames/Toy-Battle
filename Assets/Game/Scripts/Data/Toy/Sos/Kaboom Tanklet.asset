@@ -17,7 +17,7 @@ MonoBehaviour:
   toyInfo: AOE damage dealer with slow attack speed (60% splash damage)
   level: 1
   baseHP: 120
-  baseDamage: 25
+  baseDamage: 100
   unitType: 3
   toyRarityType: 1
   unitPrefab: {fileID: 0}
@@ -28,6 +28,6 @@ MonoBehaviour:
   - {fileID: 0}
   hasTeleport: 0
   isExplosive: 1
-  explosionDamage: 30
+  explosionDamage: 100
   hasSupport: 0
   toyPrice: 0

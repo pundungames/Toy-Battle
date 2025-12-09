@@ -16,8 +16,8 @@ MonoBehaviour:
   toyName: Bone Mage
   toyInfo: "Support unit that provides shields to allies (Level \xD7 25 shield)"
   level: 1
-  baseHP: 0
-  baseDamage: 0
+  baseHP: 50
+  baseDamage: 8
   unitType: 0
   toyRarityType: 1
   unitPrefab: {fileID: 0}

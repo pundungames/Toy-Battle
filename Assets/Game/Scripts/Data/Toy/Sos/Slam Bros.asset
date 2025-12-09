@@ -16,8 +16,8 @@ MonoBehaviour:
   toyName: Slam Bros
   toyInfo: Fast melee fighters with aggressive playstyle
   level: 1
-  baseHP: 0
-  baseDamage: 0
+  baseHP: 40
+  baseDamage: 10
   unitType: 0
   toyRarityType: 0
   unitPrefab: {fileID: 0}

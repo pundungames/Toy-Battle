@@ -1,6 +1,7 @@
 // ============================================================================
 // GAME MANAGER - Ana oyun state machine'i
 // ✅ AI Turn integration - Player seçim yaptıktan sonra AI seçim yapar
+// ✅ Respawn Previous Units - Battle sonrası karakterler tam canla geri gelir
 // ============================================================================
 
 using UnityEngine;
@@ -13,7 +14,8 @@ public class GameManager : MonoBehaviour
     [Inject] BattleManager battleManager;
     [Inject] CurrencyManager currencyManager;
     [Inject] TutorialController tutorialController;
-    [Inject] AITurnManager aiTurnManager; // ✅ NEW
+    [Inject] AITurnManager aiTurnManager;
+    [Inject] GridManager gridManager; // ✅ ADDED
 
     [Header("Game State")]
     [SerializeField] internal GameState currentState;
@@ -32,8 +34,8 @@ public class GameManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.onCardSelected += OnPlayerCardSelected; // ✅ Player seçim yaptı
-        EventManager.onDraftComplete += OnBothTurnsComplete; // ✅ AI de seçim yaptı
+        EventManager.onCardSelected += OnPlayerCardSelected;
+        EventManager.onDraftComplete += OnBothTurnsComplete;
         EventManager.onBattleComplete += OnBattleComplete;
     }
 
@@ -58,11 +60,13 @@ public class GameManager : MonoBehaviour
             ChangeState(GameState.MainMenu);
         }
     }
+
     public void StartButton()
     {
         currentTurn = 1;
         ChangeState(GameState.Draft);
     }
+
     public void ChangeState(GameState newState)
     {
         currentState = newState;
@@ -103,6 +107,12 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"🎴 Starting Draft Phase - Turn {currentTurn}");
 
+        // ✅ Önceki karakterleri TAM CANLA geri getir (Turn 1 hariç)
+        if (currentTurn > 1)
+        {
+            gridManager.RespawnPreviousUnits();
+        }
+
         // Show UI
         uiManager.ShowDraftPanel();
 
@@ -113,7 +123,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // ✅ Direkt çağır, Invoke kullanma!
+            // ✅ Direkt çağır
             OpenPlayerDraft();
         }
     }
@@ -225,6 +235,10 @@ public class GameManager : MonoBehaviour
     {
         currentTurn = 1;
         playerWins = 0;
+
+        // ✅ Grid state'i tamamen sıfırla
+        gridManager.ResetGridState();
+
         ChangeState(GameState.Draft);
     }
 }

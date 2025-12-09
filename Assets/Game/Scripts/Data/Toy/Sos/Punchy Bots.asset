@@ -16,8 +16,8 @@ MonoBehaviour:
   toyName: Punchy Bots
   toyInfo: Spawns 2 fighters on deploy - double the value!
   level: 1
-  baseHP: 0
-  baseDamage: 0
+  baseHP: 80
+  baseDamage: 14
   unitType: 0
   toyRarityType: 1
   unitPrefab: {fileID: 0}
