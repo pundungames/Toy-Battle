@@ -167,6 +167,69 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &13093001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 13093003}
+  - component: {fileID: 13093002}
+  m_Layer: 0
+  m_Name: AiTurnManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &13093002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 13093001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8cdd5e13c6cc68347a73ddffad262810, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  aiThinkDelay: 1
+  aiActionDelay: 0.5
+  allToyUnits:
+  - {fileID: 11400000, guid: cd84ee7f3953e624e962e2d9a8aa66df, type: 2}
+  - {fileID: 11400000, guid: 99fdd275c8734a34397b842d7d2a8904, type: 2}
+  - {fileID: 11400000, guid: 67137ce47852ee64d9dc256a84b79cc7, type: 2}
+  - {fileID: 11400000, guid: 5621260314d2dcf45a4b4d58af4689e8, type: 2}
+  - {fileID: 11400000, guid: ff9f1923473606a4a8118309438740b2, type: 2}
+  - {fileID: 11400000, guid: 8b30f3a3f8941274889fff752a8d6aae, type: 2}
+  - {fileID: 11400000, guid: 2495370d0fdecd340998b072d9c2f380, type: 2}
+  - {fileID: 11400000, guid: 0199aaec6b2ef024f8b6733f9f112130, type: 2}
+  - {fileID: 11400000, guid: 2b4e179b74551084cb40288f31d6930e, type: 2}
+  - {fileID: 11400000, guid: 79d1f3a522095d44e889a2fb066efa59, type: 2}
+  allBonusCards:
+  - {fileID: 11400000, guid: 1bd6d577e49f83948a6677a6e76a50e1, type: 2}
+  - {fileID: 11400000, guid: 27bc1714fe5ae544389b305b41ba8061, type: 2}
+  commonWeight: 70
+  rareWeight: 27
+  epicWeight: 3
+--- !u!4 &13093003
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 13093001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.2965575, y: 2.3315947, z: -0.09870787}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &36324921
 GameObject:
   m_ObjectHideFlags: 0
@@ -321,16 +384,6 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 2059529281}
-    - target: {fileID: 5633562215554261419, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: StartButton
-      objectReference: {fileID: 0}
-    - target: {fileID: 5633562215554261419, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: GameManager, Assembly-CSharp
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1233,7 +1286,7 @@ MonoBehaviour:
   - {fileID: 245196760}
   - {fileID: 1758680974}
   - {fileID: 655374764}
-  unitVisualPrefab: {fileID: 0}
+  useResourcesFolder: 1
   maxDeployCount: 6
 --- !u!4 &1464221143
 Transform:
@@ -1633,6 +1686,8 @@ MonoBehaviour:
   currentTurn: 1
   playerWins: 0
   isTutorial: 0
+  isPlayerTurnComplete: 0
+  isAITurnComplete: 0
 --- !u!4 &2059529282
 Transform:
   m_ObjectHideFlags: 0
@@ -1713,5 +1768,6 @@ SceneRoots:
   - {fileID: 6817413}
   - {fileID: 1741647820}
   - {fileID: 890379717}
+  - {fileID: 13093003}
   - {fileID: 967579926}
   - {fileID: 589864201}

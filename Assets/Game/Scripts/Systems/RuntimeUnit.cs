@@ -6,7 +6,7 @@
 
 using UnityEngine;
 
-public class RuntimeUnit : MonoBehaviour, IHealthProvider
+public class RuntimeUnit : MonoBehaviour
 {
     // ===== DATA =====
     public ToyUnitData data;
@@ -19,7 +19,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     public float MaxHealth => maxHealth;
     public float CurrentHealth => currentHealthValue;
-    public event System.Action<float, float> OnHealthChanged;
 
     // ===== BACKWARD COMPATIBILITY =====
     public int currentHP => Mathf.RoundToInt(currentHealthValue); // Eski kodlar için
@@ -35,7 +34,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     public int poisonTicks = 0;
 
     // ===== REFERENCES =====
-    public HealthBarUI healthBar; // Prefab'da olacak
     public Transform projectileSpawnPoint; // Ranged unitler için
     public Animator animator; // 3D animator
     public EnemyDamageText damageTextPrefab; // Damage text prefab
@@ -63,12 +61,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         // Save original scale for hit feedback
         originalScale = transform.localScale;
 
-        // Health bar setup (eğer prefab'da varsa)
-        if (healthBar != null)
-        {
-            // HealthBarUI otomatik olarak OnHealthChanged'e subscribe olacak
-            OnHealthChanged?.Invoke(currentHealthValue, maxHealth);
-        }
 
         // Animator setup
         if (animator == null)
@@ -84,7 +76,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     public void RestoreHealth(float amount)
     {
         currentHealthValue = Mathf.Min(currentHealthValue + amount, maxHealth);
-        OnHealthChanged?.Invoke(currentHealthValue, maxHealth);
     }
 
     // ===== DAMAGE (Overloads for backward compatibility) =====
@@ -102,9 +93,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             currentHealthValue = 0;
             OnDeath();
         }
-
-        // Notify health bar
-        OnHealthChanged?.Invoke(currentHealthValue, maxHealth);
 
         // ===== DAMAGE TEXT =====
         if (damageTextPrefab != null)

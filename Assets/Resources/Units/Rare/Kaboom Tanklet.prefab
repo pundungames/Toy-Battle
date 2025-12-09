@@ -61,7 +61,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 841b239be7efe8d4ca20b27df1d742bf,
         type: 3}
       propertyPath: m_Name
-      value: Tank
+      value: Kaboom Tanklet
       objectReference: {fileID: 0}
     - target: {fileID: 5822021741026957189, guid: 841b239be7efe8d4ca20b27df1d742bf,
         type: 3}
@@ -81,6 +81,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1118702502407772222}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 841b239be7efe8d4ca20b27df1d742bf,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4940062660041886016}
   m_SourcePrefab: {fileID: 100100000, guid: 841b239be7efe8d4ca20b27df1d742bf, type: 3}
 --- !u!1 &7085971292073071030 stripped
 GameObject:
@@ -109,3 +113,29 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.3756037, y: 1.3909926, z: 3.7722692}
   m_Center: {x: 0, y: 0.7005204, z: 0.17514259}
+--- !u!114 &4940062660041886016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7085971292073071030}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3242cb6882373547a7fb97eb124c037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 0}
+  gridSlot: 0
+  isPlayerUnit: 0
+  currentDamage: 0
+  damageMultiplier: 1
+  shieldAmount: 0
+  hasFirstAttackCancel: 0
+  poisonTicks: 0
+  healthBar: {fileID: 0}
+  projectileSpawnPoint: {fileID: 0}
+  animator: {fileID: 0}
+  damageTextPrefab: {fileID: 0}
+  hitScaleFactor: 1.1
+  hitDuration: 0.3

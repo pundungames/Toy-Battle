@@ -25,8 +25,8 @@ public class AITurnManager : MonoBehaviour
 
     [Header("Rarity Weights")]
     [SerializeField] int commonWeight = 70;
-    [SerializeField] int uncommonWeight = 25;
-    [SerializeField] int rareWeight = 5;
+    [SerializeField] int rareWeight = 27;
+    [SerializeField] int epicWeight = 3;
 
     private bool isAITurnActive = false;
 
@@ -126,8 +126,8 @@ public class AITurnManager : MonoBehaviour
             int weight = unit.toyRarityType switch
             {
                 RarityType.Common => commonWeight,
-                RarityType.Uncommon => uncommonWeight,
                 RarityType.Rare => rareWeight,
+                RarityType.Epic => epicWeight,
                 _ => 1
             };
 

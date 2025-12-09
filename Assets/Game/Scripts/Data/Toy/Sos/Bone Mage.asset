@@ -10,10 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e177cd00459aa7349bf77b320956d6f7, type: 3}
-  m_Name: Rock Golem
+  m_Name: Bone Mage
   m_EditorClassIdentifier: 
-  toyName: Rock Golem
-  toyInfo: 
-  toyPrice: 0
+  unitID: bone_mage
+  toyName: Bone Mage
+  toyInfo: "Support unit that provides shields to allies (Level \xD7 25 shield)"
+  level: 1
+  baseHP: 0
+  baseDamage: 0
+  unitType: 0
+  toyRarityType: 1
+  unitPrefab: {fileID: 0}
   toySprite: {fileID: 21300000, guid: 96b7af48aa91f6e41a26dd02e6d9b84a, type: 3}
-  toyRarityType: 0
+  animationFrames:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  hasTeleport: 0
+  isExplosive: 0
+  explosionDamage: 0
+  hasSupport: 0
+  toyPrice: 0

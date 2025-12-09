@@ -1777,7 +1777,6 @@ MonoBehaviour:
   turnText: {fileID: 3062702908331012680}
   waveIndicator: {fileID: 3428410388598652154}
   waveText: {fileID: 3428410386717036312}
-  gameState: 0
 --- !u!114 &1716870841172068303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2466,9 +2465,9 @@ MonoBehaviour:
   isShopMode: 0
   rerollCost: 10
   currentPips: 2
-  commonWeight: 55
-  uncommonWeight: 30
-  rareWeight: 15
+  commonWeight: 70
+  rareWeight: 27
+  epicWeight: 3
 --- !u!1 &5821408912854757156
 GameObject:
   m_ObjectHideFlags: 0

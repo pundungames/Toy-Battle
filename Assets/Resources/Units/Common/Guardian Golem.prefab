@@ -1367,8 +1367,9 @@ GameObject:
   - component: {fileID: 4382146095821283494}
   - component: {fileID: 6343421438191035024}
   - component: {fileID: 1044800307153254281}
+  - component: {fileID: 1165962199526841375}
   m_Layer: 0
-  m_Name: RockGolem
+  m_Name: Guardian Golem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1435,6 +1436,32 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1165962199526841375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4006886472924445212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3242cb6882373547a7fb97eb124c037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 0}
+  gridSlot: 0
+  isPlayerUnit: 0
+  currentDamage: 0
+  damageMultiplier: 1
+  shieldAmount: 0
+  hasFirstAttackCancel: 0
+  poisonTicks: 0
+  healthBar: {fileID: 0}
+  projectileSpawnPoint: {fileID: 0}
+  animator: {fileID: 0}
+  damageTextPrefab: {fileID: 0}
+  hitScaleFactor: 1.1
+  hitDuration: 0.3
 --- !u!1 &4076464166979269819
 GameObject:
   m_ObjectHideFlags: 0

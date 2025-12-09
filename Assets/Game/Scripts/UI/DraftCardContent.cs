@@ -94,7 +94,7 @@ public class DraftCardContent : MonoBehaviour
         button.interactable = availablePips >= bonusData.pipCost;
 
         // Rarity (bonus kartlar rare sayýlabilir)
-        ApplyRarityVisual(RarityType.Uncommon);
+        ApplyRarityVisual(RarityType.Rare);
 
         ResetCardVisuals();
     }

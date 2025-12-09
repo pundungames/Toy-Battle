@@ -80,7 +80,8 @@ public class UnlockSystem : MonoBehaviour
     
     public bool IsUnlocked(string unitID)
     {
-        return PlayerPrefs.GetInt($"Unlock_{unitID}", 0) == 1;
+        // return PlayerPrefs.GetInt($"Unlock_{unitID}", 0) == 1;
+        return true;
     }
     
     // ===== GET UNLOCKED UNITS =====

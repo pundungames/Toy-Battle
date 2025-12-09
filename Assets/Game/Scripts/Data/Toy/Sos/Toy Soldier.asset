@@ -12,14 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e177cd00459aa7349bf77b320956d6f7, type: 3}
   m_Name: Toy Soldier
   m_EditorClassIdentifier: 
-  unitID: toysoldier
+  unitID: toy_soldier
   toyName: Toy Soldier
-  toyInfo: Ranged attacker
+  toyInfo: Ranged attacker with low HP but consistent DPS
   level: 1
   baseHP: 80
   baseDamage: 15
   unitType: 1
   toyRarityType: 0
+  unitPrefab: {fileID: 0}
   toySprite: {fileID: 21300000, guid: 96b7af48aa91f6e41a26dd02e6d9b84a, type: 3}
   animationFrames:
   - {fileID: 0}

@@ -98,8 +98,9 @@ GameObject:
   - component: {fileID: 1758607303100730657}
   - component: {fileID: 6034855744213764652}
   - component: {fileID: 2207267426581316507}
+  - component: {fileID: -7113110365179885575}
   m_Layer: 0
-  m_Name: GreenSoldier
+  m_Name: Toy Soldier
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -166,6 +167,32 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.24934912, y: 0.9519274, z: 0.5665508}
   m_Center: {x: 0, y: 0.47097754, z: 0}
+--- !u!114 &-7113110365179885575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1381484317276526491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3242cb6882373547a7fb97eb124c037, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 0}
+  gridSlot: 0
+  isPlayerUnit: 0
+  currentDamage: 0
+  damageMultiplier: 1
+  shieldAmount: 0
+  hasFirstAttackCancel: 0
+  poisonTicks: 0
+  healthBar: {fileID: 0}
+  projectileSpawnPoint: {fileID: 0}
+  animator: {fileID: 0}
+  damageTextPrefab: {fileID: 0}
+  hitScaleFactor: 1.1
+  hitDuration: 0.3
 --- !u!1 &2739127779688367096
 GameObject:
   m_ObjectHideFlags: 0

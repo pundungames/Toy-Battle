@@ -39,8 +39,8 @@ public class DraftCardManager : MonoBehaviour
 
     [Header("Rarity Weights")]
     [SerializeField] int commonWeight = 70;
-    [SerializeField] int uncommonWeight = 25;
-    [SerializeField] int rareWeight = 5;
+    [SerializeField] int rareWeight = 27;
+    [SerializeField] int epicWeight = 3;
 
     private DraftCardContent selectedCard = null;
     private bool hasCardBeenChosen = false;
@@ -142,8 +142,8 @@ public class DraftCardManager : MonoBehaviour
             int weight = unit.toyRarityType switch
             {
                 RarityType.Common => commonWeight,
-                RarityType.Uncommon => uncommonWeight,
                 RarityType.Rare => rareWeight,
+                RarityType.Epic => epicWeight,
                 _ => 1
             };
 
@@ -166,6 +166,7 @@ public class DraftCardManager : MonoBehaviour
 
     private void DisplayCards()
     {
+        Debug.Log(currentDraftPool.Count);
         for (int i = 0; i < activeCards.Count; i++)
         {
             if (i < currentDraftPool.Count)

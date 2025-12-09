@@ -44,8 +44,8 @@ public enum UnitType
 public enum RarityType
 {
     Common,
-    Uncommon,
-    Rare
+    Rare,
+    Epic
 }
 
 public enum BotDifficulty

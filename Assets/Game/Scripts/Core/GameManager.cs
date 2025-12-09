@@ -98,7 +98,6 @@ public class GameManager : MonoBehaviour
 
     private void StartDraftPhase()
     {
-        // Reset turn flags
         isPlayerTurnComplete = false;
         isAITurnComplete = false;
 
@@ -114,14 +113,15 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // ✅ Kısa delay sonra draft aç (UI animation için)
-            Invoke(nameof(OpenPlayerDraft), 0.3f);
+            // ✅ Direkt çağır, Invoke kullanma!
+            OpenPlayerDraft();
         }
     }
 
     private void OpenPlayerDraft()
     {
-        draftCardManager.Open(false); // Player draft başlar
+        Debug.Log("🎴 OpenPlayerDraft() - Opening cards...");
+        draftCardManager.Open(false);
     }
 
     // ===== PLAYER CARD SELECTED =====
