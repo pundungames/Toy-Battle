@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 6377633203768761499}
   - component: {fileID: 2585454716087430519}
   m_Layer: 0
-  m_Name: TurtleNinja
+  m_Name: Assasins
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

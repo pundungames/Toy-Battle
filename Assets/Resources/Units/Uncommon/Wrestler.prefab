@@ -1762,7 +1762,7 @@ GameObject:
   - component: {fileID: 5869034310222056986}
   - component: {fileID: 6456732347978772047}
   m_Layer: 0
-  m_Name: Pehlivan
+  m_Name: Wrestler
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
