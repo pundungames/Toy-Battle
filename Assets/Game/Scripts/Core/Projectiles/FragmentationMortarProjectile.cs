@@ -52,7 +52,7 @@ public class FragmentationMortarProjectile : ProjectileBase
         // AoE alan hasarý: her düþmana 30 damage
         foreach (var hitCollider in hitColliders)
         {
-            if (hitCollider.TryGetComponent(out Damageable target))
+            if (hitCollider.TryGetComponent(out RuntimeUnit target))
             {
                 // Hasar uygulama (30 damage)
                 /*if (target is EnemyBase)

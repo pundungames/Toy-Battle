@@ -6,7 +6,7 @@ using Zenject;
 public class IceBallistaProjectile : ProjectileBase
 {
     // Hangi düþmanlara vurduðumuzu takip etmek için bir liste
-    private readonly List<Damageable> hitEnemies = new List<Damageable>();
+    private readonly List<RuntimeUnit> hitEnemies = new List<RuntimeUnit>();
 
     // Bir düþmana ilk vuruþ yapýlýp yapýlmadýðýný kontrol eden bayrak
     private bool hasHitFirstTarget = false;
@@ -17,7 +17,7 @@ public class IceBallistaProjectile : ProjectileBase
     protected override void OnTriggerEnter(Collider other)
     {
         // Temas edilen nesnenin bir düþman olup olmadýðýný kontrol et.
-        if (other.gameObject.TryGetComponent<Damageable>(out Damageable enemy))
+        if (other.gameObject.TryGetComponent<RuntimeUnit>(out RuntimeUnit enemy))
         {
             // Bu düþmana daha önce vurulmadýysa VE
             // Henüz ilk hedefe vurulmadýysa (bu merminin vuruþ hakký varsa)
@@ -59,7 +59,7 @@ public class IceBallistaProjectile : ProjectileBase
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.TryGetComponent<Damageable>(out Damageable enemy))
+        if (collision.gameObject.TryGetComponent<RuntimeUnit>(out RuntimeUnit enemy))
         {
             if (!hasHitFirstTarget)
             {
@@ -76,11 +76,11 @@ public class IceBallistaProjectile : ProjectileBase
     // ----------------------------------------------------------------------------------------------------------------------
 
     // Ýlk hedefe vurduktan sonra yok olmamasý için, base sýnýftaki AttackToEnemy metodunu geçersiz kýlmalýsýnýz.
-    protected override void AttackToEnemy(Damageable target)
+    protected override void AttackToEnemy(RuntimeUnit target)
     {
         if (target == null) return;
 
-        target.TakeDamage(attackDamage, true);
+        target.TakeDamage(attackDamage);
 
         // Vuruþ VFX'lerini oynat.
         if (poolingSystem != null && hitVfxName != string.Empty)

@@ -1,6 +1,7 @@
-// ============================================================================
-// TOY UNIT DATA - ScriptableObject
+﻿// ============================================================================
+// TOY UNIT DATA - 3D VERSION
 // Her oyuncak unit'in verilerini tutar (He-Man, Toy Soldier, vb.)
+// 3D prefab reference eklendi
 // ============================================================================
 
 using UnityEngine;
@@ -22,9 +23,10 @@ public class ToyUnitData : ScriptableObject
     public UnitType unitType;
     public RarityType toyRarityType;
 
-    [Header("Visual")]
-    public Sprite toySprite; // Kart g�rseli
-    public Sprite[] animationFrames = new Sprite[3]; // 3-frame GIF animasyon
+    [Header("Visual - 3D")]
+    public GameObject unitPrefab; // ✅ 3D prefab reference (opsiyonel)
+    public Sprite toySprite; // Kart görseli (draft UI için)
+    public Sprite[] animationFrames = new Sprite[3]; // Draft card'da animasyon için
 
     [Header("Special Abilities")]
     public bool hasTeleport; // Assassin (TMNT)
@@ -33,7 +35,7 @@ public class ToyUnitData : ScriptableObject
     public bool hasSupport; // Support units (Skeletor)
 
     [Header("Economy")]
-    public int toyPrice; // Draft'ta sat�n alma fiyat�
+    public int toyPrice; // Draft'ta satın alma fiyatı
 
     // Level scaling
     public int GetScaledHP()

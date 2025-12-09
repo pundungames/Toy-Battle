@@ -7,7 +7,7 @@ public class GunnersBrigadeProjectile : ProjectileBase
 
     protected override void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.TryGetComponent<Damageable>(out Damageable enemy))
+        if (other.gameObject.TryGetComponent<RuntimeUnit>(out RuntimeUnit enemy))
         {
             // Base sýnýfýn AttackToEnemy metodunu çaðýr
             AttackToEnemy(enemy);
@@ -22,12 +22,12 @@ public class GunnersBrigadeProjectile : ProjectileBase
         }
     }
 
-    protected override void AttackToEnemy(Damageable target)
+    protected override void AttackToEnemy(RuntimeUnit target)
     {
         if (target == null) return;
 
         // Hasar verme
-        target.TakeDamage(attackDamage, true);
+        target.TakeDamage(attackDamage);
 
         // Merminin yok edilmesi, menzili tamamlayana kadar ERTELENÝR.
         // Base sýnýfýn yok etme mantýðý, ProjectileFlight'ýn sonunda çalýþacaktýr.

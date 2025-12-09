@@ -194,13 +194,13 @@ public abstract class ProjectileBase : MonoBehaviour
 
     protected virtual void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.TryGetComponent<Damageable>(out Damageable enemy))
+        if (other.gameObject.TryGetComponent<RuntimeUnit>(out RuntimeUnit enemy))
         {
             AttackToEnemy(enemy); // Base mermi her zaman yok olur (override edilene kadar)
         }
     }
 
-    protected virtual void AttackToEnemy(Damageable target)
+    protected virtual void AttackToEnemy(RuntimeUnit target)
     {
         if (target == null || poolingSystem == null)
         {
@@ -208,7 +208,7 @@ public abstract class ProjectileBase : MonoBehaviour
             return;
         }
 
-        target.TakeDamage(attackDamage, true);
+        target.TakeDamage(attackDamage);
 
         if (projectileType == ProjectileType.standart)
             if (poolingSystem != null)

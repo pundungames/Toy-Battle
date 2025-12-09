@@ -3,9 +3,9 @@ using System.Collections;
 using UnityEngine;
 using Zenject;
 
-public class InteractableResource : Damageable
+public class InteractableResource : RuntimeUnit
 {
-    [Inject] PoolingSystem poolingSystem;
+    /*[Inject] PoolingSystem poolingSystem;
     [Inject] DiContainer container;
     internal bool breaked;
     protected override void Awake()
