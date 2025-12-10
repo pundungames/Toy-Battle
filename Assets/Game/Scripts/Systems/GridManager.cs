@@ -1,6 +1,8 @@
 // ============================================================================
 // GRID MANAGER - 3x2 Grid sistemini yönetir (6 slot)
-// ✅ Multi-Unit Stack Support - Aynı karakterler aynı slot'ta toplanır
+// ✅ BATTLE DEATHS DON'T AFFECT DRAFT STATE
+// ✅ State only changes during DRAFT (when player selects cards)
+// ✅ Battle is temporary - all units respawn after
 // ============================================================================
 
 using System.Collections.Generic;
@@ -22,13 +24,12 @@ public class GridManager : MonoBehaviour
 
     [Header("Settings")]
     [SerializeField] int maxDeployCount = GameConstants.GRID_SIZE;
-    [SerializeField] float unitSpacing = 0.25f; // Unit'ler arası mesafe (mini grid)
 
     // ===== GRID SLOTS (Multi-Unit) =====
     private GridSlot[] playerGrid = new GridSlot[GameConstants.GRID_SIZE];
     private GridSlot[] enemyGrid = new GridSlot[GameConstants.GRID_SIZE];
 
-    // ===== GRID STATE - Persistent across battles =====
+    // ===== PERMANENT STATE - Only changes during DRAFT =====
     [System.Serializable]
     public class GridSlotData
     {
@@ -46,6 +47,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
+    // ✅ PERMANENT STATE - NEVER changes during battle
     private Dictionary<int, GridSlotData> playerGridState = new Dictionary<int, GridSlotData>();
     private Dictionary<int, GridSlotData> enemyGridState = new Dictionary<int, GridSlotData>();
 
@@ -58,13 +60,11 @@ public class GridManager : MonoBehaviour
 
     private void InitializeGrids()
     {
-        // Player grid initialize
         for (int i = 0; i < playerGrid.Length; i++)
         {
             playerGrid[i] = new GridSlot { slotIndex = i };
         }
 
-        // Enemy grid initialize
         for (int i = 0; i < enemyGrid.Length; i++)
         {
             enemyGrid[i] = new GridSlot { slotIndex = i };
@@ -73,115 +73,83 @@ public class GridManager : MonoBehaviour
         Debug.Log("✅ Grid slots initialized");
     }
 
-    // ===== SPAWN UNIT (MULTI-UNIT STACK SUPPORT) =====
+    // ===== SPAWN UNIT (ONLY DURING DRAFT) =====
 
     public bool SpawnUnit(ToyUnitData unitData, bool isPlayer, int slotIndex = -1)
     {
         GridSlot[] targetGrid = isPlayer ? playerGrid : enemyGrid;
         Transform[] targetSlots = isPlayer ? playerGridSlots : enemyGridSlots;
 
-        // Check if grids are same reference (BUG!)
-        if (playerGrid.GetHashCode() == enemyGrid.GetHashCode())
-        {
-            Debug.LogError("🚨 CRITICAL BUG: playerGrid and enemyGrid are SAME REFERENCE!");
-        }
-
-        // Slot bul
         if (slotIndex == -1)
         {
             slotIndex = FindSlotForUnit(unitData, isPlayer);
         }
 
-        // Slot bulunamadı
         if (slotIndex == -1)
         {
             Debug.LogWarning($"❌ Cannot spawn {unitData.toyName} - No available slot!");
-            Debug.Log($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return false;
         }
 
         GridSlot slot = targetGrid[slotIndex];
 
-        // Stack limit kontrolü
         if (!slot.CanAddUnit(unitData))
         {
-            if (slot.units.Count >= unitData.maxStackPerSlot)
-            {
-                Debug.LogWarning($"❌ Slot {slotIndex} is full! (Max: {unitData.maxStackPerSlot})");
-            }
-            else
-            {
-                Debug.LogWarning($"❌ Slot {slotIndex} has different character! (Current: {slot.unitType.toyName})");
-            }
-            Debug.Log($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            Debug.LogWarning($"❌ Slot {slotIndex} cannot accept {unitData.toyName}");
             return false;
         }
 
-        // ===== 3D PREFAB SPAWN =====
         GameObject unitPrefab = LoadUnitPrefab(unitData);
 
         if (unitPrefab == null)
         {
             Debug.LogError($"❌ Unit prefab not found for: {unitData.toyName}");
-            Debug.Log($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return false;
         }
 
-        // Instantiate 3D prefab (parent olarak slot transform)
         GameObject unitObj = Instantiate(unitPrefab, targetSlots[slotIndex]);
-
-        // Get RuntimeUnit component
         RuntimeUnit runtimeUnit = unitObj.GetComponent<RuntimeUnit>();
 
         if (runtimeUnit == null)
         {
             Debug.LogError($"❌ RuntimeUnit component not found on prefab: {unitData.toyName}");
             Destroy(unitObj);
-            Debug.Log($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return false;
         }
 
-        // Initialize runtime unit
         runtimeUnit.Initialize(unitData, slotIndex, isPlayer);
 
-        // Slot'a ekle
         slot.units.Add(runtimeUnit);
         slot.unitType = unitData;
 
-        // Zenject injection
         container.InjectGameObject(unitObj);
 
-        // ✅ Layout'u güncelle (mini grid düzenle)
         ArrangeUnitsInSlot(slotIndex, isPlayer);
 
-        // ✅ STATE KAYDET
-        UpdateGridState(slotIndex, isPlayer);
+        // ✅ Update PERMANENT state (only during draft)
+        UpdatePermanentState(slotIndex, isPlayer);
 
         EventManager.OnUnitSpawn(runtimeUnit);
 
         return true;
     }
+
     // ===== FIND SLOT FOR UNIT =====
 
     private int FindSlotForUnit(ToyUnitData unitData, bool isPlayer)
     {
         GridSlot[] targetGrid = isPlayer ? playerGrid : enemyGrid;
 
-        // 1. Önce aynı karakterin olduğu slot'u ara (stack yapılacak)
+        // 1. Aynı karakterin olduğu slot'u ara
         for (int i = 0; i < targetGrid.Length; i++)
         {
             if (!targetGrid[i].IsEmpty)
             {
-                Debug.Log($"   Slot {i}: {targetGrid[i].unitType.toyName} (Count: {targetGrid[i].units.Count}/{targetGrid[i].unitType.maxStackPerSlot})");
-
                 if (targetGrid[i].unitType.unitID == unitData.unitID &&
                     targetGrid[i].units.Count < unitData.maxStackPerSlot)
                 {
-                    return i; // Aynı karakterin yanına ekle
+                    return i;
                 }
-            }
-            else
-            {
             }
         }
 
@@ -194,11 +162,10 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        // 3. Hiç yer yok
-        Debug.Log($"   ❌ No available slot!");
         return -1;
     }
-    // ===== ARRANGE UNITS IN SLOT (MINI GRID LAYOUT) =====
+
+    // ===== ARRANGE UNITS IN SLOT =====
 
     private void ArrangeUnitsInSlot(int slotIndex, bool isPlayer)
     {
@@ -207,36 +174,27 @@ public class GridManager : MonoBehaviour
 
         if (unitCount == 0) return;
 
-        // Grid boyutu hesapla (2×2, 3×3, 4×4...)
         int gridSize = Mathf.CeilToInt(Mathf.Sqrt(unitCount));
+        float spacing = slot.unitType.unitSpacing;
+        float centerOffset = -((gridSize - 1) * spacing) / 2f;
 
-        // Merkez offset (grid'i ortala)
-        float centerOffset = -((gridSize - 1) * unitSpacing) / 2f;
-
-        // Her unit'i yerleştir
         int index = 0;
         for (int row = 0; row < gridSize && index < unitCount; row++)
         {
             for (int col = 0; col < gridSize && index < unitCount; col++)
             {
                 RuntimeUnit unit = slot.units[index];
-
-                // Pozisyon hesapla (X ve Z ekseninde grid)
-                float xPos = centerOffset + (col * unit.data.unitSpacing);
-                float zPos = centerOffset + (row * unit.data.unitSpacing);
-
+                float xPos = centerOffset + (col * spacing);
+                float zPos = centerOffset + (row * spacing);
                 unit.transform.localPosition = new Vector3(xPos, 0, zPos);
-
                 index++;
             }
         }
-
-        Debug.Log($"📐 Arranged {unitCount} units in {gridSize}×{gridSize} grid (slot {slotIndex})");
     }
 
-    // ===== UPDATE GRID STATE =====
+    // ===== UPDATE PERMANENT STATE (ONLY DURING DRAFT) =====
 
-    private void UpdateGridState(int slotIndex, bool isPlayer)
+    private void UpdatePermanentState(int slotIndex, bool isPlayer)
     {
         GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
         var stateDict = isPlayer ? playerGridState : enemyGridState;
@@ -244,10 +202,12 @@ public class GridManager : MonoBehaviour
         if (slot.IsEmpty)
         {
             stateDict.Remove(slotIndex);
+            Debug.Log($"💾 PERMANENT State: Slot {slotIndex} EMPTY");
         }
         else
         {
             stateDict[slotIndex] = new GridSlotData(slot.unitType, slotIndex, slot.units.Count);
+            Debug.Log($"💾 PERMANENT State: Slot {slotIndex} = {slot.unitType.toyName} x{slot.units.Count}");
         }
     }
 
@@ -257,13 +217,11 @@ public class GridManager : MonoBehaviour
     {
         if (useResourcesFolder)
         {
-            // Resources/Units/ klasöründen yükle
             string prefabPath = $"Units/{unitData.toyRarityType}/{unitData.toyName}";
             GameObject prefab = Resources.Load<GameObject>(prefabPath);
 
             if (prefab == null)
             {
-                // Alternatif: Sadece isimle dene
                 prefab = Resources.Load<GameObject>($"Units/{unitData.toyName}");
             }
 
@@ -276,7 +234,7 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    // ===== GET UNITS (Flatten all units from all slots) =====
+    // ===== GET UNITS =====
 
     public List<RuntimeUnit> GetPlayerUnits()
     {
@@ -314,7 +272,7 @@ public class GridManager : MonoBehaviour
         return allUnits;
     }
 
-    // ===== EXPAND SLOT (Bonus: +1 deploy limit) =====
+    // ===== EXPAND SLOT =====
 
     public void IncreaseDeployLimit()
     {
@@ -325,7 +283,7 @@ public class GridManager : MonoBehaviour
     // ===== BATTLE STATE MANAGEMENT =====
 
     /// <summary>
-    /// Unit öldüğünde slot'tan remove et AMA state'i koru
+    /// ✅ BATTLE DEATH - Only removes from BATTLE list, NOT from permanent state
     /// </summary>
     public void ClearSceneSlot(int slotIndex, bool isPlayer, RuntimeUnit deadUnit)
     {
@@ -336,28 +294,25 @@ public class GridManager : MonoBehaviour
             GridSlot slot = targetGrid[slotIndex];
             slot.units.Remove(deadUnit);
 
-            // Slot boşaldıysa temizle
-            if (slot.IsEmpty)
+            Debug.Log($"💀 Battle death: Unit removed from slot {slotIndex}. Remaining in battle: {slot.units.Count}");
+            Debug.Log($"💾 Permanent state UNCHANGED (battle deaths are temporary)");
+
+            if (!slot.IsEmpty)
             {
-                slot.unitType = null;
-            }
-            else
-            {
-                // Kalan unit'leri yeniden düzenle
                 ArrangeUnitsInSlot(slotIndex, isPlayer);
             }
 
-            // State güncelle
-            UpdateGridState(slotIndex, isPlayer);
+            // ✅ PERMANENT STATE NEVER CHANGES DURING BATTLE!
         }
     }
 
     /// <summary>
-    /// Battle sonrası scene'deki tüm GameObject'leri temizler AMA state'i korur
+    /// Battle sonrası scene'deki tüm GameObject'leri temizler
+    /// Permanent state NEVER touched
     /// </summary>
     public void ClearSceneObjects()
     {
-        Debug.Log("🧹 Clearing scene objects (keeping state for next draft)");
+        Debug.Log("🧹 Clearing battle scene (permanent state preserved)");
 
         // Player units cleanup
         for (int i = 0; i < playerGrid.Length; i++)
@@ -370,6 +325,7 @@ public class GridManager : MonoBehaviour
                 }
             }
             playerGrid[i].units.Clear();
+            // ✅ unitType is NOT cleared - it stays for respawn
         }
 
         // Enemy units cleanup
@@ -383,27 +339,35 @@ public class GridManager : MonoBehaviour
                 }
             }
             enemyGrid[i].units.Clear();
+            // ✅ unitType is NOT cleared - it stays for respawn
         }
 
-        // Dictionary STATE KORUNUYOR - silmiyoruz!
-        Debug.Log($"💾 State preserved: Player slots: {playerGridState.Count}, Enemy slots: {enemyGridState.Count}");
+        Debug.Log($"💾 PERMANENT State preserved:");
+        foreach (var kvp in playerGridState)
+        {
+            Debug.Log($"   Player Slot {kvp.Key}: {kvp.Value.unitData.toyName} x{kvp.Value.unitCount}");
+        }
+
+        foreach (var kvp in enemyGridState)
+        {
+            Debug.Log($"   Enemy Slot {kvp.Key}: {kvp.Value.unitData.toyName} x{kvp.Value.unitCount}");
+        }
     }
 
     /// <summary>
-    /// Bir sonraki draft'ta önceki karakterleri TAM CANLA geri getirir
+    /// ✅ RESPAWN - Always uses PERMANENT state (ignores battle deaths)
     /// </summary>
     public void RespawnPreviousUnits()
     {
-        Debug.Log("♻️ Respawning previous units with FULL HP");
+        Debug.Log("♻️ Respawning from PERMANENT state (battle deaths ignored)");
 
         int playerRespawned = 0;
         int enemyRespawned = 0;
 
-        // ✅ FIX: Dictionary'yi iterate ederken modify etmemek için ToList() kullan
         var playerStateSnapshot = playerGridState.ToList();
         var enemyStateSnapshot = enemyGridState.ToList();
 
-        // Player unit'lerini respawn et
+        // Player respawn
         foreach (var kvp in playerStateSnapshot)
         {
             int slot = kvp.Key;
@@ -411,7 +375,8 @@ public class GridManager : MonoBehaviour
 
             if (slotData.isFilled && slotData.unitData != null)
             {
-                // ✅ unitCount kadar spawn et (her biri tam canla)
+                Debug.Log($"♻️ Respawning {slotData.unitCount}x {slotData.unitData.toyName} in Player Slot {slot} (from permanent state)");
+
                 for (int i = 0; i < slotData.unitCount; i++)
                 {
                     SpawnUnit(slotData.unitData, true, slot);
@@ -420,7 +385,7 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        // Enemy unit'lerini respawn et
+        // Enemy respawn
         foreach (var kvp in enemyStateSnapshot)
         {
             int slot = kvp.Key;
@@ -428,7 +393,8 @@ public class GridManager : MonoBehaviour
 
             if (slotData.isFilled && slotData.unitData != null)
             {
-                // ✅ unitCount kadar spawn et
+                Debug.Log($"♻️ Respawning {slotData.unitCount}x {slotData.unitData.toyName} in Enemy Slot {slot} (from permanent state)");
+
                 for (int i = 0; i < slotData.unitCount; i++)
                 {
                     SpawnUnit(slotData.unitData, false, slot);
@@ -437,7 +403,7 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"✅ Respawned {playerRespawned} player units, {enemyRespawned} enemy units");
+        Debug.Log($"✅ Respawned {playerRespawned} player units, {enemyRespawned} enemy units (all with FULL HP)");
     }
 
     /// <summary>
@@ -447,14 +413,9 @@ public class GridManager : MonoBehaviour
     {
         Debug.Log("🔄 Resetting grid state - fresh start!");
 
-        // Scene objeleri temizle
         ClearSceneObjects();
-
-        // Dictionary'leri sıfırla
         playerGridState.Clear();
         enemyGridState.Clear();
-
-        // Grid'leri yeniden initialize et
         InitializeGrids();
 
         Debug.Log("✅ Grid state reset complete");

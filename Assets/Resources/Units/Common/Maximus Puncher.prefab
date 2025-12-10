@@ -183,12 +183,12 @@ GameObject:
   - component: {fileID: 5870557153803672987}
   - component: {fileID: 387804285108416193}
   m_Layer: 0
-  m_Name: Sword.002
+  m_Name: Sword 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &7132556914554079180
 Transform:
   m_ObjectHideFlags: 0
@@ -197,12 +197,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 565813521541495604}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.9862616, y: 0.050342727, z: -0.096019424, w: 0.124635436}
-  m_LocalPosition: {x: 0.5821732, y: -0.12877381, z: 0.11779746}
-  m_LocalScale: {x: 0.77478087, y: 0.77478087, z: 0.774781}
+  m_LocalRotation: {x: -0.060739495, y: 0.16830282, z: -0.02502923, w: -0.9835439}
+  m_LocalPosition: {x: -0.008, y: 0.099, z: 0.001}
+  m_LocalScale: {x: 0.65319526, y: 0.65319526, z: 0.6531957}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3508223520165229436}
+  m_Father: {fileID: 7914907882187967513}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5870557153803672987
 MeshFilter:
@@ -389,7 +389,10 @@ Transform:
   m_LocalPosition: {x: 0.0010612775, y: 0.2938316, z: 0.001542449}
   m_LocalScale: {x: 1, y: 1.0000001, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 8244580590430766156}
+  - {fileID: 226759003949671327}
+  - {fileID: 7132556914554079180}
   m_Father: {fileID: 2607473558875817753}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &937955541360031206
@@ -608,12 +611,12 @@ GameObject:
   - component: {fileID: 7133398607988402205}
   - component: {fileID: 2715677917480776976}
   m_Layer: 0
-  m_Name: Circle
+  m_Name: Shield 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &3522892497262271646
 Transform:
   m_ObjectHideFlags: 0
@@ -622,12 +625,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1731093371539412159}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.10193038, y: -0.18253797, z: 0.64681727, w: 0.7334286}
-  m_LocalPosition: {x: -0.54492867, y: 0.10177529, z: 0.21934777}
-  m_LocalScale: {x: 0.353947, y: 0.35394713, z: 0.353947}
+  m_LocalRotation: {x: 0.5203087, y: -0.57278866, z: -0.54826397, w: -0.31717297}
+  m_LocalPosition: {x: -0.018, y: -0.045, z: 0.038}
+  m_LocalScale: {x: 0.27357978, y: 0.27357972, z: 0.27357972}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3695849558360699607}
+  m_Father: {fileID: 1426032918179132556}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &7133398607988402205
 MeshFilter:
@@ -814,7 +817,10 @@ Transform:
   m_LocalPosition: {x: -0.0010612942, y: 0.29383147, z: 0.0015424639}
   m_LocalScale: {x: 1, y: 0.9999999, z: 0.99999994}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 234402373292885872}
+  - {fileID: 3522892497262271646}
+  - {fileID: 8322113865773334864}
   m_Father: {fileID: 5185680637646922307}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1810178523074589232
@@ -923,6 +929,9 @@ MonoBehaviour:
   projectileSpawnPoint: {fileID: 0}
   animator: {fileID: 0}
   damageTextPrefab: {fileID: 0}
+  attackRange: 2
+  moveSpeed: 2
+  attackCooldown: 1
   hitScaleFactor: 1.1
   hitDuration: 0.3
 --- !u!1 &1994318957588172278
@@ -969,7 +978,7 @@ GameObject:
   - component: {fileID: 2082098592566698241}
   - component: {fileID: 3030109069191737201}
   m_Layer: 0
-  m_Name: Circle.015
+  m_Name: Shield 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -983,12 +992,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2179018693498414550}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.10193038, y: -0.18253797, z: 0.64681727, w: 0.7334286}
-  m_LocalPosition: {x: -0.54492867, y: 0.10177529, z: 0.21934777}
-  m_LocalScale: {x: 0.353947, y: 0.35394713, z: 0.353947}
+  m_LocalRotation: {x: 0.5203087, y: -0.57278866, z: -0.54826397, w: -0.31717297}
+  m_LocalPosition: {x: -0.018, y: -0.045, z: 0.038}
+  m_LocalScale: {x: 0.27357978, y: 0.27357972, z: 0.27357972}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3271326424707163365}
+  m_Father: {fileID: 1426032918179132556}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &2082098592566698241
 MeshFilter:
@@ -1320,7 +1329,7 @@ GameObject:
   - component: {fileID: 1848509758452101237}
   - component: {fileID: 2598665342887297133}
   m_Layer: 0
-  m_Name: Sword.001
+  m_Name: Sword 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1334,12 +1343,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3653157534332825394}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.9862616, y: 0.050342727, z: -0.096019424, w: 0.124635436}
-  m_LocalPosition: {x: 0.5821732, y: -0.12877381, z: 0.11779746}
-  m_LocalScale: {x: 0.77478087, y: 0.77478087, z: 0.774781}
+  m_LocalRotation: {x: -0.060739495, y: 0.16830282, z: -0.02502923, w: -0.9835439}
+  m_LocalPosition: {x: -0.008, y: 0.099, z: 0.001}
+  m_LocalScale: {x: 0.65319526, y: 0.65319526, z: 0.6531957}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3271326424707163365}
+  m_Father: {fileID: 7914907882187967513}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1848509758452101237
 MeshFilter:
@@ -1862,12 +1871,12 @@ GameObject:
   - component: {fileID: 3956162078926148815}
   - component: {fileID: 4661499526088299154}
   m_Layer: 0
-  m_Name: Circle.016
+  m_Name: Shield 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &8322113865773334864
 Transform:
   m_ObjectHideFlags: 0
@@ -1876,12 +1885,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4476449564177794171}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.10193038, y: -0.18253797, z: 0.64681727, w: 0.7334286}
-  m_LocalPosition: {x: -0.54492867, y: 0.10177529, z: 0.21934777}
-  m_LocalScale: {x: 0.353947, y: 0.35394713, z: 0.353947}
+  m_LocalRotation: {x: 0.5203087, y: -0.57278866, z: -0.54826397, w: -0.31717297}
+  m_LocalPosition: {x: -0.018, y: -0.045, z: 0.038}
+  m_LocalScale: {x: 0.27357978, y: 0.27357972, z: 0.27357972}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3508223520165229436}
+  m_Father: {fileID: 1426032918179132556}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3956162078926148815
 MeshFilter:
@@ -2787,10 +2796,8 @@ Transform:
   m_Children:
   - {fileID: 7023629102116112706}
   - {fileID: 7736499244537816862}
-  - {fileID: 3522892497262271646}
   - {fileID: 2540559458574318500}
   - {fileID: 2441114368158316632}
-  - {fileID: 226759003949671327}
   - {fileID: 8301393365854739288}
   m_Father: {fileID: 1320921840068503690}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2806,12 +2813,12 @@ GameObject:
   - component: {fileID: 6393009358037421513}
   - component: {fileID: 5856274297670134012}
   m_Layer: 0
-  m_Name: Sword
+  m_Name: Sword 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &226759003949671327
 Transform:
   m_ObjectHideFlags: 0
@@ -2820,12 +2827,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7941683111140062714}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.9862616, y: 0.050342727, z: -0.096019424, w: 0.124635436}
-  m_LocalPosition: {x: 0.5821732, y: -0.12877381, z: 0.11779746}
-  m_LocalScale: {x: 0.77478087, y: 0.77478087, z: 0.774781}
+  m_LocalRotation: {x: -0.060739495, y: 0.16830282, z: -0.02502923, w: -0.9835439}
+  m_LocalPosition: {x: -0.008, y: 0.099, z: 0.001}
+  m_LocalScale: {x: 0.65319526, y: 0.65319526, z: 0.6531957}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3695849558360699607}
+  m_Father: {fileID: 7914907882187967513}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &6393009358037421513
 MeshFilter:
@@ -2907,11 +2914,9 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7992699279799342603}
-  - {fileID: 234402373292885872}
   - {fileID: 797304893164638969}
   - {fileID: 8746971944624852675}
   - {fileID: 3406129242536337919}
-  - {fileID: 8244580590430766156}
   - {fileID: 1391800067908538725}
   - {fileID: 7773428686724317516}
   - {fileID: 3486359635288983189}
@@ -2950,8 +2955,6 @@ Transform:
   - {fileID: 2248481035805817951}
   - {fileID: 6833663396239519400}
   - {fileID: 9046569064076098424}
-  - {fileID: 7132556914554079180}
-  - {fileID: 8322113865773334864}
   - {fileID: 8778064033898994609}
   m_Father: {fileID: 1320921840068503690}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
