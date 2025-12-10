@@ -1,7 +1,7 @@
 // ============================================================================
 // GAME MANAGER - Ana oyun state machine'i
-// ✅ AI Turn integration - Player seçim yaptıktan sonra AI seçim yapar
-// ✅ Respawn Previous Units - Battle sonrası karakterler tam canla geri gelir
+// ✅ FIXED: Battle state management
+// ✅ FIXED: Respawn timing - AFTER battle complete, BEFORE next turn
 // ============================================================================
 
 using UnityEngine;
@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
     [Inject] CurrencyManager currencyManager;
     [Inject] TutorialController tutorialController;
     [Inject] AITurnManager aiTurnManager;
-    [Inject] GridManager gridManager; // ✅ ADDED
+    [Inject] GridManager gridManager;
 
     [Header("Game State")]
     [SerializeField] internal GameState currentState;
@@ -26,7 +26,6 @@ public class GameManager : MonoBehaviour
     [Header("Turn Control")]
     [SerializeField] private bool isPlayerTurnComplete = false;
     [SerializeField] private bool isAITurnComplete = false;
-    private bool justFinishedBattle = false;
 
     private void Start()
     {
@@ -49,7 +48,6 @@ public class GameManager : MonoBehaviour
 
     private void InitializeGame()
     {
-        // Tutorial check
         if (isTutorial && PlayerPrefs.GetInt("TutorialComplete", 0) == 0)
         {
             isTutorial = true;
@@ -101,6 +99,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // ===== DRAFT PHASE =====
+
     private void StartDraftPhase()
     {
         isPlayerTurnComplete = false;
@@ -108,13 +108,6 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"🎴 Starting Draft Phase - Turn {currentTurn}");
 
-        if (justFinishedBattle)
-        {
-            gridManager.RespawnPreviousUnits();
-            justFinishedBattle = false;
-        }
-
-        // Show UI
         uiManager.ShowDraftPanel();
 
         // Skill selection turns: 8, 16, 24
@@ -124,7 +117,6 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // ✅ Direkt çağır
             OpenPlayerDraft();
         }
     }
@@ -142,7 +134,6 @@ public class GameManager : MonoBehaviour
         Debug.Log($"✅ Player selected: {unitData.toyName}");
         isPlayerTurnComplete = true;
 
-        // Player seçim yaptı, şimdi AI'ın sırası
         StartAITurn();
     }
 
@@ -158,7 +149,6 @@ public class GameManager : MonoBehaviour
 
     private void OnBothTurnsComplete()
     {
-        // AI turn complete olduğunda EventManager.OnDraftComplete() çağrılır
         isAITurnComplete = true;
 
         if (isPlayerTurnComplete && isAITurnComplete)
@@ -189,7 +179,6 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // ✅ FIX: Yeni turn başlatmadan önce kısa delay
             Invoke(nameof(StartNextDraftTurn), 0.5f);
         }
     }
@@ -199,13 +188,19 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.Draft);
     }
 
+    // ===== BATTLE PHASE =====
+
     private void StartBattlePhase()
     {
         battleManager.StartBattle();
     }
 
+    // ===== BATTLE COMPLETE =====
+
     private void OnBattleComplete(bool playerWon)
     {
+        Debug.Log($"⚔️ Battle complete! Winner: {(playerWon ? "PLAYER" : "ENEMY")}");
+
         if (playerWon)
         {
             playerWins++;
@@ -216,25 +211,32 @@ public class GameManager : MonoBehaviour
             currencyManager.UpdateCashAndSave(GameConstants.LOSE_GOLD);
         }
 
-        // ✅ Final battle mi?
+        // ✅ FIX: Clear scene objects IMMEDIATELY after battle
+        gridManager.ClearSceneObjects();
+
+        Debug.Log("🧹 Scene cleared, state preserved");
+
+        // ✅ FIX: Final battle check
         if (currentTurn == GameConstants.TOTAL_TURNS)
         {
-            // MAÇ BİTTİ → Result ekranı
+            // Match ended
             ChangeState(GameState.Reward);
         }
         else
         {
-            gridManager.ClearSceneObjects();
-            justFinishedBattle = true;
+            // ✅ FIX: Respawn BEFORE advancing turn
+            gridManager.RespawnPreviousUnits();
+            Debug.Log("♻️ Units respawned for next draft");
 
-            // DEVAMKE → Yeni turn
+            // Continue to next turn
             AdvanceTurn();
         }
     }
-    // RewardPanel'de "Continue" butonuna basınca:
+
+    // ===== REWARD =====
+
     public void OnRewardContinue()
     {
-        // Chest drop check
         if (Random.value < GameConstants.CHEST_DROP_CHANCE)
         {
             ChangeState(GameState.Chest);
@@ -244,17 +246,20 @@ public class GameManager : MonoBehaviour
             ChangeState(GameState.Progress);
         }
     }
+
     private void EndMatch()
     {
         ChangeState(GameState.Reward);
     }
+
+    // ===== NEW GAME =====
 
     public void StartNewGame()
     {
         currentTurn = 1;
         playerWins = 0;
 
-        // ✅ Grid state'i tamamen sıfırla
+        // Reset grid completely
         gridManager.ResetGridState();
 
         ChangeState(GameState.Draft);
