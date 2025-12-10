@@ -80,6 +80,12 @@ public class GridManager : MonoBehaviour
         GridSlot[] targetGrid = isPlayer ? playerGrid : enemyGrid;
         Transform[] targetSlots = isPlayer ? playerGridSlots : enemyGridSlots;
 
+        // Check if grids are same reference (BUG!)
+        if (playerGrid.GetHashCode() == enemyGrid.GetHashCode())
+        {
+            Debug.LogError("🚨 CRITICAL BUG: playerGrid and enemyGrid are SAME REFERENCE!");
+        }
+
         // Slot bul
         if (slotIndex == -1)
         {
@@ -89,7 +95,8 @@ public class GridManager : MonoBehaviour
         // Slot bulunamadı
         if (slotIndex == -1)
         {
-            Debug.LogWarning($"Cannot spawn {unitData.toyName} - No available slot!");
+            Debug.LogWarning($"❌ Cannot spawn {unitData.toyName} - No available slot!");
+            Debug.Log($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return false;
         }
 
@@ -100,12 +107,13 @@ public class GridManager : MonoBehaviour
         {
             if (slot.units.Count >= unitData.maxStackPerSlot)
             {
-                Debug.LogWarning($"Cannot spawn {unitData.toyName} - Slot {slotIndex} is full! (Max: {unitData.maxStackPerSlot})");
+                Debug.LogWarning($"❌ Slot {slotIndex} is full! (Max: {unitData.maxStackPerSlot})");
             }
             else
             {
-                Debug.LogWarning($"Cannot spawn {unitData.toyName} - Slot {slotIndex} has different character!");
+                Debug.LogWarning($"❌ Slot {slotIndex} has different character! (Current: {slot.unitType.toyName})");
             }
+            Debug.Log($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return false;
         }
 
@@ -114,7 +122,8 @@ public class GridManager : MonoBehaviour
 
         if (unitPrefab == null)
         {
-            Debug.LogError($"Unit prefab not found for: {unitData.toyName}");
+            Debug.LogError($"❌ Unit prefab not found for: {unitData.toyName}");
+            Debug.Log($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return false;
         }
 
@@ -126,8 +135,9 @@ public class GridManager : MonoBehaviour
 
         if (runtimeUnit == null)
         {
-            Debug.LogError($"RuntimeUnit component not found on prefab: {unitData.toyName}");
+            Debug.LogError($"❌ RuntimeUnit component not found on prefab: {unitData.toyName}");
             Destroy(unitObj);
+            Debug.Log($"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             return false;
         }
 
@@ -149,11 +159,8 @@ public class GridManager : MonoBehaviour
 
         EventManager.OnUnitSpawn(runtimeUnit);
 
-        Debug.Log($"✅ Spawned {unitData.toyName} in slot {slotIndex} (Total: {slot.units.Count}/{unitData.maxStackPerSlot})");
-
         return true;
     }
-
     // ===== FIND SLOT FOR UNIT =====
 
     private int FindSlotForUnit(ToyUnitData unitData, bool isPlayer)
@@ -163,11 +170,18 @@ public class GridManager : MonoBehaviour
         // 1. Önce aynı karakterin olduğu slot'u ara (stack yapılacak)
         for (int i = 0; i < targetGrid.Length; i++)
         {
-            if (!targetGrid[i].IsEmpty &&
-                targetGrid[i].unitType.unitID == unitData.unitID &&
-                targetGrid[i].units.Count < unitData.maxStackPerSlot)
+            if (!targetGrid[i].IsEmpty)
             {
-                return i; // Aynı karakterin yanına ekle
+                Debug.Log($"   Slot {i}: {targetGrid[i].unitType.toyName} (Count: {targetGrid[i].units.Count}/{targetGrid[i].unitType.maxStackPerSlot})");
+
+                if (targetGrid[i].unitType.unitID == unitData.unitID &&
+                    targetGrid[i].units.Count < unitData.maxStackPerSlot)
+                {
+                    return i; // Aynı karakterin yanına ekle
+                }
+            }
+            else
+            {
             }
         }
 
@@ -181,9 +195,9 @@ public class GridManager : MonoBehaviour
         }
 
         // 3. Hiç yer yok
+        Debug.Log($"   ❌ No available slot!");
         return -1;
     }
-
     // ===== ARRANGE UNITS IN SLOT (MINI GRID LAYOUT) =====
 
     private void ArrangeUnitsInSlot(int slotIndex, bool isPlayer)

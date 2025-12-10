@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour
     [Header("Turn Control")]
     [SerializeField] private bool isPlayerTurnComplete = false;
     [SerializeField] private bool isAITurnComplete = false;
+    private bool justFinishedBattle = false;
 
     private void Start()
     {
@@ -107,10 +108,10 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"🎴 Starting Draft Phase - Turn {currentTurn}");
 
-        // ✅ Önceki karakterleri TAM CANLA geri getir (Turn 1 hariç)
-        if (currentTurn > 1)
+        if (justFinishedBattle)
         {
             gridManager.RespawnPreviousUnits();
+            justFinishedBattle = false;
         }
 
         // Show UI
@@ -223,6 +224,9 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            gridManager.ClearSceneObjects();
+            justFinishedBattle = true;
+
             // DEVAMKE → Yeni turn
             AdvanceTurn();
         }
