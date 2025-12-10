@@ -20,7 +20,6 @@ MonoBehaviour:
   baseDamage: 100
   unitType: 3
   toyRarityType: 1
-  unitPrefab: {fileID: 0}
   toySprite: {fileID: 21300000, guid: 96b7af48aa91f6e41a26dd02e6d9b84a, type: 3}
   animationFrames:
   - {fileID: 0}
@@ -30,4 +29,9 @@ MonoBehaviour:
   isExplosive: 1
   explosionDamage: 100
   hasSupport: 0
+  attackRange: 2
+  moveSpeed: 2
+  attackCooldown: 1
+  maxStackPerSlot: 9
+  unitSpacing: 1.5
   toyPrice: 0

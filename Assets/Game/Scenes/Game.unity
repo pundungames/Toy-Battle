@@ -663,7 +663,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isBattleActive: 0
-  combatTimer: 0
+  poisonTickTimer: 0
+  poisonTickInterval: 1
 --- !u!4 &540931620
 Transform:
   m_ObjectHideFlags: 0
@@ -1716,7 +1717,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1900858213}
   - component: {fileID: 1900858212}
-  - component: {fileID: 1900858211}
   - component: {fileID: 1900858210}
   m_Layer: 0
   m_Name: EnemyCam
@@ -1769,14 +1769,6 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
---- !u!81 &1900858211
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1900858209}
-  m_Enabled: 1
 --- !u!20 &1900858212
 Camera:
   m_ObjectHideFlags: 0

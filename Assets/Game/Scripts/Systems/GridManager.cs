@@ -222,8 +222,8 @@ public class GridManager : MonoBehaviour
                 RuntimeUnit unit = slot.units[index];
 
                 // Pozisyon hesapla (X ve Z ekseninde grid)
-                float xPos = centerOffset + (col * unitSpacing);
-                float zPos = centerOffset + (row * unitSpacing);
+                float xPos = centerOffset + (col * unit.data.unitSpacing);
+                float zPos = centerOffset + (row * unit.data.unitSpacing);
 
                 unit.transform.localPosition = new Vector3(xPos, 0, zPos);
 

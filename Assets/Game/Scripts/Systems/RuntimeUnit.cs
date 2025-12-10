@@ -1,10 +1,14 @@
 // ============================================================================
-// RUNTIME UNIT - 3D VERSION
-// Battle sırasında aktif olan unit instance'ı
-// IHealthProvider implement ediyor (HealthBarUI ile uyumlu)
+// RUNTIME UNIT - CONTINUOUS MOVEMENT SYSTEM (RTS Style)
+// ✅ Units move toward enemies until in range
+// ✅ Attack when in range, move when out of range
+// ✅ "Move" animation when moving, "Attack" when attacking
 // ============================================================================
 
+using System.Collections;
 using UnityEngine;
+using DG.Tweening;
+using System.Collections.Generic;
 
 public class RuntimeUnit : MonoBehaviour, IHealthProvider
 {
@@ -22,8 +26,8 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     public event System.Action<float, float> OnHealthChanged;
 
     // ===== BACKWARD COMPATIBILITY =====
-    public int currentHP => Mathf.RoundToInt(currentHealthValue); // Eski kodlar için
-    public GameObject visualObject => gameObject; // Eski kodlar için
+    public int currentHP => Mathf.RoundToInt(currentHealthValue);
+    public GameObject visualObject => gameObject;
 
     // ===== DAMAGE =====
     public int currentDamage;
@@ -35,15 +39,25 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     public int poisonTicks = 0;
 
     // ===== REFERENCES =====
-    public HealthBarUI healthBar; // Prefab'da olacak
-    public Transform projectileSpawnPoint; // Ranged unitler için
-    public Animator animator; // 3D animator
-    public EnemyDamageText damageTextPrefab; // Damage text prefab
+    public HealthBarUI healthBar;
+    public Transform projectileSpawnPoint;
+    public Animator animator;
+    public EnemyDamageText damageTextPrefab;
+
+    [Header("Combat Settings")]
+    [SerializeField] float attackRange = 2f; // Ne kadar yakın olmalı saldırmak için
+    [SerializeField] float moveSpeed = 2f; // Hareket hızı
+    [SerializeField] float attackCooldown = 1f; // Saldırı aralığı
 
     [Header("Hit Feedback")]
     [SerializeField] float hitScaleFactor = 1.1f;
     [SerializeField] float hitDuration = 0.3f;
 
+    // ===== PRIVATE STATE =====
+    private RuntimeUnit currentTarget;
+    private float lastAttackTime = 0f;
+    private bool isInBattle = false;
+    private Vector3 originalPosition;
     private Vector3 originalScale;
     private bool isHitFeedbackActive = false;
 
@@ -55,26 +69,186 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         gridSlot = slot;
         isPlayerUnit = isPlayer;
 
-        // HP & Damage setup
         maxHealth = unitData.GetScaledHP();
         currentHealthValue = maxHealth;
         currentDamage = unitData.GetScaledDamage();
 
-        // Save original scale for hit feedback
+        originalPosition = transform.localPosition;
         originalScale = transform.localScale;
 
-        // Health bar setup (eğer prefab'da varsa)
+        // ✅ Set range based on unit type
+        switch (unitData.unitType)
+        {
+            case UnitType.Melee:
+                attackRange = 1.5f; // Yakın dövüş
+                break;
+            case UnitType.Ranged:
+                attackRange = 5f; // Uzun menzil
+                break;
+            case UnitType.Assassin:
+                attackRange = 1.2f; // Çok yakın
+                break;
+            case UnitType.Explosive:
+                attackRange = 2f; // Orta menzil
+                break;
+        }
+
         if (healthBar != null)
         {
-            // HealthBarUI otomatik olarak OnHealthChanged'e subscribe olacak
             OnHealthChanged?.Invoke(currentHealthValue, maxHealth);
         }
 
-        // Animator setup
         if (animator == null)
         {
             animator = GetComponentInChildren<Animator>();
         }
+    }
+
+    // ===== BATTLE CONTROL =====
+
+    public void StartBattle()
+    {
+        isInBattle = true;
+        lastAttackTime = Time.time;
+    }
+
+    public void StopBattle()
+    {
+        isInBattle = false;
+        if (animator != null)
+        {
+            animator.SetBool("Move", false);
+            animator.SetBool("Attack", false);
+        }
+    }
+
+    // ===== UPDATE - CONTINUOUS MOVEMENT =====
+
+    private void Update()
+    {
+        if (!isInBattle || !IsAlive()) return;
+
+        // 1. Find or validate target
+        if (currentTarget == null || !currentTarget.IsAlive())
+        {
+            currentTarget = FindNearestEnemy();
+        }
+
+        if (currentTarget == null)
+        {
+            // No target, idle
+            if (animator != null)
+            {
+                animator.SetBool("Move", false);
+                animator.SetBool("Attack", false);
+            }
+            return;
+        }
+
+        // 2. Check distance to target
+        float distanceToTarget = Vector3.Distance(transform.position, currentTarget.transform.position);
+
+        // 3. If in range → Attack
+        if (distanceToTarget <= attackRange)
+        {
+            // Stop moving
+            if (animator != null)
+            {
+                animator.SetBool("Move", false);
+            }
+
+            // Attack if cooldown ready
+            if (Time.time >= lastAttackTime + attackCooldown)
+            {
+                AttackTarget(currentTarget);
+                lastAttackTime = Time.time;
+            }
+        }
+        // 4. If out of range → Move toward target
+        else
+        {
+            MoveTowardTarget(currentTarget);
+        }
+    }
+
+    // ===== FIND NEAREST ENEMY =====
+
+    private RuntimeUnit FindNearestEnemy()
+    {
+        // BattleManager'dan enemy list'i al
+        BattleManager battleManager = FindObjectOfType<BattleManager>();
+        if (battleManager == null) return null;
+
+        List<RuntimeUnit> enemies = isPlayerUnit ?
+            battleManager.GetEnemyUnits() :
+            battleManager.GetPlayerUnits();
+
+        RuntimeUnit nearest = null;
+        float minDistance = float.MaxValue;
+
+        foreach (var enemy in enemies)
+        {
+            if (enemy == null || !enemy.IsAlive()) continue;
+
+            float distance = Vector3.Distance(transform.position, enemy.transform.position);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                nearest = enemy;
+            }
+        }
+
+        return nearest;
+    }
+
+    // ===== MOVE TOWARD TARGET =====
+
+    private void MoveTowardTarget(RuntimeUnit target)
+    {
+        // Move animation ON
+        if (animator != null)
+        {
+            animator.SetBool("Move", true);
+            animator.SetBool("Attack", false);
+        }
+
+        // Calculate direction
+        Vector3 direction = (target.transform.position - transform.position).normalized;
+
+        // Move toward target
+        transform.position += direction * moveSpeed * Time.deltaTime;
+
+        // Face target (optional)
+        if (direction != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(direction);
+        }
+    }
+
+    // ===== ATTACK TARGET =====
+
+    private void AttackTarget(RuntimeUnit target)
+    {
+        // Attack animation ON
+        if (animator != null)
+        {
+            animator.SetBool("Attack", true);
+            animator.SetBool("Move", false);
+        }
+
+        // Check first attack cancel
+        if (target.hasFirstAttackCancel)
+        {
+            target.hasFirstAttackCancel = false;
+            Debug.Log($"⚔️ {target.data.toyName} blocked first attack!");
+            return;
+        }
+
+        // Deal damage
+        target.TakeDamage(GetFinalDamage());
+
+        // Taptic feedback
+        Taptic.Light();
     }
 
     // ===== HEALTH INTERFACE =====
@@ -87,13 +261,12 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         OnHealthChanged?.Invoke(currentHealthValue, maxHealth);
     }
 
-    // ===== DAMAGE (Overloads for backward compatibility) =====
+    // ===== DAMAGE =====
 
     public void TakeDamage(int damage) => TakeDamage((float)damage);
 
     public void TakeDamage(float damage)
     {
-        // Shield check
         float actualDamage = Mathf.Max(0, damage - shieldAmount);
         currentHealthValue -= actualDamage;
 
@@ -103,10 +276,9 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             OnDeath();
         }
 
-        // Notify health bar
         OnHealthChanged?.Invoke(currentHealthValue, maxHealth);
 
-        // ===== DAMAGE TEXT =====
+        // Damage text
         if (damageTextPrefab != null)
         {
             Vector3 textPos = transform.position + Vector3.up * 2f;
@@ -114,25 +286,23 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             damageText.SetTextAnimation(Mathf.CeilToInt(actualDamage).ToString());
         }
 
-        // ===== HIT FEEDBACK =====
+        // Hit feedback
         if (!isHitFeedbackActive)
         {
             StartCoroutine(HitFeedbackCoroutine());
         }
 
-        // Hit animation
         if (animator != null)
         {
             animator.SetTrigger("Hit");
         }
 
-        // Taptic feedback
         Taptic.Light();
     }
 
     // ===== HIT FEEDBACK COROUTINE =====
 
-    private System.Collections.IEnumerator HitFeedbackCoroutine()
+    private IEnumerator HitFeedbackCoroutine()
     {
         isHitFeedbackActive = true;
         float timer = 0f;
@@ -167,41 +337,28 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     private void OnDeath()
     {
+        isInBattle = false;
         EventManager.OnUnitDeath(this);
 
-        // ✅ GridManager'a slot'u temizle (sadece scene'deki obje)
         GridManager gridManager = FindObjectOfType<GridManager>();
         if (gridManager != null)
         {
             gridManager.ClearSceneSlot(gridSlot, isPlayerUnit, this);
-            Debug.Log($"💀 {data.toyName} died - slot {gridSlot} cleared (state preserved for respawn)");
+            Debug.Log($"💀 {data.toyName} died - slot {gridSlot} cleared");
         }
 
-        // Death animation
         if (animator != null)
         {
             animator.SetTrigger("Death");
         }
 
-        // Explosive unit check
         if (data.isExplosive)
         {
             Debug.Log($"{data.toyName} exploded!");
-            // Explosion VFX buraya
+            // Explosion logic buraya
         }
 
-        // Destroy after animation (örnek: 1 saniye)
         Destroy(gameObject, 1f);
-    }
-
-    // ===== ATTACK ANIMATION =====
-
-    public void PlayAttackAnimation()
-    {
-        if (animator != null)
-        {
-            animator.SetTrigger("Attack");
-        }
     }
 
     // ===== BATTLE RESET =====
@@ -212,5 +369,20 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         shieldAmount = 0f;
         hasFirstAttackCancel = false;
         poisonTicks = 0;
+    }
+
+    public void ResetPosition()
+    {
+        transform.localPosition = originalPosition;
+        transform.localScale = originalScale;
+    }
+
+    // ===== GIZMOS (Debug) =====
+
+    private void OnDrawGizmosSelected()
+    {
+        // Attack range göster
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }
