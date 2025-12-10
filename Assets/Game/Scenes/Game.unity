@@ -384,6 +384,21 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 2059529281}
+    - target: {fileID: 7303513688550672928, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 2059529281}
+    - target: {fileID: 7303513688550672928, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OnRewardContinue
+      objectReference: {fileID: 0}
+    - target: {fileID: 7303513688550672928, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: GameManager, Assembly-CSharp
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

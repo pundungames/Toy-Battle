@@ -1,7 +1,7 @@
 ﻿// ============================================================================
-// TOY UNIT DATA - 3D VERSION
+// TOY UNIT DATA - ScriptableObject
 // Her oyuncak unit'in verilerini tutar (He-Man, Toy Soldier, vb.)
-// 3D prefab reference eklendi
+// ✅ Stack System - Her karakterin kendi max stack limiti var
 // ============================================================================
 
 using UnityEngine;
@@ -23,16 +23,23 @@ public class ToyUnitData : ScriptableObject
     public UnitType unitType;
     public RarityType toyRarityType;
 
-    [Header("Visual - 3D")]
-    public GameObject unitPrefab; // ✅ 3D prefab reference (opsiyonel)
-    public Sprite toySprite; // Kart görseli (draft UI için)
-    public Sprite[] animationFrames = new Sprite[3]; // Draft card'da animasyon için
+    [Header("Visual")]
+    public Sprite toySprite; // Kart görseli
+    public Sprite[] animationFrames = new Sprite[3]; // 3-frame GIF animasyon
 
     [Header("Special Abilities")]
     public bool hasTeleport; // Assassin (TMNT)
     public bool isExplosive; // Explosive Car
     public int explosionDamage; // AoE damage amount
     public bool hasSupport; // Support units (Skeletor)
+
+    [Header("Stack Settings")]
+    [Tooltip("Max number of this unit per slot (determines grid size: 4=2x2, 9=3x3, 16=4x4)")]
+    public int maxStackPerSlot = 9; // Default 9 (3x3 grid)
+    // Recommended values:
+    // Small units (Toy Soldier, Shell Ninja): 16 (4x4)
+    // Medium units (Maximus, Slam Bros): 9 (3x3)
+    // Large units (Guardian Golem, Kaboom Tanklet): 4 (2x2)
 
     [Header("Economy")]
     public int toyPrice; // Draft'ta satın alma fiyatı

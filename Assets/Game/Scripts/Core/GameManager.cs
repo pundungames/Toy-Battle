@@ -215,6 +215,21 @@ public class GameManager : MonoBehaviour
             currencyManager.UpdateCashAndSave(GameConstants.LOSE_GOLD);
         }
 
+        // ✅ Final battle mi?
+        if (currentTurn == GameConstants.TOTAL_TURNS)
+        {
+            // MAÇ BİTTİ → Result ekranı
+            ChangeState(GameState.Reward);
+        }
+        else
+        {
+            // DEVAMKE → Yeni turn
+            AdvanceTurn();
+        }
+    }
+    // RewardPanel'de "Continue" butonuna basınca:
+    public void OnRewardContinue()
+    {
         // Chest drop check
         if (Random.value < GameConstants.CHEST_DROP_CHANCE)
         {
@@ -225,7 +240,6 @@ public class GameManager : MonoBehaviour
             ChangeState(GameState.Progress);
         }
     }
-
     private void EndMatch()
     {
         ChangeState(GameState.Reward);

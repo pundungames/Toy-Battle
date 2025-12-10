@@ -173,7 +173,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         GridManager gridManager = FindObjectOfType<GridManager>();
         if (gridManager != null)
         {
-            gridManager.ClearSceneSlot(gridSlot, isPlayerUnit);
+            gridManager.ClearSceneSlot(gridSlot, isPlayerUnit, this);
             Debug.Log($"💀 {data.toyName} died - slot {gridSlot} cleared (state preserved for respawn)");
         }
 

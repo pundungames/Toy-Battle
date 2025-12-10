@@ -166,7 +166,6 @@ public class DraftCardManager : MonoBehaviour
 
     private void DisplayCards()
     {
-        Debug.Log(currentDraftPool.Count);
         for (int i = 0; i < activeCards.Count; i++)
         {
             if (i < currentDraftPool.Count)

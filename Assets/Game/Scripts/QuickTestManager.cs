@@ -104,7 +104,7 @@ public class QuickTestManager : MonoBehaviour
     [ContextMenu("9. Clear Grid")]
     public void TestClearGrid()
     {
-        gridManager.ClearGrid();
+      //  gridManager.ClearGrid();
         Debug.Log("✅ TEST: Grid cleared");
     }
 
@@ -113,7 +113,7 @@ public class QuickTestManager : MonoBehaviour
     {
         gameManager.currentTurn = 1;
         gameManager.playerWins = 0;
-        gridManager.ClearGrid();
+      //  gridManager.ClearGrid();
         gameManager.ChangeState(GameState.MainMenu);
         Debug.Log("✅ TEST: Game reset to Main Menu");
     }
