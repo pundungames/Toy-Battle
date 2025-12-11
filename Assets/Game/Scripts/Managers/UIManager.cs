@@ -1,6 +1,7 @@
 ﻿// ============================================================================
 // UI MANAGER - Tüm panel geçişlerini yönetir (DOTween ile)
-// ✅ NEW: Enemy Render Panel control (visible during Draft & Skill Selection)
+// ✅ Enemy Render Panel control (visible during Draft only)
+// ❌ REMOVED: Skill Selection Panel
 // ============================================================================
 
 using DG.Tweening;
@@ -22,11 +23,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject rewardPanel;
     [SerializeField] GameObject chestPanel;
     [SerializeField] GameObject progressPanel;
-    [SerializeField] GameObject skillSelectionPanel;
+    // ❌ REMOVED: [SerializeField] GameObject skillSelectionPanel;
     [SerializeField] GameObject tutorialPanel;
 
     [Header("Persistent Panels")]
-    [SerializeField] GameObject enemyRenderPanel; // ✅ NEW: Always visible during draft/skill
+    [SerializeField] GameObject enemyRenderPanel; // ✅ Visible during draft only
 
     [Header("UI Elements")]
     [SerializeField] TextMeshProUGUI goldText;
@@ -64,9 +65,9 @@ public class UIManager : MonoBehaviour
         rewardPanel.SetActive(false);
         chestPanel.SetActive(false);
         progressPanel.SetActive(false);
-        skillSelectionPanel.SetActive(false);
+        // ❌ REMOVED: skillSelectionPanel.SetActive(false);
         tutorialPanel.SetActive(false);
-        enemyRenderPanel.SetActive(false); // ✅ Start hidden
+        enemyRenderPanel.SetActive(false);
     }
 
     private void OnGameStateChange(GameState newState)
@@ -153,15 +154,7 @@ public class UIManager : MonoBehaviour
         SetEnemyRenderPanelVisibility(false);
     }
 
-    public void ShowSkillSelection()
-    {
-        HideAllPanels();
-        skillSelectionPanel.SetActive(true);
-        AnimatePanelIn(skillSelectionPanel.transform);
-
-        // ✅ Show enemy render during skill selection
-        SetEnemyRenderPanelVisibility(true);
-    }
+    // ❌ REMOVED: ShowSkillSelection()
 
     public void ShowTutorialPanel()
     {
@@ -177,7 +170,7 @@ public class UIManager : MonoBehaviour
 
     /// <summary>
     /// ✅ Control Enemy Render Panel visibility
-    /// Show during: Draft, Skill Selection
+    /// Show during: Draft ONLY
     /// Hide during: MainMenu, Battle, Reward, Chest, Progress, Tutorial
     /// </summary>
     private void SetEnemyRenderPanelVisibility(bool isVisible)

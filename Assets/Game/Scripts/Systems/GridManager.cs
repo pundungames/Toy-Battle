@@ -3,6 +3,7 @@
 // ✅ BATTLE DEATHS DON'T AFFECT DRAFT STATE
 // ✅ State only changes during DRAFT (when player selects cards)
 // ✅ Battle is temporary - all units respawn after
+// ✅ FIX: Don't rearrange units during battle (they're fighting!)
 // ============================================================================
 
 using System.Collections.Generic;
@@ -124,6 +125,7 @@ public class GridManager : MonoBehaviour
 
         container.InjectGameObject(unitObj);
 
+        // ✅ Arrange units ONLY during draft (initial spawn)
         ArrangeUnitsInSlot(slotIndex, isPlayer);
 
         // ✅ Update PERMANENT state (only during draft)
@@ -284,6 +286,7 @@ public class GridManager : MonoBehaviour
 
     /// <summary>
     /// ✅ BATTLE DEATH - Only removes from BATTLE list, NOT from permanent state
+    /// ✅ FIX: DON'T rearrange units during battle (they're fighting!)
     /// </summary>
     public void ClearSceneSlot(int slotIndex, bool isPlayer, RuntimeUnit deadUnit)
     {
@@ -297,10 +300,9 @@ public class GridManager : MonoBehaviour
             Debug.Log($"💀 Battle death: Unit removed from slot {slotIndex}. Remaining in battle: {slot.units.Count}");
             Debug.Log($"💾 Permanent state UNCHANGED (battle deaths are temporary)");
 
-            if (!slot.IsEmpty)
-            {
-                ArrangeUnitsInSlot(slotIndex, isPlayer);
-            }
+            // ✅ FIX: DON'T call ArrangeUnitsInSlot during battle!
+            // Units are in combat positions, they should stay where they are
+            // Arrangement only happens during DRAFT when spawning
 
             // ✅ PERMANENT STATE NEVER CHANGES DURING BATTLE!
         }

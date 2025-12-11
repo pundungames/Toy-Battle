@@ -3,6 +3,7 @@
 // ✅ No more tick system
 // ✅ Units autonomously move and attack
 // ✅ Only handles battle start/end and poison
+// ❌ REMOVED: Skill system buffs
 // ============================================================================
 
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ public class BattleManager : MonoBehaviour
 {
     [Inject] GridManager gridManager;
     [Inject] UIManager uiManager;
-    [Inject] SkillSystem skillSystem;
+    // ❌ REMOVED: [Inject] SkillSystem skillSystem;
 
     [Header("Battle State")]
     [SerializeField] bool isBattleActive = false;
@@ -41,8 +42,8 @@ public class BattleManager : MonoBehaviour
         // Apply pre-battle effects
         ApplyPreBattleEffects();
 
-        // Apply skill buffs
-        skillSystem.ApplyActiveSkillBuffs(playerUnits);
+        // ❌ REMOVED: Apply skill buffs
+        // skillSystem.ApplyActiveSkillBuffs(playerUnits);
 
         // ✅ Tell all units to start battle (autonomous movement)
         foreach (var unit in playerUnits)
@@ -177,8 +178,8 @@ public class BattleManager : MonoBehaviour
         // Clear scene objects
         gridManager.ClearSceneObjects();
 
-        // Clear skill buffs
-        skillSystem.ClearActiveSkill();
+        // ❌ REMOVED: Clear skill buffs
+        // skillSystem.ClearActiveSkill();
 
         // Notify game manager
         EventManager.OnBattleComplete(playerWon);

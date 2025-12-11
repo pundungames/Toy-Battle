@@ -1,6 +1,7 @@
 ﻿// ============================================================================
 // SCENE INSTALLER - Zenject Dependency Injection
 // Tüm manager'ları burada bind ediyoruz
+// ❌ REMOVED: SkillSystem
 // ============================================================================
 
 using UnityEngine;
@@ -20,9 +21,11 @@ public class SceneInstaller : MonoInstaller
         Container.Bind<BattleManager>().FromComponentInHierarchy().AsSingle().NonLazy();
         Container.Bind<GridManager>().FromComponentInHierarchy().AsSingle().NonLazy();
 
-        // Bonus & Skill Systems
+        // Bonus System (Bonus cards stay!)
         Container.Bind<BonusSystem>().FromComponentInHierarchy().AsSingle().NonLazy();
-        Container.Bind<SkillSystem>().FromComponentInHierarchy().AsSingle().NonLazy();
+
+        // ❌ REMOVED: SkillSystem
+        // Container.Bind<SkillSystem>().FromComponentInHierarchy().AsSingle().NonLazy();
 
         // Meta Systems
         Container.Bind<ChestSystem>().FromComponentInHierarchy().AsSingle().NonLazy();
@@ -31,8 +34,7 @@ public class SceneInstaller : MonoInstaller
 
         // AI & Tutorial
         Container.Bind<AIController>().FromComponentInHierarchy().AsSingle().NonLazy();
-        Container.Bind<AITurnManager>().FromComponentInHierarchy().AsSingle().NonLazy(); // ✅ NEW
+        Container.Bind<AITurnManager>().FromComponentInHierarchy().AsSingle().NonLazy();
         Container.Bind<TutorialController>().FromComponentInHierarchy().AsSingle().NonLazy();
-
     }
 }

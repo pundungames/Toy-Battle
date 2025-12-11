@@ -2,6 +2,7 @@
 // GAME MANAGER - Ana oyun state machine'i
 // ✅ FIXED: Battle state management
 // ✅ FIXED: Respawn timing - AFTER battle complete, BEFORE next turn
+// ❌ REMOVED: Skill system (Turn 8/16/24 now normal draft)
 // ============================================================================
 
 using UnityEngine;
@@ -16,6 +17,7 @@ public class GameManager : MonoBehaviour
     [Inject] TutorialController tutorialController;
     [Inject] AITurnManager aiTurnManager;
     [Inject] GridManager gridManager;
+    // ❌ REMOVED: [Inject] SkillSystem skillSystem;
 
     [Header("Game State")]
     [SerializeField] internal GameState currentState;
@@ -37,6 +39,7 @@ public class GameManager : MonoBehaviour
         EventManager.onCardSelected += OnPlayerCardSelected;
         EventManager.onDraftComplete += OnBothTurnsComplete;
         EventManager.onBattleComplete += OnBattleComplete;
+        // ❌ REMOVED: EventManager.onSkillSelected += OnSkillSelected;
     }
 
     private void OnDisable()
@@ -44,6 +47,7 @@ public class GameManager : MonoBehaviour
         EventManager.onCardSelected -= OnPlayerCardSelected;
         EventManager.onDraftComplete -= OnBothTurnsComplete;
         EventManager.onBattleComplete -= OnBattleComplete;
+        // ❌ REMOVED: EventManager.onSkillSelected -= OnSkillSelected;
     }
 
     private void InitializeGame()
@@ -110,15 +114,8 @@ public class GameManager : MonoBehaviour
 
         uiManager.ShowDraftPanel();
 
-        // Skill selection turns: 8, 16, 24
-        if (currentTurn == 8 || currentTurn == 16 || currentTurn == 24)
-        {
-            uiManager.ShowSkillSelection();
-        }
-        else
-        {
-            OpenPlayerDraft();
-        }
+        // ✅ ALL TURNS: Normal draft (no skill turns)
+        OpenPlayerDraft();
     }
 
     private void OpenPlayerDraft()

@@ -33,5 +33,5 @@ MonoBehaviour:
   moveSpeed: 2
   attackCooldown: 1
   maxStackPerSlot: 9
-  unitSpacing: 0.8
+  unitSpacing: 1.006
   toyPrice: 0

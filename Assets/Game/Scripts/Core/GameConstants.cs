@@ -1,6 +1,7 @@
 // ============================================================================
 // GAME ENUMS & CONSTANTS
 // Tüm game state'ler ve sabitler burada tanımlanır
+// ❌ REMOVED: SkillType enum (no longer needed)
 // ============================================================================
 
 using UnityEngine;
@@ -56,12 +57,13 @@ public enum BotDifficulty
     Hard
 }
 
-public enum SkillType
-{
-    Attack,
-    Defense,
-    Special
-}
+// ❌ REMOVED: SkillType enum
+// public enum SkillType
+// {
+//     Attack,
+//     Defense,
+//     Special
+// }
 
 public enum BonusEffectType
 {

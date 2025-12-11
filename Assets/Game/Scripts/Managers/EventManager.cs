@@ -25,9 +25,8 @@ public static class EventManager
     public static event Action<RuntimeUnit> onUnitSpawn;
     public static event Action<RuntimeUnit> onUnitDeath;
 
-    // Bonus & Skill Events
+    // Bonus Events
     public static event Action<BonusCardData> onBonusApplied;
-    public static event Action<SkillCardData> onSkillSelected;
 
     // Chest & Merge Events
     public static event Action onChestOpen;
@@ -106,11 +105,6 @@ public static class EventManager
     public static void OnBonusApplied(BonusCardData bonus)
     {
         onBonusApplied?.Invoke(bonus);
-    }
-
-    public static void OnSkillSelected(SkillCardData skill)
-    {
-        onSkillSelected?.Invoke(skill);
     }
 
     public static void OnChestOpen()

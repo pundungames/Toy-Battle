@@ -28,7 +28,6 @@ public class DraftCardManager : MonoBehaviour
     [SerializeField] List<DraftCardContent> activeCards = new List<DraftCardContent>();
 
     [Header("UI Elements")]
-    [SerializeField] GameObject ribbon;
     [SerializeField] TextMeshProUGUI rerollPriceText;
     [SerializeField] Button rerollButton;
 
@@ -71,7 +70,6 @@ public class DraftCardManager : MonoBehaviour
 
     private void SetupUI()
     {
-        ribbon.SetActive(true);
 
         if (rerollButton != null)
         {
@@ -206,7 +204,6 @@ public class DraftCardManager : MonoBehaviour
         hasCardBeenChosen = true;
 
         Taptic.Medium();
-        ribbon.SetActive(false);
         rerollButton.gameObject.SetActive(false);
 
         SetAllCardsInteractable(false);
@@ -280,7 +277,6 @@ public class DraftCardManager : MonoBehaviour
             card.gameObject.SetActive(false);
         }
 
-        if (ribbon != null) ribbon.SetActive(false);
         if (rerollButton != null) rerollButton.gameObject.SetActive(false);
     }
 
@@ -293,7 +289,6 @@ public class DraftCardManager : MonoBehaviour
         }
 
         hasCardBeenChosen = false;
-        ribbon.SetActive(true);
         rerollButton.gameObject.SetActive(true);
         SetAllCardsInteractable(true);
     }
