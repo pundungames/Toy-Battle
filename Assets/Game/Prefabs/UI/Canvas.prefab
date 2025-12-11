@@ -2111,14 +2111,15 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7777845965702070967}
+  - {fileID: 6172627603796934126}
   - {fileID: 6141880581723289203}
+  - {fileID: 6571992931712468471}
   - {fileID: 7875530800467693712}
+  - {fileID: 8989400619924954180}
   - {fileID: 740080191222121985}
   - {fileID: 8494984491253297568}
-  - {fileID: 6571992931712468471}
   - {fileID: 2940840046977411234}
   - {fileID: 1339764087243211897}
-  - {fileID: 8989400619924954180}
   - {fileID: 3073781994526866197}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2210,6 +2211,7 @@ MonoBehaviour:
   progressPanel: {fileID: 2676907858096677891}
   skillSelectionPanel: {fileID: 8820255621572938098}
   tutorialPanel: {fileID: 2703443775422064337}
+  enemyRenderPanel: {fileID: 8567944157667131387}
   goldText: {fileID: 0}
   turnText: {fileID: 3062702908331012680}
   waveIndicator: {fileID: 3428410388598652154}
@@ -3106,8 +3108,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1432670466409567294}
-  - {fileID: 5780497667178056404}
-  - {fileID: 6455285390953908339}
   m_Father: {fileID: 707813182123426287}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3359,7 +3359,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6455285390953908339}
   m_Layer: 5
-  m_Name: BattelVS
+  m_Name: BattleVS
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3378,11 +3378,11 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3225389080858933180}
-  m_Father: {fileID: 6141880581723289203}
+  m_Father: {fileID: 6172627603796934126}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 361.26}
+  m_AnchoredPosition: {x: 0, y: 274}
   m_SizeDelta: {x: 0, y: -2110.0664}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &5950184365529993930
@@ -4080,12 +4080,12 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7067816543051919321}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 6141880581723289203}
+  m_Father: {fileID: 6172627603796934126}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -4888,6 +4888,43 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &8567944157667131387
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6172627603796934126}
+  m_Layer: 5
+  m_Name: EnemyRender
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &6172627603796934126
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8567944157667131387}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5780497667178056404}
+  - {fileID: 6455285390953908339}
+  m_Father: {fileID: 707813182123426287}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &8687923544331260675
 GameObject:
   m_ObjectHideFlags: 0

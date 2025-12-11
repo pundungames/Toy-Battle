@@ -1,5 +1,6 @@
 ﻿// ============================================================================
 // UI MANAGER - Tüm panel geçişlerini yönetir (DOTween ile)
+// ✅ NEW: Enemy Render Panel control (visible during Draft & Skill Selection)
 // ============================================================================
 
 using DG.Tweening;
@@ -17,11 +18,15 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject menuPanel;
     [SerializeField] GameObject draftPanel;
     [SerializeField] GameObject battlePanel;
+    [SerializeField] GameObject battleCam;
     [SerializeField] GameObject rewardPanel;
     [SerializeField] GameObject chestPanel;
     [SerializeField] GameObject progressPanel;
     [SerializeField] GameObject skillSelectionPanel;
     [SerializeField] GameObject tutorialPanel;
+
+    [Header("Persistent Panels")]
+    [SerializeField] GameObject enemyRenderPanel; // ✅ NEW: Always visible during draft/skill
 
     [Header("UI Elements")]
     [SerializeField] TextMeshProUGUI goldText;
@@ -55,16 +60,17 @@ public class UIManager : MonoBehaviour
         menuPanel.SetActive(false);
         draftPanel.SetActive(false);
         battlePanel.SetActive(false);
+        battleCam.SetActive(false);
         rewardPanel.SetActive(false);
         chestPanel.SetActive(false);
         progressPanel.SetActive(false);
         skillSelectionPanel.SetActive(false);
         tutorialPanel.SetActive(false);
+        enemyRenderPanel.SetActive(false); // ✅ Start hidden
     }
 
     private void OnGameStateChange(GameState newState)
     {
-        // State değişimlerinde otomatik panel gösterimi
         switch (newState)
         {
             case GameState.Draft:
@@ -80,26 +86,38 @@ public class UIManager : MonoBehaviour
         HideAllPanels();
         menuPanel.SetActive(true);
         AnimatePanelIn(menuPanel.transform);
+
+        // ✅ Hide enemy render in main menu
+        SetEnemyRenderPanelVisibility(false);
     }
 
     public void ShowDraftPanel()
     {
         HideAllPanels();
         draftPanel.SetActive(true);
-        // ✅ DraftCardManager'ı aktif et (child component)
+
+        // ✅ DraftCardManager'ı aktif et
         DraftCardManager draftManager = draftPanel.GetComponentInChildren<DraftCardManager>(true);
         if (draftManager != null)
         {
             draftManager.gameObject.SetActive(true);
         }
+
         AnimatePanelIn(draftPanel.transform);
+
+        // ✅ Show enemy render during draft
+        SetEnemyRenderPanelVisibility(true);
     }
 
     public void ShowBattlePanel()
     {
         HideAllPanels();
         battlePanel.SetActive(true);
+        battleCam.SetActive(true);
         AnimatePanelIn(battlePanel.transform);
+
+        // ✅ Hide enemy render during battle
+        SetEnemyRenderPanelVisibility(false);
     }
 
     public void ShowRewardPanel()
@@ -107,6 +125,9 @@ public class UIManager : MonoBehaviour
         HideAllPanels();
         rewardPanel.SetActive(true);
         AnimatePanelIn(rewardPanel.transform);
+
+        // ✅ Hide enemy render in reward
+        SetEnemyRenderPanelVisibility(false);
 
         Taptic.Success();
         audioManager?.Play("Win");
@@ -117,6 +138,9 @@ public class UIManager : MonoBehaviour
         HideAllPanels();
         chestPanel.SetActive(true);
         AnimatePanelIn(chestPanel.transform);
+
+        // ✅ Hide enemy render in chest
+        SetEnemyRenderPanelVisibility(false);
     }
 
     public void ShowProgressPanel()
@@ -124,6 +148,9 @@ public class UIManager : MonoBehaviour
         HideAllPanels();
         progressPanel.SetActive(true);
         AnimatePanelIn(progressPanel.transform);
+
+        // ✅ Hide enemy render in progress
+        SetEnemyRenderPanelVisibility(false);
     }
 
     public void ShowSkillSelection()
@@ -131,6 +158,9 @@ public class UIManager : MonoBehaviour
         HideAllPanels();
         skillSelectionPanel.SetActive(true);
         AnimatePanelIn(skillSelectionPanel.transform);
+
+        // ✅ Show enemy render during skill selection
+        SetEnemyRenderPanelVisibility(true);
     }
 
     public void ShowTutorialPanel()
@@ -138,6 +168,49 @@ public class UIManager : MonoBehaviour
         HideAllPanels();
         tutorialPanel.SetActive(true);
         AnimatePanelIn(tutorialPanel.transform);
+
+        // ✅ Hide enemy render in tutorial
+        SetEnemyRenderPanelVisibility(false);
+    }
+
+    // ===== ENEMY RENDER PANEL CONTROL =====
+
+    /// <summary>
+    /// ✅ Control Enemy Render Panel visibility
+    /// Show during: Draft, Skill Selection
+    /// Hide during: MainMenu, Battle, Reward, Chest, Progress, Tutorial
+    /// </summary>
+    private void SetEnemyRenderPanelVisibility(bool isVisible)
+    {
+        if (enemyRenderPanel == null)
+        {
+            Debug.LogWarning("⚠️ Enemy Render Panel not assigned in UIManager!");
+            return;
+        }
+
+        enemyRenderPanel.SetActive(isVisible);
+
+        if (isVisible)
+        {
+            Debug.Log("👁️ Enemy Render Panel: VISIBLE");
+        }
+        else
+        {
+            Debug.Log("🙈 Enemy Render Panel: HIDDEN");
+        }
+    }
+
+    /// <summary>
+    /// ✅ Public method to manually control enemy render panel (if needed)
+    /// </summary>
+    public void ShowEnemyRenderPanel()
+    {
+        SetEnemyRenderPanelVisibility(true);
+    }
+
+    public void HideEnemyRenderPanel()
+    {
+        SetEnemyRenderPanelVisibility(false);
     }
 
     // ===== WAVE INDICATOR =====
