@@ -1,6 +1,7 @@
 // ============================================================================
 // GAME ENUMS & CONSTANTS
 // Tüm game state'ler ve sabitler burada tanımlanır
+// ✅ FIXED: GRID_SIZE = 9 (3x3 grid)
 // ❌ REMOVED: SkillType enum (no longer needed)
 // ============================================================================
 
@@ -9,7 +10,7 @@ using UnityEngine;
 public static class GameConstants
 {
     public const int TOTAL_TURNS = 30;
-    public const int GRID_SIZE = 6;
+    public const int GRID_SIZE = 9; // ✅ 3x3 grid = 9 slots
     public const float COMBAT_TICK_INTERVAL = 0.5f;
     public const int CARDS_PER_DRAFT = 3;
     public const int STARTING_UNITS = 4;

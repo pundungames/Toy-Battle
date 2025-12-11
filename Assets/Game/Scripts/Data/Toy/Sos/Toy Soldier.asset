@@ -29,9 +29,11 @@ MonoBehaviour:
   isExplosive: 0
   explosionDamage: 0
   hasSupport: 0
-  attackRange: 2
+  attackRange: 10
   moveSpeed: 2
   attackCooldown: 1
-  maxStackPerSlot: 27
+  arrangementIndex: 85
+  maxUnitsPerRow: 24
   unitSpacing: 0.347
+  maxStackPerSlot: 27
   toyPrice: 0

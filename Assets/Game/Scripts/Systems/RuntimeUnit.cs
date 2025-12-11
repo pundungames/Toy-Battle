@@ -2,7 +2,7 @@
 // RUNTIME UNIT - CONTINUOUS MOVEMENT SYSTEM (RTS Style)
 // ✅ Units move toward enemies until in range
 // ✅ Attack when in range, move when out of range
-// ✅ "Move" animation when moving, "Attack" when attacking
+// ✅ Values loaded from ToyUnitData (attackRange, moveSpeed, attackCooldown)
 // ============================================================================
 
 using System.Collections;
@@ -44,10 +44,11 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     public Animator animator;
     public EnemyDamageText damageTextPrefab;
 
-    [Header("Combat Settings")]
-    [SerializeField] float attackRange = 2f; // Ne kadar yakın olmalı saldırmak için
-    [SerializeField] float moveSpeed = 2f; // Hareket hızı
-    [SerializeField] float attackCooldown = 1f; // Saldırı aralığı
+    // ===== COMBAT SETTINGS (Loaded from ToyUnitData) =====
+    [Header("Combat Settings (Auto-loaded from ScriptableObject)")]
+    [SerializeField] private float attackRange = 2f;
+    [SerializeField] private float moveSpeed = 2f;
+    [SerializeField] private float attackCooldown = 1f;
 
     [Header("Hit Feedback")]
     [SerializeField] float hitScaleFactor = 1.1f;
@@ -76,22 +77,10 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         originalPosition = transform.localPosition;
         originalScale = transform.localScale;
 
-        // ✅ Set range based on unit type
-        switch (unitData.unitType)
-        {
-            case UnitType.Melee:
-                attackRange = 1.5f; // Yakın dövüş
-                break;
-            case UnitType.Ranged:
-                attackRange = 5f; // Uzun menzil
-                break;
-            case UnitType.Assassin:
-                attackRange = 1.2f; // Çok yakın
-                break;
-            case UnitType.Explosive:
-                attackRange = 2f; // Orta menzil
-                break;
-        }
+        // ✅ Load combat values from ToyUnitData (ScriptableObject)
+        attackRange = unitData.attackRange;
+        moveSpeed = unitData.moveSpeed;
+        attackCooldown = unitData.attackCooldown;
 
         if (healthBar != null)
         {
@@ -102,6 +91,8 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         {
             animator = GetComponentInChildren<Animator>();
         }
+
+        Debug.Log($"✅ {unitData.toyName} initialized: Range={attackRange}, Speed={moveSpeed}, Cooldown={attackCooldown}");
     }
 
     // ===== BATTLE CONTROL =====

@@ -2,6 +2,7 @@
 // DRAFT CARD MANAGER - Kart seçim sistemini yönetir
 // Her turn 3 kart gösterir: 2 Toy Unit + 1 Bonus (veya 3 Unit)
 // ✅ FIX: Aynı kart birden fazla gelmez (no duplicates)
+// ❌ REMOVED: Reroll system (ribbon button removed)
 // ============================================================================
 
 using DG.Tweening;
@@ -27,13 +28,8 @@ public class DraftCardManager : MonoBehaviour
     [Header("Active Cards")]
     [SerializeField] List<DraftCardContent> activeCards = new List<DraftCardContent>();
 
-    [Header("UI Elements")]
-    [SerializeField] TextMeshProUGUI rerollPriceText;
-    [SerializeField] Button rerollButton;
-
     [Header("Settings")]
     [SerializeField] bool isShopMode = false;
-    [SerializeField] int rerollCost = 10;
     [SerializeField] int currentPips = 2;
 
     [Header("Rarity Weights")]
@@ -62,25 +58,9 @@ public class DraftCardManager : MonoBehaviour
 
         GenerateDraftCards();
         DisplayCards();
-        SetupUI();
 
         // ✅ GameObject'i aktif et
         gameObject.SetActive(true);
-    }
-
-    private void SetupUI()
-    {
-
-        if (rerollButton != null)
-        {
-            rerollPriceText.text = rerollCost.ToString();
-            rerollButton.gameObject.SetActive(true);
-            rerollButton.interactable = currencyManager.HasGold(rerollCost);
-            rerollButton.onClick.RemoveAllListeners();
-            rerollButton.onClick.AddListener(OnRerollClick);
-        }
-
-        CheckCurrency();
     }
 
     // ===== CARD GENERATION (NO DUPLICATES) =====
@@ -204,7 +184,6 @@ public class DraftCardManager : MonoBehaviour
         hasCardBeenChosen = true;
 
         Taptic.Medium();
-        rerollButton.gameObject.SetActive(false);
 
         SetAllCardsInteractable(false);
 
@@ -276,8 +255,6 @@ public class DraftCardManager : MonoBehaviour
         {
             card.gameObject.SetActive(false);
         }
-
-        if (rerollButton != null) rerollButton.gameObject.SetActive(false);
     }
 
     public void CancelSelection()
@@ -289,7 +266,6 @@ public class DraftCardManager : MonoBehaviour
         }
 
         hasCardBeenChosen = false;
-        rerollButton.gameObject.SetActive(true);
         SetAllCardsInteractable(true);
     }
 
@@ -304,39 +280,10 @@ public class DraftCardManager : MonoBehaviour
         }
     }
 
-    // ===== REROLL =====
-
-    private void OnRerollClick()
-    {
-        Taptic.Light();
-
-        if (!currencyManager.HasGold(rerollCost)) return;
-
-        currencyManager.Payment(rerollCost);
-
-        // Animate cards
-        foreach (var card in activeCards)
-        {
-            card.ResetCardVisuals();
-            card.transform.DOScale(Vector3.one * 1.1f, 0.1f)
-                .SetUpdate(true)
-                .OnComplete(() => card.transform.DOScale(Vector3.one, 0.1f).SetUpdate(true));
-        }
-
-        GenerateDraftCards();
-        DisplayCards();
-        SetupUI();
-
-        EventManager.OnReroll();
-    }
-
-    private void CheckCurrency()
-    {
-        foreach (var card in activeCards)
-        {
-            card.CheckCurrency();
-        }
-    }
+    // ❌ REMOVED: Reroll system
+    // - No reroll button
+    // - No reroll cost
+    // - No OnRerollClick method
 
     private void OnCardConfirmed(ToyUnitData unitData)
     {

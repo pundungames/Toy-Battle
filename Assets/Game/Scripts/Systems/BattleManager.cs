@@ -1,11 +1,11 @@
 // ============================================================================
-// BATTLE MANAGER - SIMPLIFIED (Units handle their own movement)
-// ✅ No more tick system
-// ✅ Units autonomously move and attack
-// ✅ Only handles battle start/end and poison
-// ❌ REMOVED: Skill system buffs
+// BATTLE MANAGER - WITH FORMATION SYSTEM
+// ✅ StartBattle() calls ArrangeUnitsInFormation()
+// ✅ 1 second wait for formation animation
+// ✅ Then units start autonomous combat
 // ============================================================================
 
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
@@ -14,17 +14,19 @@ public class BattleManager : MonoBehaviour
 {
     [Inject] GridManager gridManager;
     [Inject] UIManager uiManager;
-    // ❌ REMOVED: [Inject] SkillSystem skillSystem;
 
     [Header("Battle State")]
     [SerializeField] bool isBattleActive = false;
     [SerializeField] float poisonTickTimer = 0f;
-    [SerializeField] float poisonTickInterval = 1f; // Poison her 1 saniyede bir
+    [SerializeField] float poisonTickInterval = 1f;
+
+    [Header("Formation Settings")]
+    [SerializeField] float formationWaitTime = 1.0f; // Wait for formation animation
 
     private List<RuntimeUnit> playerUnits = new List<RuntimeUnit>();
     private List<RuntimeUnit> enemyUnits = new List<RuntimeUnit>();
 
-    // ===== PUBLIC GETTERS (for RuntimeUnit to find enemies) =====
+    // ===== PUBLIC GETTERS =====
 
     public List<RuntimeUnit> GetPlayerUnits() => playerUnits;
     public List<RuntimeUnit> GetEnemyUnits() => enemyUnits;
@@ -35,17 +37,36 @@ public class BattleManager : MonoBehaviour
     {
         uiManager.ShowBattlePanel();
 
-        // Collect units from grid
+        // Start formation sequence
+        StartCoroutine(BattleFormationSequence());
+    }
+
+    /// <summary>
+    /// ✅ NEW: Formation sequence before battle starts
+    /// </summary>
+    private IEnumerator BattleFormationSequence()
+    {
+        Debug.Log("🎯 Starting formation sequence...");
+
+        // 1. Collect units from grid
         playerUnits = gridManager.GetPlayerUnits();
         enemyUnits = gridManager.GetEnemyUnits();
 
-        // Apply pre-battle effects
+        Debug.Log($"📊 Battle units: {playerUnits.Count} player vs {enemyUnits.Count} enemy");
+
+        // 2. Apply pre-battle effects (teleport, etc)
         ApplyPreBattleEffects();
 
-        // ❌ REMOVED: Apply skill buffs
-        // skillSystem.ApplyActiveSkillBuffs(playerUnits);
+        // 3. Arrange formations (animated)
+        gridManager.ArrangeUnitsInFormation(isPlayer: true);
+        gridManager.ArrangeUnitsInFormation(isPlayer: false);
 
-        // ✅ Tell all units to start battle (autonomous movement)
+        Debug.Log($"⏳ Waiting {formationWaitTime}s for formation animation...");
+
+        // 4. Wait for formation animation to complete
+        yield return new WaitForSeconds(formationWaitTime);
+
+        // 5. Tell units to start battle
         foreach (var unit in playerUnits)
         {
             unit.StartBattle();
@@ -56,18 +77,20 @@ public class BattleManager : MonoBehaviour
             unit.StartBattle();
         }
 
-        // Start battle
+        // 6. Start battle
         isBattleActive = true;
         poisonTickTimer = 0f;
 
         EventManager.OnBattleStart();
+
+        Debug.Log("⚔️ Battle started! Units are now fighting!");
     }
 
     // ===== PRE-BATTLE EFFECTS =====
 
     private void ApplyPreBattleEffects()
     {
-        // Assassin teleport
+        // Assassin teleport (if still needed)
         foreach (var unit in playerUnits)
         {
             if (unit.data.hasTeleport)
@@ -89,12 +112,11 @@ public class BattleManager : MonoBehaviour
     {
         if (enemies.Count == 0) return;
 
-        // Find back row enemy position
-        RuntimeUnit backRowEnemy = enemies.Find(e => e != null && e.gridSlot >= 3);
+        // Find back row enemy
+        RuntimeUnit backRowEnemy = enemies.Find(e => e != null && e.gridSlot >= 6);
 
         if (backRowEnemy != null)
         {
-            // Teleport to near back row enemy
             Vector3 teleportPos = backRowEnemy.transform.position +
                 (assassin.isPlayerUnit ? Vector3.back : Vector3.forward) * 1f;
 
@@ -104,7 +126,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    // ===== UPDATE - ONLY FOR POISON & END CHECK =====
+    // ===== UPDATE - POISON & END CHECK =====
 
     private void Update()
     {
@@ -118,7 +140,7 @@ public class BattleManager : MonoBehaviour
             ApplyPoisonDamage();
         }
 
-        // 2. Remove dead units from lists (cleanup)
+        // 2. Remove dead units
         playerUnits.RemoveAll(u => u == null || !u.IsAlive());
         enemyUnits.RemoveAll(u => u == null || !u.IsAlive());
 
@@ -175,11 +197,8 @@ public class BattleManager : MonoBehaviour
             if (unit != null) unit.StopBattle();
         }
 
-        // Clear scene objects
+        // Clear scene
         gridManager.ClearSceneObjects();
-
-        // ❌ REMOVED: Clear skill buffs
-        // skillSystem.ClearActiveSkill();
 
         // Notify game manager
         EventManager.OnBattleComplete(playerWon);

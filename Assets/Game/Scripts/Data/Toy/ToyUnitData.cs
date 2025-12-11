@@ -1,6 +1,8 @@
 ﻿// ============================================================================
-// TOY UNIT DATA - WITH COMBAT RANGE
-// ✅ Each character has their own attack range and speed
+// TOY UNIT DATA - WITH FORMATION SYSTEM
+// ✅ arrangementIndex: Position priority (0-100, higher = back)
+// ✅ maxUnitsPerRow: Row capacity for overflow handling
+// ✅ unitSpacing: Already exists (inter-unit spacing)
 // ============================================================================
 
 using UnityEngine;
@@ -40,20 +42,33 @@ public class ToyUnitData : ScriptableObject
     [Tooltip("Time between attacks (seconds)")]
     public float attackCooldown = 1f;
 
-    // Recommended values:
-    // MELEE (Guardian Golem, Maximus, Slam Bros): 
-    //   - attackRange: 1.5f, moveSpeed: 2f, attackCooldown: 1f
-    // RANGED (Toy Soldier, Gunners Brigade):
-    //   - attackRange: 5f, moveSpeed: 1.5f, attackCooldown: 0.8f
-    // ASSASSIN (Shell Ninja):
-    //   - attackRange: 1.2f, moveSpeed: 3f, attackCooldown: 0.6f
-    // EXPLOSIVE (Blast Racer, Kaboom Tanklet):
-    //   - attackRange: 2f, moveSpeed: 1.8f, attackCooldown: 1.5f
+    // Recommended combat values by type:
+    // MELEE: attackRange: 1.5f, moveSpeed: 2f, attackCooldown: 1f
+    // RANGED: attackRange: 5f, moveSpeed: 1.5f, attackCooldown: 0.8f
+    // ASSASSIN: attackRange: 1.2f, moveSpeed: 3f, attackCooldown: 0.6f
+    // EXPLOSIVE: attackRange: 2f, moveSpeed: 1.8f, attackCooldown: 1.5f
 
-    [Header("Stack Settings")]
-    [Tooltip("Max number of this unit per slot")]
+    [Header("Formation Settings")]
+    [Tooltip("Position priority (0-100). Higher = Further back")]
+    [Range(0, 100)]
+    public int arrangementIndex = 50;
+
+    [Tooltip("Maximum units in single horizontal row")]
+    [Range(2, 30)]
+    public int maxUnitsPerRow = 4;
+
+    [Tooltip("Spacing between units of this type")]
+    public float unitSpacing = 1f;
+
+    // Recommended formation values by type:
+    // TANK (Guardian Golem): arrangementIndex: 100, maxUnitsPerRow: 4, spacing: 1.5f
+    // FIGHTER (Maximus): arrangementIndex: 60, maxUnitsPerRow: 4, spacing: 1.0f
+    // RANGED (Toy Soldier): arrangementIndex: 50, maxUnitsPerRow: 6, spacing: 0.8f
+    // ASSASSIN (Shell Ninja): arrangementIndex: 10, maxUnitsPerRow: 3, spacing: 1.0f
+
+    [Header("Stack Settings (Legacy - Draft Only)")]
+    [Tooltip("Max number of this unit per slot (used during draft)")]
     public int maxStackPerSlot = 9;
-    public float unitSpacing;
 
     [Header("Economy")]
     public int toyPrice;
