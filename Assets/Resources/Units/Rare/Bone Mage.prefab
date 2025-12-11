@@ -2671,7 +2671,8 @@ MonoBehaviour:
   healthBar: {fileID: 0}
   projectileSpawnPoint: {fileID: 0}
   animator: {fileID: 0}
-  damageTextPrefab: {fileID: 0}
+  damageTextPrefab: {fileID: 3984627090072963299, guid: 113a0a1e4022bc1498aa53bebc508732,
+    type: 3}
   attackRange: 2
   moveSpeed: 2
   attackCooldown: 1

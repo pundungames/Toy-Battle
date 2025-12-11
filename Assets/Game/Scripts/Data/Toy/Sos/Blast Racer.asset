@@ -30,7 +30,7 @@ MonoBehaviour:
   explosionDamage: 112
   hasSupport: 0
   attackRange: 2
-  moveSpeed: 1.4
+  moveSpeed: 2.2
   attackCooldown: 1
   arrangementIndex: 65
   maxUnitsPerRow: 7

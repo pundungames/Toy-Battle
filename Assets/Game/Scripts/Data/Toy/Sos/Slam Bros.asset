@@ -29,8 +29,8 @@ MonoBehaviour:
   isExplosive: 0
   explosionDamage: 0
   hasSupport: 0
-  attackRange: 2.2
-  moveSpeed: 1.6
+  attackRange: 2
+  moveSpeed: 2.5
   attackCooldown: 1
   arrangementIndex: 60
   maxUnitsPerRow: 9

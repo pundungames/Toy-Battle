@@ -1,12 +1,10 @@
 // ============================================================================
-// GRID MANAGER - FORMATION SYSTEM
-// ✅ Draft: Normal spawn (grid pattern in slots)
-// ✅ Battle: ArrangeUnitsInFormation() (strategic positioning)
-// ✅ arrangementIndex-based formation (higher = back)
-// ✅ Multi-row overflow handling
-// ✅ X-axis centering, Z-axis depth
+// GRID MANAGER - FORMATION SYSTEM WITH NAVMESHAGENT SUPPORT
+// ✅ Formation animation with DOTween (agent disabled)
+// ✅ After animation: Enable agents for battle
 // ============================================================================
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -22,26 +20,18 @@ public class GridManager : MonoBehaviour
     [SerializeField] Transform[] enemyGridSlots = new Transform[GameConstants.GRID_SIZE];
 
     [Header("Unit Prefabs - 3D")]
-    [Tooltip("Resources/Units/ klasöründen prefab yükleme")]
     [SerializeField] bool useResourcesFolder = true;
 
     [Header("Formation Settings")]
-    [Tooltip("Player formation base position (back)")]
     [SerializeField] float baseBackPositionZ = -3.6f;
-
-    [Tooltip("Enemy formation base position (back)")]
     [SerializeField] float enemyBasePositionZ = 3.6f;
-
-    [Tooltip("Spacing between rows of same unit type")]
     [SerializeField] float rowToRowOffset = 1.0f;
-
-    [Tooltip("Formation animation duration")]
     [SerializeField] float formationAnimationDuration = 1.0f;
 
     [Header("Settings")]
     [SerializeField] int maxDeployCount = GameConstants.GRID_SIZE;
 
-    // ===== GRID SLOTS (Multi-Unit) =====
+    // ===== GRID SLOTS =====
     private GridSlot[] playerGrid = new GridSlot[GameConstants.GRID_SIZE];
     private GridSlot[] enemyGrid = new GridSlot[GameConstants.GRID_SIZE];
 
@@ -66,8 +56,6 @@ public class GridManager : MonoBehaviour
     private Dictionary<int, GridSlotData> playerGridState = new Dictionary<int, GridSlotData>();
     private Dictionary<int, GridSlotData> enemyGridState = new Dictionary<int, GridSlotData>();
 
-    // ===== INITIALIZATION =====
-
     private void Start()
     {
         InitializeGrids();
@@ -88,7 +76,7 @@ public class GridManager : MonoBehaviour
         Debug.Log("✅ Grid slots initialized");
     }
 
-    // ===== SPAWN UNIT (DRAFT PHASE) =====
+    // ===== SPAWN UNIT (DRAFT) =====
 
     public bool SpawnUnit(ToyUnitData unitData, bool isPlayer, int slotIndex = -1)
     {
@@ -139,10 +127,7 @@ public class GridManager : MonoBehaviour
 
         container.InjectGameObject(unitObj);
 
-        // ✅ DRAFT: Arrange in slot (grid pattern)
         ArrangeUnitsInSlot(slotIndex, isPlayer);
-
-        // ✅ Update permanent state
         UpdatePermanentState(slotIndex, isPlayer);
 
         EventManager.OnUnitSpawn(runtimeUnit);
@@ -150,13 +135,10 @@ public class GridManager : MonoBehaviour
         return true;
     }
 
-    // ===== FIND SLOT FOR UNIT =====
-
     private int FindSlotForUnit(ToyUnitData unitData, bool isPlayer)
     {
         GridSlot[] targetGrid = isPlayer ? playerGrid : enemyGrid;
 
-        // 1. Same character slot
         for (int i = 0; i < targetGrid.Length; i++)
         {
             if (!targetGrid[i].IsEmpty)
@@ -169,7 +151,6 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        // 2. Empty slot
         for (int i = 0; i < targetGrid.Length; i++)
         {
             if (targetGrid[i].IsEmpty)
@@ -181,7 +162,7 @@ public class GridManager : MonoBehaviour
         return -1;
     }
 
-    // ===== ARRANGE UNITS IN SLOT (DRAFT ONLY) =====
+    // ===== ARRANGE IN SLOT (DRAFT) =====
 
     private void ArrangeUnitsInSlot(int slotIndex, bool isPlayer)
     {
@@ -208,19 +189,15 @@ public class GridManager : MonoBehaviour
         }
     }
 
-    // ===== ARRANGE UNITS IN FORMATION (BATTLE START) =====
+    // ===== ARRANGE FORMATION (BATTLE START) =====
 
-    /// <summary>
-    /// ✅ MAIN FORMATION METHOD
-    /// Called at battle start to arrange all units in strategic formation
-    /// </summary>
-    public void ArrangeUnitsInFormation(bool isPlayer)
+    public IEnumerator ArrangeUnitsInFormationCoroutine(bool isPlayer)
     {
         Debug.Log($"🎯 Arranging formation for {(isPlayer ? "PLAYER" : "ENEMY")}");
 
         GridSlot[] targetGrid = isPlayer ? playerGrid : enemyGrid;
 
-        // 1. Collect all units grouped by unit type
+        // 1. Collect units by type
         Dictionary<ToyUnitData, List<RuntimeUnit>> unitsByType = new Dictionary<ToyUnitData, List<RuntimeUnit>>();
 
         foreach (var slot in targetGrid)
@@ -237,18 +214,21 @@ public class GridManager : MonoBehaviour
             unitsByType[unitType].AddRange(slot.units);
         }
 
-        // 2. Sort unit types by arrangementIndex (descending: 100 → 0)
+        // 2. Sort by arrangementIndex
         var sortedUnitTypes = unitsByType.Keys.OrderByDescending(u => u.arrangementIndex).ToList();
 
-        Debug.Log($"📊 Unit types in formation order:");
-        foreach (var unitType in sortedUnitTypes)
+        // 3. Prepare units for formation (disable NavMeshAgent)
+        foreach (var units in unitsByType.Values)
         {
-            Debug.Log($"   - {unitType.toyName} (index: {unitType.arrangementIndex}, count: {unitsByType[unitType].Count})");
+            foreach (var unit in units)
+            {
+                unit.PrepareForFormation();
+            }
         }
 
-        // 3. Calculate formation positions
+        // 4. Calculate positions and animate
         float currentZ = isPlayer ? baseBackPositionZ : enemyBasePositionZ;
-        float zDirection = isPlayer ? 1f : -1f; // Player: +Z, Enemy: -Z
+        float zDirection = isPlayer ? 1f : -1f;
 
         foreach (var unitType in sortedUnitTypes)
         {
@@ -257,55 +237,59 @@ public class GridManager : MonoBehaviour
             int maxPerRow = unitType.maxUnitsPerRow;
             float spacing = unitType.unitSpacing;
 
-            // Calculate rows needed
             int rowsNeeded = Mathf.CeilToInt((float)totalUnits / maxPerRow);
-
-            Debug.Log($"🔹 {unitType.toyName}: {totalUnits} units → {rowsNeeded} rows (max {maxPerRow}/row)");
 
             int unitIndex = 0;
 
             for (int row = 0; row < rowsNeeded; row++)
             {
-                // Units in this row
                 int unitsInRow = Mathf.Min(maxPerRow, totalUnits - unitIndex);
-
-                // Z position for this row
                 float rowZ = currentZ + (row * rowToRowOffset * zDirection);
 
-                // X positions (centered at 0)
                 List<Vector3> rowPositions = CalculateRowPositions(unitsInRow, spacing, rowZ);
 
-                // Assign positions to units
                 for (int i = 0; i < unitsInRow && unitIndex < totalUnits; i++)
                 {
                     RuntimeUnit unit = unitsOfType[unitIndex];
                     Vector3 targetPosition = rowPositions[i];
 
-                    // Animate to formation position
+                    // ✅ DOTween animation (agent is disabled)
                     unit.transform.DOMove(targetPosition, formationAnimationDuration)
                         .SetEase(Ease.OutQuad);
 
                     unitIndex++;
                 }
-
-                Debug.Log($"   Row {row + 1}: {unitsInRow} units at Z = {rowZ:F2}");
             }
 
-            // Move to next unit type zone
             currentZ += (rowsNeeded * rowToRowOffset + spacing) * zDirection;
+        }
+
+        // 5. Wait for animation
+        yield return new WaitForSeconds(formationAnimationDuration);
+
+        // 6. Formation complete - enable agents
+        foreach (var units in unitsByType.Values)
+        {
+            foreach (var unit in units)
+            {
+                unit.FormationComplete();
+            }
         }
 
         Debug.Log($"✅ Formation complete for {(isPlayer ? "PLAYER" : "ENEMY")}");
     }
 
     /// <summary>
-    /// Calculate X positions for a row (centered at X = 0)
+    /// Non-coroutine version for backward compatibility
     /// </summary>
+    public void ArrangeUnitsInFormation(bool isPlayer)
+    {
+        StartCoroutine(ArrangeUnitsInFormationCoroutine(isPlayer));
+    }
+
     private List<Vector3> CalculateRowPositions(int unitCount, float spacing, float zPos)
     {
         List<Vector3> positions = new List<Vector3>();
-
-        // Calculate half-width for centering
         float halfWidth = (unitCount - 1) * spacing / 2f;
 
         for (int i = 0; i < unitCount; i++)
@@ -317,8 +301,6 @@ public class GridManager : MonoBehaviour
         return positions;
     }
 
-    // ===== UPDATE PERMANENT STATE =====
-
     private void UpdatePermanentState(int slotIndex, bool isPlayer)
     {
         GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
@@ -327,16 +309,12 @@ public class GridManager : MonoBehaviour
         if (slot.IsEmpty)
         {
             stateDict.Remove(slotIndex);
-            Debug.Log($"💾 PERMANENT State: Slot {slotIndex} EMPTY");
         }
         else
         {
             stateDict[slotIndex] = new GridSlotData(slot.unitType, slotIndex, slot.units.Count);
-            Debug.Log($"💾 PERMANENT State: Slot {slotIndex} = {slot.unitType.toyName} x{slot.units.Count}");
         }
     }
-
-    // ===== LOAD UNIT PREFAB =====
 
     private GameObject LoadUnitPrefab(ToyUnitData unitData)
     {
@@ -354,12 +332,10 @@ public class GridManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Direct prefab reference not implemented. Use Resources folder!");
+            Debug.LogError("Direct prefab reference not implemented!");
             return null;
         }
     }
-
-    // ===== GET UNITS =====
 
     public List<RuntimeUnit> GetPlayerUnits()
     {
@@ -397,15 +373,11 @@ public class GridManager : MonoBehaviour
         return allUnits;
     }
 
-    // ===== EXPAND SLOT =====
-
     public void IncreaseDeployLimit()
     {
         maxDeployCount++;
         Debug.Log($"Deploy limit increased to {maxDeployCount}");
     }
-
-    // ===== BATTLE STATE MANAGEMENT =====
 
     public void ClearSceneSlot(int slotIndex, bool isPlayer, RuntimeUnit deadUnit)
     {
@@ -415,16 +387,11 @@ public class GridManager : MonoBehaviour
         {
             GridSlot slot = targetGrid[slotIndex];
             slot.units.Remove(deadUnit);
-
-            Debug.Log($"💀 Battle death: Unit removed from slot {slotIndex}. Remaining: {slot.units.Count}");
         }
     }
 
     public void ClearSceneObjects()
     {
-        Debug.Log("🧹 Clearing battle scene (permanent state preserved)");
-
-        // Player units cleanup
         for (int i = 0; i < playerGrid.Length; i++)
         {
             foreach (var unit in playerGrid[i].units)
@@ -437,7 +404,6 @@ public class GridManager : MonoBehaviour
             playerGrid[i].units.Clear();
         }
 
-        // Enemy units cleanup
         for (int i = 0; i < enemyGrid.Length; i++)
         {
             foreach (var unit in enemyGrid[i].units)
@@ -453,12 +419,9 @@ public class GridManager : MonoBehaviour
 
     public void RespawnPreviousUnits()
     {
-        Debug.Log("♻️ Respawning from PERMANENT state");
-
         var playerStateSnapshot = playerGridState.ToList();
         var enemyStateSnapshot = enemyGridState.ToList();
 
-        // Player respawn
         foreach (var kvp in playerStateSnapshot)
         {
             int slot = kvp.Key;
@@ -473,7 +436,6 @@ public class GridManager : MonoBehaviour
             }
         }
 
-        // Enemy respawn
         foreach (var kvp in enemyStateSnapshot)
         {
             int slot = kvp.Key;
@@ -487,19 +449,13 @@ public class GridManager : MonoBehaviour
                 }
             }
         }
-
-        Debug.Log("✅ Respawn complete");
     }
 
     public void ResetGridState()
     {
-        Debug.Log("🔄 Resetting grid state");
-
         ClearSceneObjects();
         playerGridState.Clear();
         enemyGridState.Clear();
         InitializeGrids();
-
-        Debug.Log("✅ Grid reset complete");
     }
 }

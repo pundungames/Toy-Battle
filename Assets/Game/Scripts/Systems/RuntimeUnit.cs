@@ -1,12 +1,14 @@
 // ============================================================================
-// RUNTIME UNIT - CONTINUOUS MOVEMENT SYSTEM (RTS Style)
-// ✅ Units move toward enemies until in range
-// ✅ Attack when in range, move when out of range
-// ✅ Values loaded from ToyUnitData (attackRange, moveSpeed, attackCooldown)
+// RUNTIME UNIT - NAVMESHAGENT SYSTEM
+// ✅ Professional pathfinding with collision avoidance
+// ✅ Units never overlap or phase through each other
+// ✅ Smooth RTS-style movement
+// ✅ Formation → Navigate to target → Attack
 // ============================================================================
 
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 using DG.Tweening;
 using System.Collections.Generic;
 
@@ -44,7 +46,10 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     public Animator animator;
     public EnemyDamageText damageTextPrefab;
 
-    // ===== COMBAT SETTINGS (Loaded from ToyUnitData) =====
+    // ===== NAVMESHAGENT =====
+    private NavMeshAgent agent;
+
+    // ===== COMBAT SETTINGS =====
     [Header("Combat Settings (Auto-loaded from ScriptableObject)")]
     [SerializeField] private float attackRange = 2f;
     [SerializeField] private float moveSpeed = 2f;
@@ -77,10 +82,13 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         originalPosition = transform.localPosition;
         originalScale = transform.localScale;
 
-        // ✅ Load combat values from ToyUnitData (ScriptableObject)
+        // ✅ Load combat values from ToyUnitData
         attackRange = unitData.attackRange;
         moveSpeed = unitData.moveSpeed;
         attackCooldown = unitData.attackCooldown;
+
+        // ✅ Setup NavMeshAgent
+        SetupNavMeshAgent();
 
         if (healthBar != null)
         {
@@ -92,7 +100,34 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             animator = GetComponentInChildren<Animator>();
         }
 
-        Debug.Log($"✅ {unitData.toyName} initialized: Range={attackRange}, Speed={moveSpeed}, Cooldown={attackCooldown}");
+        Debug.Log($"✅ {unitData.toyName} initialized: Range={attackRange}, Speed={moveSpeed}, Agent={agent != null}");
+    }
+
+    // ===== NAVMESHAGENT SETUP =====
+
+    private void SetupNavMeshAgent()
+    {
+        // Get or add NavMeshAgent component
+        agent = GetComponent<NavMeshAgent>();
+
+        if (agent == null)
+        {
+            agent = gameObject.AddComponent<NavMeshAgent>();
+        }
+
+        // Configure agent
+        agent.speed = moveSpeed;
+        agent.acceleration = moveSpeed * 4f; // Quick acceleration
+        agent.angularSpeed = 360f; // Fast rotation
+        agent.stoppingDistance = attackRange * 0.8f; // Stop slightly before attack range
+        agent.radius = 0.5f; // Unit collision radius
+        agent.height = 2.0f; // Unit height
+        agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+
+        // ✅ CRITICAL: Disable agent initially (formation will move units with DOTween)
+        agent.enabled = false;
+
+        Debug.Log($"🗺️ NavMeshAgent configured: speed={agent.speed}, stoppingDistance={agent.stoppingDistance}");
     }
 
     // ===== BATTLE CONTROL =====
@@ -101,11 +136,26 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     {
         isInBattle = true;
         lastAttackTime = Time.time;
+
+        // ✅ Enable NavMeshAgent for battle
+        if (agent != null)
+        {
+            agent.enabled = true;
+            Debug.Log($"✅ {data.toyName} NavMeshAgent enabled for battle");
+        }
     }
 
     public void StopBattle()
     {
         isInBattle = false;
+
+        // Disable agent
+        if (agent != null && agent.enabled)
+        {
+            agent.ResetPath();
+            agent.enabled = false;
+        }
+
         if (animator != null)
         {
             animator.SetBool("Move", false);
@@ -113,7 +163,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         }
     }
 
-    // ===== UPDATE - CONTINUOUS MOVEMENT =====
+    // ===== UPDATE - NAVMESHAGENT MOVEMENT =====
 
     private void Update()
     {
@@ -127,7 +177,12 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
         if (currentTarget == null)
         {
-            // No target, idle
+            // No target, stop agent
+            if (agent != null && agent.enabled)
+            {
+                agent.ResetPath();
+            }
+
             if (animator != null)
             {
                 animator.SetBool("Move", false);
@@ -143,9 +198,23 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         if (distanceToTarget <= attackRange)
         {
             // Stop moving
+            if (agent != null && agent.enabled && agent.hasPath)
+            {
+                agent.ResetPath();
+            }
+
+            // Face target
+            Vector3 lookDirection = (currentTarget.transform.position - transform.position).normalized;
+            if (lookDirection != Vector3.zero)
+            {
+                transform.rotation = Quaternion.LookRotation(lookDirection);
+            }
+
+            // Attack animation
             if (animator != null)
             {
                 animator.SetBool("Move", false);
+                animator.SetBool("Attack", true);
             }
 
             // Attack if cooldown ready
@@ -155,10 +224,10 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
                 lastAttackTime = Time.time;
             }
         }
-        // 4. If out of range → Move toward target
+        // 4. If out of range → Navigate to target
         else
         {
-            MoveTowardTarget(currentTarget);
+            NavigateToTarget(currentTarget);
         }
     }
 
@@ -166,7 +235,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     private RuntimeUnit FindNearestEnemy()
     {
-        // BattleManager'dan enemy list'i al
         BattleManager battleManager = FindObjectOfType<BattleManager>();
         if (battleManager == null) return null;
 
@@ -192,27 +260,23 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         return nearest;
     }
 
-    // ===== MOVE TOWARD TARGET =====
+    // ===== NAVIGATE TO TARGET (NavMeshAgent) =====
 
-    private void MoveTowardTarget(RuntimeUnit target)
+    private void NavigateToTarget(RuntimeUnit target)
     {
-        // Move animation ON
+        if (agent == null || !agent.enabled) return;
+
+        // Set destination
+        agent.SetDestination(target.transform.position);
+
+        // Check if agent is moving
+        bool isMoving = agent.velocity.sqrMagnitude > 0.1f;
+
+        // Update animation
         if (animator != null)
         {
-            animator.SetBool("Move", true);
+            animator.SetBool("Move", isMoving);
             animator.SetBool("Attack", false);
-        }
-
-        // Calculate direction
-        Vector3 direction = (target.transform.position - transform.position).normalized;
-
-        // Move toward target
-        transform.position += direction * moveSpeed * Time.deltaTime;
-
-        // Face target (optional)
-        if (direction != Vector3.zero)
-        {
-            transform.rotation = Quaternion.LookRotation(direction);
         }
     }
 
@@ -220,13 +284,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     private void AttackTarget(RuntimeUnit target)
     {
-        // Attack animation ON
-        if (animator != null)
-        {
-            animator.SetBool("Attack", true);
-            animator.SetBool("Move", false);
-        }
-
         // Check first attack cancel
         if (target.hasFirstAttackCancel)
         {
@@ -331,11 +388,18 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         isInBattle = false;
         EventManager.OnUnitDeath(this);
 
+        // Disable agent
+        if (agent != null && agent.enabled)
+        {
+            agent.ResetPath();
+            agent.enabled = false;
+        }
+
         GridManager gridManager = FindObjectOfType<GridManager>();
         if (gridManager != null)
         {
             gridManager.ClearSceneSlot(gridSlot, isPlayerUnit, this);
-            Debug.Log($"💀 {data.toyName} died - slot {gridSlot} cleared");
+            Debug.Log($"💀 {data.toyName} died");
         }
 
         if (animator != null)
@@ -345,8 +409,8 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
         if (data.isExplosive)
         {
-            Debug.Log($"{data.toyName} exploded!");
-            // Explosion logic buraya
+            Debug.Log($"💥 {data.toyName} exploded!");
+            // Explosion logic
         }
 
         Destroy(gameObject, 1f);
@@ -366,14 +430,58 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     {
         transform.localPosition = originalPosition;
         transform.localScale = originalScale;
+
+        // Disable agent during draft
+        if (agent != null && agent.enabled)
+        {
+            agent.ResetPath();
+            agent.enabled = false;
+        }
+    }
+
+    // ===== FORMATION SUPPORT =====
+
+    /// <summary>
+    /// Called before formation animation starts
+    /// Disables agent so DOTween can move the unit
+    /// </summary>
+    public void PrepareForFormation()
+    {
+        if (agent != null && agent.enabled)
+        {
+            agent.enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// Called after formation animation completes
+    /// Enables agent for battle
+    /// </summary>
+    public void FormationComplete()
+    {
+        if (agent != null && !agent.enabled)
+        {
+            agent.enabled = true;
+        }
     }
 
     // ===== GIZMOS (Debug) =====
 
     private void OnDrawGizmosSelected()
     {
-        // Attack range göster
+        // Attack range
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
+
+        // Agent path
+        if (agent != null && agent.enabled && agent.hasPath)
+        {
+            Gizmos.color = Color.yellow;
+            Vector3[] corners = agent.path.corners;
+            for (int i = 0; i < corners.Length - 1; i++)
+            {
+                Gizmos.DrawLine(corners[i], corners[i + 1]);
+            }
+        }
     }
 }
