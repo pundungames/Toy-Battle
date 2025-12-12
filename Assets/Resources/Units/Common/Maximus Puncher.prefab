@@ -835,6 +835,7 @@ GameObject:
   - component: {fileID: 2038338446548548255}
   - component: {fileID: 3654183461463177652}
   - component: {fileID: 8294308980240747388}
+  - component: {fileID: 4875516429769233939}
   m_Layer: 0
   m_Name: Maximus Puncher
   m_TagString: Untagged
@@ -880,10 +881,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.36148134
-  m_Height: 1.8074777
+  m_Radius: 0.52
+  m_Height: 1.4004288
   m_Direction: 1
-  m_Center: {x: 0, y: 0.9425322, z: 0}
+  m_Center: {x: 0, y: 0.7390077, z: 0}
 --- !u!95 &3654183461463177652
 Animator:
   serializedVersion: 5
@@ -935,6 +936,28 @@ MonoBehaviour:
   attackCooldown: 1
   hitScaleFactor: 1.1
   hitDuration: 0.3
+--- !u!195 &4875516429769233939
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1810178523074589232}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.4
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &1994318957588172278
 GameObject:
   m_ObjectHideFlags: 0

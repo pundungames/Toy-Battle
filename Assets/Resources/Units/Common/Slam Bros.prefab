@@ -1762,6 +1762,7 @@ GameObject:
   - component: {fileID: 5869034310222056986}
   - component: {fileID: 6456732347978772047}
   - component: {fileID: 6574564073894937348}
+  - component: {fileID: 5870730510909969046}
   m_Layer: 0
   m_Name: Slam Bros
   m_TagString: Untagged
@@ -1807,7 +1808,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.35757858
+  m_Radius: 0.42
   m_Height: 1.1659194
   m_Direction: 1
   m_Center: {x: 0, y: 0.60007125, z: 0}
@@ -1862,6 +1863,28 @@ MonoBehaviour:
   attackCooldown: 1
   hitScaleFactor: 1.1
   hitDuration: 0.3
+--- !u!195 &5870730510909969046
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5452593666699931485}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.44
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.19
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &5588642360230903373
 GameObject:
   m_ObjectHideFlags: 0

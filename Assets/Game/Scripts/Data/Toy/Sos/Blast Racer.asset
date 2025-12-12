@@ -16,8 +16,8 @@ MonoBehaviour:
   toyName: Blast Racer
   toyInfo: Kamikaze unit that explodes on death (150% ATK explosion damage)
   level: 1
-  baseHP: 70
-  baseDamage: 75
+  baseHP: 20
+  baseDamage: 80
   unitType: 0
   toyRarityType: 1
   toySprite: {fileID: 21300000, guid: 96b7af48aa91f6e41a26dd02e6d9b84a, type: 3}
@@ -29,8 +29,8 @@ MonoBehaviour:
   isExplosive: 1
   explosionDamage: 112
   hasSupport: 0
-  attackRange: 2
-  moveSpeed: 2.2
+  attackRange: 2.5
+  moveSpeed: 3.2
   attackCooldown: 1
   arrangementIndex: 65
   maxUnitsPerRow: 7

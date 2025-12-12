@@ -16,8 +16,8 @@ MonoBehaviour:
   toyName: Guardian Golem
   toyInfo: Slow tank with high defense and low damage
   level: 1
-  baseHP: 110
-  baseDamage: 8
+  baseHP: 120
+  baseDamage: 20
   unitType: 0
   toyRarityType: 0
   toySprite: {fileID: 21300000, guid: 96b7af48aa91f6e41a26dd02e6d9b84a, type: 3}
@@ -30,8 +30,8 @@ MonoBehaviour:
   explosionDamage: 0
   hasSupport: 0
   attackRange: 2
-  moveSpeed: 0.7
-  attackCooldown: 1
+  moveSpeed: 1.8
+  attackCooldown: 2
   arrangementIndex: 80
   maxUnitsPerRow: 8
   unitSpacing: 1.519498

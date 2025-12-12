@@ -413,7 +413,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             // Explosion logic
         }
 
-        Destroy(gameObject, 1f);
+        Destroy(gameObject);
     }
 
     // ===== BATTLE RESET =====

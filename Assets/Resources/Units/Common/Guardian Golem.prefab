@@ -1934,6 +1934,7 @@ GameObject:
   - component: {fileID: 6343421438191035024}
   - component: {fileID: 1044800307153254281}
   - component: {fileID: 1165962199526841375}
+  - component: {fileID: 4179599153843100076}
   m_Layer: 0
   m_Name: Guardian Golem
   m_TagString: Untagged
@@ -1957,7 +1958,7 @@ Transform:
   - {fileID: 5423317391568738037}
   - {fileID: 5984351222279183248}
   - {fileID: 9142697808861727712}
-  - {fileID: 3499303862316117832}
+  - {fileID: 3360150224018570459}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &6343421438191035024
@@ -1979,8 +1980,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.717988, y: 2.828454, z: 1.4003576}
-  m_Center: {x: 0, y: 1.2772374, z: 0}
+  m_Size: {x: 1.27, y: 1.4349226, z: 1.4003576}
+  m_Center: {x: 0, y: 0.68718356, z: 0}
 --- !u!95 &1044800307153254281
 Animator:
   serializedVersion: 5
@@ -2032,6 +2033,28 @@ MonoBehaviour:
   attackCooldown: 1
   hitScaleFactor: 1.1
   hitDuration: 0.3
+--- !u!195 &4179599153843100076
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4006886472924445212}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.62
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.4
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &4174283236082789851
 GameObject:
   m_ObjectHideFlags: 0
@@ -2063,38 +2086,6 @@ Transform:
   m_Children:
   - {fileID: 952573027954934814}
   m_Father: {fileID: 1965737812179400610}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &4313277454550660594
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3499303862316117832}
-  m_Layer: 0
-  m_Name: RockGolem (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3499303862316117832
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4313277454550660594}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 3360150224018570459}
-  m_Father: {fileID: 4382146095821283494}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4336677662955007523
 GameObject:
@@ -4082,14 +4073,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9026572382257826471}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5221104, y: 0.5221104, z: 0.5221104}
+  m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.5221104, y: 0.52211034, z: 0.52211034}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8058564865360764210}
   - {fileID: 2443203334095889005}
-  m_Father: {fileID: 3499303862316117832}
+  m_Father: {fileID: 4382146095821283494}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &9155612052829920694
 GameObject:

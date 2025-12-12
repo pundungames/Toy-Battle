@@ -3383,6 +3383,7 @@ GameObject:
   - component: {fileID: 2153444846798051937}
   - component: {fileID: 2376348348742292869}
   - component: {fileID: 3329163090242818558}
+  - component: {fileID: 218129428885841674}
   m_Layer: 0
   m_Name: Punchy Bots
   m_TagString: Untagged
@@ -3430,9 +3431,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.6511978
-  m_Height: 2.469131
+  m_Height: 1.3023956
   m_Direction: 1
-  m_Center: {x: 0, y: 1.2757719, z: 0}
+  m_Center: {x: 0, y: 0.69240415, z: 0}
 --- !u!95 &2376348348742292869
 Animator:
   serializedVersion: 5
@@ -3484,6 +3485,28 @@ MonoBehaviour:
   attackCooldown: 1
   hitScaleFactor: 1.1
   hitDuration: 0.3
+--- !u!195 &218129428885841674
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8900012302632776469}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.53
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.4
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &8945991215538322721
 GameObject:
   m_ObjectHideFlags: 0
