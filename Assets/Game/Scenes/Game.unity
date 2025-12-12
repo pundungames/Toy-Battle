@@ -23277,7 +23277,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc3a5e4d301d9ed49929986ae5b99294, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  difficulty: 2
+  difficulty: 1
   decisionDelay: 1
 --- !u!4 &890379717
 Transform:

@@ -9,11 +9,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6155185673074146834}
-  - component: {fileID: 2097574515012262328}
   - component: {fileID: 3527773536547314494}
   - component: {fileID: 5944340643792709503}
+  - component: {fileID: 3800661129112235034}
   m_Layer: 0
-  m_Name: GunnersBrigadeProjectile
+  m_Name: ToySoldierProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -37,32 +37,6 @@ Transform:
   - {fileID: 219613478043538294}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2097574515012262328
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1664368712142932928}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b1755b54b8d3f344882edee13b6139e3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  projectileType: 1
-  customCurve:
-    serializedVersion: 2
-    m_Curve: []
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  trail: {fileID: 0}
-  attackDamage: 0
-  vfxName: 
-  hitVfxName: 
-  hitSfxName: 
-  trailVfx: {fileID: 219613478043538294}
-  damageRange: 1.5
 --- !u!65 &3527773536547314494
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -111,6 +85,35 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &3800661129112235034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1664368712142932928}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 641c5463b06216949939e15217f047e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  projectileType: 0
+  customCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  trail: {fileID: 0}
+  attackDamage: 0
+  vfxName: 
+  hitVfxName: 
+  hitSfxName: 
+  trailVfx: {fileID: 219613478043538294}
+  damageRange: 1.5
+  projectileSpeed: 15
+  rotationSpeed: 10
+  maxLifetime: 5
 --- !u!1 &2915418713101193429
 GameObject:
   m_ObjectHideFlags: 0

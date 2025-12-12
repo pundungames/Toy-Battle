@@ -1,39 +1,45 @@
-﻿using System;
+﻿// ============================================================================
+// POOLING SYSTEM - WITH CATEGORY SYSTEM (Like AudioManager)
+// ✅ Category-based organization
+// ✅ Easy to manage VFX, Projectiles, etc.
+// ============================================================================
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
-public class PoolingSystem : Singleton<PoolingSystem>
+public class PoolingSystem : MonoBehaviour
 {
-    public List<SourceObjects> SourceObjects = new List<SourceObjects>();
+    [Header("Pool Categories")]
+    [SerializeField] List<PoolCategory> categories = new List<PoolCategory>();
 
     public int DefaultCount = 10;
 
     [HideInInspector] public Vector3 initScale;
-    private void Awake()
+
+    // ===== CATEGORY SYSTEM =====
+
+    [Serializable]
+    public class PoolCategory
     {
-       // DontDestroyOnLoad(gameObject);
-       
+        public string categoryName;
+        public List<SourceObjects> sourceObjects = new List<SourceObjects>();
     }
 
-    private void ResetAllObjects()
+    private void Awake()
     {
-        foreach (var item in SourceObjects)
-        {
-            foreach (var clone in item.clones)
-            {
-                if (clone != null)
-                    if (clone.activeSelf) DestroyAPS(clone);
-            }
-        }
+        // DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
     {
         InitilizePool();
     }
+
+    // ===== INITIALIZE POOL =====
 
     public void InitilizePool()
     {
@@ -42,66 +48,79 @@ public class PoolingSystem : Singleton<PoolingSystem>
 
     private void InitilizeGameObjects()
     {
-        for (int i = 0; i < SourceObjects.Count; i++)
+        foreach (var category in categories)
         {
-            if (SourceObjects[i].ID == "BossArrow" && PlayerPrefs.GetInt("_level") != 16) continue;
-            int copyNumber = DefaultCount;
-            if (SourceObjects[i].MinNumberOfObject != 0)
-                copyNumber = SourceObjects[i].MinNumberOfObject;
-
-            for (int j = 0; j < copyNumber; j++)
+            foreach (var sourceObj in category.sourceObjects)
             {
-                GameObject go = Instantiate(SourceObjects[i].SourcePrefab, transform);
-                go.SetActive(false);
-                if (SourceObjects[i].AutoDestroy)
-                    go.AddComponent<PoolObject>();
+                if (sourceObj.ID == "BossArrow" && PlayerPrefs.GetInt("_level") != 16) continue;
 
-                SourceObjects[i].clones.Add(go);
+                int copyNumber = DefaultCount;
+                if (sourceObj.MinNumberOfObject != 0)
+                    copyNumber = sourceObj.MinNumberOfObject;
+
+                for (int j = 0; j < copyNumber; j++)
+                {
+                    GameObject go = Instantiate(sourceObj.SourcePrefab, transform);
+                    go.SetActive(false);
+                    if (sourceObj.AutoDestroy)
+                        go.AddComponent<PoolObject>();
+
+                    sourceObj.clones.Add(go);
+                }
+
+                Debug.Log($"✅ Pool initialized: {category.categoryName}/{sourceObj.ID} ({copyNumber} objects)");
             }
         }
     }
 
+    // ===== INSTANTIATE =====
+
     public GameObject InstantiateAPS(string Id)
     {
-        for (int i = 0; i < SourceObjects.Count; i++)
+        foreach (var category in categories)
         {
-            if (string.Equals(SourceObjects[i].ID, Id))
+            foreach (var sourceObj in category.sourceObjects)
             {
-                for (int a = SourceObjects[i].clones.Count - 1; a >= 0; a--)
+                if (string.Equals(sourceObj.ID, Id))
                 {
-                    if (!SourceObjects[i].clones[a])
+                    for (int a = sourceObj.clones.Count - 1; a >= 0; a--)
                     {
-                        SourceObjects[i].clones.RemoveAt(a);
-                        continue;
-                    }
-                    if (!SourceObjects[i].clones[a].activeInHierarchy)
-                    {
-                        if (SourceObjects[i].clones[a].TryGetComponent<NavMeshAgent>(out NavMeshAgent agent))
-                            agent.enabled = false;
-                        SourceObjects[i].clones[a].SetActive(true);
+                        if (!sourceObj.clones[a])
+                        {
+                            sourceObj.clones.RemoveAt(a);
+                            continue;
+                        }
+                        if (!sourceObj.clones[a].activeInHierarchy)
+                        {
+                            if (sourceObj.clones[a].TryGetComponent<NavMeshAgent>(out NavMeshAgent agent))
+                                agent.enabled = false;
+                            sourceObj.clones[a].SetActive(true);
 
-                        IPoolable poolable = SourceObjects[i].clones[a].GetComponent<IPoolable>();
+                            IPoolable poolable = sourceObj.clones[a].GetComponent<IPoolable>();
+                            if (poolable != null)
+                                poolable.Initilize();
+
+                            return sourceObj.clones[a];
+                        }
+                    }
+
+                    if (sourceObj.AllowGrow)
+                    {
+                        GameObject go = Instantiate(sourceObj.SourcePrefab, transform);
+                        sourceObj.clones.Add(go);
+                        IPoolable poolable = go.GetComponent<IPoolable>();
                         if (poolable != null)
                             poolable.Initilize();
 
-                        return SourceObjects[i].clones[a];
+                        if (sourceObj.AutoDestroy)
+                            go.AddComponent<PoolObject>();
+                        return go;
                     }
-                }
-
-                if (SourceObjects[i].AllowGrow)
-                {
-                    GameObject go = Instantiate(SourceObjects[i].SourcePrefab, transform);
-                    SourceObjects[i].clones.Add(go);
-                    IPoolable poolable = go.GetComponent<IPoolable>();
-                    if (poolable != null)
-                        poolable.Initilize();
-
-                    if (SourceObjects[i].AutoDestroy)
-                        go.AddComponent<PoolObject>();
-                    return go;
                 }
             }
         }
+
+        Debug.LogWarning($"⚠️ Pool object not found: {Id}");
         return null;
     }
 
@@ -132,23 +151,26 @@ public class PoolingSystem : Singleton<PoolingSystem>
 
     public GameObject InstantiateAPS(GameObject sourcePrefab)
     {
-        for (int i = 0; i < SourceObjects.Count; i++)
+        foreach (var category in categories)
         {
-            if (ReferenceEquals(SourceObjects[i].SourcePrefab, sourcePrefab))
+            foreach (var sourceObj in category.sourceObjects)
             {
-                for (int j = 0; j < SourceObjects[i].clones.Count; j++)
+                if (ReferenceEquals(sourceObj.SourcePrefab, sourcePrefab))
                 {
-                    if (!SourceObjects[i].clones[j].activeInHierarchy)
+                    for (int j = 0; j < sourceObj.clones.Count; j++)
                     {
-                        SourceObjects[i].clones[j].SetActive(true);
-                        return SourceObjects[i].clones[j];
+                        if (!sourceObj.clones[j].activeInHierarchy)
+                        {
+                            sourceObj.clones[j].SetActive(true);
+                            return sourceObj.clones[j];
+                        }
                     }
-                }
-                if (SourceObjects[i].AllowGrow)
-                {
-                    GameObject go = Instantiate(SourceObjects[i].SourcePrefab, transform);
-                    SourceObjects[i].clones.Add(go);
-                    return go;
+                    if (sourceObj.AllowGrow)
+                    {
+                        GameObject go = Instantiate(sourceObj.SourcePrefab, transform);
+                        sourceObj.clones.Add(go);
+                        return go;
+                    }
                 }
             }
         }
@@ -166,6 +188,8 @@ public class PoolingSystem : Singleton<PoolingSystem>
         else
             return null;
     }
+
+    // ===== DESTROY =====
 
     public void DestroyAPS(GameObject clone)
     {
@@ -192,5 +216,18 @@ public class PoolingSystem : Singleton<PoolingSystem>
     {
         yield return new WaitForSeconds(waitTime);
         DestroyAPS(clone);
+    }
+
+    // ===== HELPER: GET CATEGORY =====
+
+    public PoolCategory GetCategory(string categoryName)
+    {
+        return categories.Find(c => c.categoryName == categoryName);
+    }
+
+    public List<SourceObjects> GetCategoryObjects(string categoryName)
+    {
+        var category = GetCategory(categoryName);
+        return category?.sourceObjects ?? new List<SourceObjects>();
     }
 }

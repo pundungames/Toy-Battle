@@ -1,9 +1,8 @@
 // ============================================================================
-// RUNTIME UNIT - NAVMESHAGENT SYSTEM
-// ✅ Professional pathfinding with collision avoidance
-// ✅ Units never overlap or phase through each other
-// ✅ Smooth RTS-style movement
-// ✅ Formation → Navigate to target → Attack
+// RUNTIME UNIT - BASE CLASS WITH VIRTUAL ATTACK SYSTEM
+// ✅ NavMeshAgent movement
+// ✅ Virtual ExecuteAttack() for specialized units
+// ✅ VFX/SFX integration ready
 // ============================================================================
 
 using System.Collections;
@@ -11,9 +10,14 @@ using UnityEngine;
 using UnityEngine.AI;
 using DG.Tweening;
 using System.Collections.Generic;
+using Zenject;
 
 public class RuntimeUnit : MonoBehaviour, IHealthProvider
 {
+    // ===== INJECTED DEPENDENCIES =====
+    [Inject] protected PoolingSystem poolingSystem;
+    [Inject] protected AudioManager audioManager;
+
     // ===== DATA =====
     public ToyUnitData data;
     public int gridSlot;
@@ -47,29 +51,30 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     public EnemyDamageText damageTextPrefab;
 
     // ===== NAVMESHAGENT =====
-    private NavMeshAgent agent;
+    protected NavMeshAgent agent;
 
     // ===== COMBAT SETTINGS =====
     [Header("Combat Settings (Auto-loaded from ScriptableObject)")]
-    [SerializeField] private float attackRange = 2f;
-    [SerializeField] private float moveSpeed = 2f;
-    [SerializeField] private float attackCooldown = 1f;
+    [SerializeField] protected float attackRange = 2f;
+    [SerializeField] protected float moveSpeed = 2f;
+    [SerializeField] protected float attackCooldown = 1f;
 
     [Header("Hit Feedback")]
     [SerializeField] float hitScaleFactor = 1.1f;
     [SerializeField] float hitDuration = 0.3f;
 
     // ===== PRIVATE STATE =====
-    private RuntimeUnit currentTarget;
+    protected RuntimeUnit currentTarget;
     private float lastAttackTime = 0f;
     private bool isInBattle = false;
+    protected bool isExecutingAttack = false; // ✅ NEW: Prevent attack spam
     private Vector3 originalPosition;
     private Vector3 originalScale;
     private bool isHitFeedbackActive = false;
 
     // ===== INITIALIZATION =====
 
-    public void Initialize(ToyUnitData unitData, int slot, bool isPlayer)
+    public virtual void Initialize(ToyUnitData unitData, int slot, bool isPlayer)
     {
         data = unitData;
         gridSlot = slot;
@@ -100,6 +105,16 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             animator = GetComponentInChildren<Animator>();
         }
 
+        // ✅ Setup projectile spawn point if not set
+        if (projectileSpawnPoint == null)
+        {
+            // Create default spawn point at unit position + up
+            GameObject spawnPoint = new GameObject("ProjectileSpawnPoint");
+            spawnPoint.transform.SetParent(transform);
+            spawnPoint.transform.localPosition = Vector3.up * 1f;
+            projectileSpawnPoint = spawnPoint.transform;
+        }
+
         Debug.Log($"✅ {unitData.toyName} initialized: Range={attackRange}, Speed={moveSpeed}, Agent={agent != null}");
     }
 
@@ -107,7 +122,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     private void SetupNavMeshAgent()
     {
-        // Get or add NavMeshAgent component
         agent = GetComponent<NavMeshAgent>();
 
         if (agent == null)
@@ -115,16 +129,14 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             agent = gameObject.AddComponent<NavMeshAgent>();
         }
 
-        // Configure agent
         agent.speed = moveSpeed;
-        agent.acceleration = moveSpeed * 4f; // Quick acceleration
-        agent.angularSpeed = 360f; // Fast rotation
-        agent.stoppingDistance = attackRange * 0.8f; // Stop slightly before attack range
-        agent.radius = 0.5f; // Unit collision radius
-        agent.height = 2.0f; // Unit height
+        agent.acceleration = moveSpeed * 4f;
+        agent.angularSpeed = 360f;
+        agent.stoppingDistance = attackRange * 0.8f;
+        agent.radius = 0.5f;
+        agent.height = 2.0f;
         agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
 
-        // ✅ CRITICAL: Disable agent initially (formation will move units with DOTween)
         agent.enabled = false;
 
         Debug.Log($"🗺️ NavMeshAgent configured: speed={agent.speed}, stoppingDistance={agent.stoppingDistance}");
@@ -132,12 +144,11 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     // ===== BATTLE CONTROL =====
 
-    public void StartBattle()
+    public virtual void StartBattle()
     {
         isInBattle = true;
         lastAttackTime = Time.time;
 
-        // ✅ Enable NavMeshAgent for battle
         if (agent != null)
         {
             agent.enabled = true;
@@ -149,7 +160,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     {
         isInBattle = false;
 
-        // Disable agent
         if (agent != null && agent.enabled)
         {
             agent.ResetPath();
@@ -159,13 +169,13 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         if (animator != null)
         {
             animator.SetBool("Move", false);
-            animator.SetBool("Attack", false);
+            // Attack is a trigger, no need to reset
         }
     }
 
     // ===== UPDATE - NAVMESHAGENT MOVEMENT =====
 
-    private void Update()
+    protected virtual void Update()
     {
         if (!isInBattle || !IsAlive()) return;
 
@@ -177,7 +187,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
         if (currentTarget == null)
         {
-            // No target, stop agent
             if (agent != null && agent.enabled)
             {
                 agent.ResetPath();
@@ -186,7 +195,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             if (animator != null)
             {
                 animator.SetBool("Move", false);
-                animator.SetBool("Attack", false);
+                // Attack is a trigger, no need to reset
             }
             return;
         }
@@ -197,31 +206,31 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         // 3. If in range → Attack
         if (distanceToTarget <= attackRange)
         {
-            // Stop moving
             if (agent != null && agent.enabled && agent.hasPath)
             {
                 agent.ResetPath();
             }
 
-            // Face target
             Vector3 lookDirection = (currentTarget.transform.position - transform.position).normalized;
             if (lookDirection != Vector3.zero)
             {
-                transform.rotation = Quaternion.LookRotation(lookDirection);
+              //  transform.rotation = Quaternion.LookRotation(lookDirection);
             }
 
-            // Attack animation
             if (animator != null)
             {
                 animator.SetBool("Move", false);
-                animator.SetBool("Attack", true);
             }
 
-            // Attack if cooldown ready
             if (Time.time >= lastAttackTime + attackCooldown)
             {
-                AttackTarget(currentTarget);
-                lastAttackTime = Time.time;
+                // ✅ Check if not already executing attack
+                if (!isExecutingAttack)
+                {
+                    // ✅ Virtual attack method (triggers animation + locks)
+                    ExecuteAttack(currentTarget);
+                    lastAttackTime = Time.time;
+                }
             }
         }
         // 4. If out of range → Navigate to target
@@ -231,9 +240,126 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         }
     }
 
+    // ===== VIRTUAL ATTACK METHOD =====
+
+    /// <summary>
+    /// ✅ VIRTUAL METHOD: Called by Update when attack cooldown ready
+    /// Default: Trigger animation, actual damage dealt via animation event
+    /// Override for: Custom attack logic (no animation)
+    /// </summary>
+    protected virtual void ExecuteAttack(RuntimeUnit target)
+    {
+        // Trigger attack animation
+        if (animator != null)
+        {
+            animator.SetTrigger("Attack");
+            LockAttack(); // Lock until animation event calls ExecuteAttackEvent()
+        }
+        else
+        {
+            // No animator, deal damage immediately
+            ExecuteAttackEvent();
+        }
+    }
+
+    /// <summary>
+    /// ✅ ANIMATION EVENT: Called at the exact moment of attack
+    /// This is where actual damage/projectile spawn happens
+    /// Override this for specialized attacks
+    /// </summary>
+    public virtual void ExecuteAttackEvent()
+    {
+        // Default: Deal instant melee damage
+        if (currentTarget != null && currentTarget.IsAlive())
+        {
+            DealInstantDamage(currentTarget);
+        }
+
+        // Unlock attack for next cycle
+        UnlockAttack();
+    }
+
+    /// <summary>
+    /// ✅ Helper: Lock attack state (for animation-based attacks)
+    /// Call this at the start of attack
+    /// </summary>
+    protected void LockAttack()
+    {
+        isExecutingAttack = true;
+    }
+
+    /// <summary>
+    /// ✅ Helper: Unlock attack state
+    /// Call this when attack completes
+    /// </summary>
+    protected void UnlockAttack()
+    {
+        isExecutingAttack = false;
+    }
+
+    /// <summary>
+    /// ✅ Helper: Instant damage (melee units)
+    /// </summary>
+    protected void DealInstantDamage(RuntimeUnit target)
+    {
+        if (target.hasFirstAttackCancel)
+        {
+            target.hasFirstAttackCancel = false;
+            Debug.Log($"⚔️ {target.data.toyName} blocked first attack!");
+            return;
+        }
+
+        target.TakeDamage(GetFinalDamage());
+
+        // Play attack VFX
+        PlayAttackVFX();
+
+        // Play attack SFX
+        PlayAttackSFX();
+
+        Taptic.Light();
+    }
+
+    // ===== VFX/SFX HELPERS =====
+
+    protected void PlayAttackVFX()
+    {
+        if (poolingSystem != null && !string.IsNullOrEmpty(data.unitID))
+        {
+            string vfxID = $"{data.unitID}_attack_vfx";
+            GameObject vfx = poolingSystem.InstantiateAPS(vfxID, projectileSpawnPoint.position);
+            if (vfx != null)
+            {
+                poolingSystem.DestroyAPS(vfx, 2f);
+            }
+        }
+    }
+
+    protected void PlayAttackSFX()
+    {
+        if (audioManager != null && !string.IsNullOrEmpty(data.unitID))
+        {
+            string sfxID = $"{data.unitID}_attack";
+            audioManager.Play(sfxID);
+        }
+    }
+
+    protected void PlayHitVFX(Vector3 position)
+    {
+        if (poolingSystem != null && !string.IsNullOrEmpty(data.unitID))
+        {
+            string vfxID = $"{data.unitID}_hit_vfx";
+            GameObject vfx = poolingSystem.InstantiateAPS(vfxID, position);
+            if (vfx != null)
+            {
+                poolingSystem.DestroyAPS(vfx, 2f);
+            }
+        }
+    }
+
     // ===== FIND NEAREST ENEMY =====
 
-    private RuntimeUnit FindNearestEnemy()
+    protected RuntimeUnit FindNearestEnemy()
     {
         BattleManager battleManager = FindObjectOfType<BattleManager>();
         if (battleManager == null) return null;
@@ -260,43 +386,20 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         return nearest;
     }
 
-    // ===== NAVIGATE TO TARGET (NavMeshAgent) =====
+    // ===== NAVIGATE TO TARGET =====
 
     private void NavigateToTarget(RuntimeUnit target)
     {
         if (agent == null || !agent.enabled) return;
 
-        // Set destination
         agent.SetDestination(target.transform.position);
 
-        // Check if agent is moving
         bool isMoving = agent.velocity.sqrMagnitude > 0.1f;
 
-        // Update animation
         if (animator != null)
         {
-            animator.SetBool("Move", isMoving);
-            animator.SetBool("Attack", false);
+            animator.SetBool("Move", isMoving); // Move stays as Bool (continuous state)
         }
-    }
-
-    // ===== ATTACK TARGET =====
-
-    private void AttackTarget(RuntimeUnit target)
-    {
-        // Check first attack cancel
-        if (target.hasFirstAttackCancel)
-        {
-            target.hasFirstAttackCancel = false;
-            Debug.Log($"⚔️ {target.data.toyName} blocked first attack!");
-            return;
-        }
-
-        // Deal damage
-        target.TakeDamage(GetFinalDamage());
-
-        // Taptic feedback
-        Taptic.Light();
     }
 
     // ===== HEALTH INTERFACE =====
@@ -326,7 +429,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
         OnHealthChanged?.Invoke(currentHealthValue, maxHealth);
 
-        // Damage text
         if (damageTextPrefab != null)
         {
             Vector3 textPos = transform.position + Vector3.up * 2f;
@@ -334,7 +436,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             damageText.SetTextAnimation(Mathf.CeilToInt(actualDamage).ToString());
         }
 
-        // Hit feedback
         if (!isHitFeedbackActive)
         {
             StartCoroutine(HitFeedbackCoroutine());
@@ -348,7 +449,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         Taptic.Light();
     }
 
-    // ===== HIT FEEDBACK COROUTINE =====
+    // ===== HIT FEEDBACK =====
 
     private IEnumerator HitFeedbackCoroutine()
     {
@@ -388,7 +489,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         isInBattle = false;
         EventManager.OnUnitDeath(this);
 
-        // Disable agent
         if (agent != null && agent.enabled)
         {
             agent.ResetPath();
@@ -410,10 +510,9 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         if (data.isExplosive)
         {
             Debug.Log($"💥 {data.toyName} exploded!");
-            // Explosion logic
         }
 
-        Destroy(gameObject);
+        Destroy(gameObject, 1f);
     }
 
     // ===== BATTLE RESET =====
@@ -431,7 +530,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         transform.localPosition = originalPosition;
         transform.localScale = originalScale;
 
-        // Disable agent during draft
         if (agent != null && agent.enabled)
         {
             agent.ResetPath();
@@ -441,10 +539,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     // ===== FORMATION SUPPORT =====
 
-    /// <summary>
-    /// Called before formation animation starts
-    /// Disables agent so DOTween can move the unit
-    /// </summary>
     public void PrepareForFormation()
     {
         if (agent != null && agent.enabled)
@@ -453,10 +547,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         }
     }
 
-    /// <summary>
-    /// Called after formation animation completes
-    /// Enables agent for battle
-    /// </summary>
     public void FormationComplete()
     {
         if (agent != null && !agent.enabled)
@@ -465,15 +555,13 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         }
     }
 
-    // ===== GIZMOS (Debug) =====
+    // ===== GIZMOS =====
 
     private void OnDrawGizmosSelected()
     {
-        // Attack range
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
 
-        // Agent path
         if (agent != null && agent.enabled && agent.hasPath)
         {
             Gizmos.color = Color.yellow;

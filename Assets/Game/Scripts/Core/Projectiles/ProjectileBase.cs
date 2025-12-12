@@ -13,7 +13,7 @@ public abstract class ProjectileBase : MonoBehaviour
 
     [SerializeField] ProjectileType projectileType;
     [SerializeField] private AnimationCurve customCurve;
-    [SerializeField] private TrailRenderer trail;
+    [SerializeField] protected TrailRenderer trail;
 
     [SerializeField] public float attackDamage;
 

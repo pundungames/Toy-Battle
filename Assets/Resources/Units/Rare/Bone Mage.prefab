@@ -2116,6 +2116,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 780328705972067381}
   m_LocalEulerAnglesHint: {x: 24.056484, y: -179.99997, z: 0.0000015674484}
+--- !u!1 &4330318922621213954
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2285730361427137401}
+  m_Layer: 0
+  m_Name: ProjectileRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2285730361427137401
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4330318922621213954}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.337, y: 0.074, z: -0.91}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8642172362577981502}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4540110019228506193
 GameObject:
   m_ObjectHideFlags: 0
@@ -2148,6 +2179,7 @@ Transform:
   - {fileID: 5154398982815588842}
   - {fileID: 3250699685812319029}
   - {fileID: 4452906197336768399}
+  - {fileID: 2285730361427137401}
   m_Father: {fileID: 3362782764861516339}
   m_LocalEulerAnglesHint: {x: 6.554026, y: 8.645854, z: -11.210769}
 --- !u!1 &4702534541789571341
@@ -2579,8 +2611,8 @@ GameObject:
   - component: {fileID: 4976023732542856850}
   - component: {fileID: 1179276909314379103}
   - component: {fileID: 2599074103570651945}
-  - component: {fileID: -8008630528398545153}
   - component: {fileID: 8234671847528198326}
+  - component: {fileID: 156765703743850976}
   m_Layer: 0
   m_Name: Bone Mage
   m_TagString: Untagged
@@ -2649,36 +2681,6 @@ CapsuleCollider:
   m_Height: 1.3464534
   m_Direction: 1
   m_Center: {x: 0, y: 0.70668995, z: 0}
---- !u!114 &-8008630528398545153
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5640111560456209448}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3242cb6882373547a7fb97eb124c037, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data: {fileID: 0}
-  gridSlot: 0
-  isPlayerUnit: 0
-  currentDamage: 0
-  damageMultiplier: 1
-  shieldAmount: 0
-  hasFirstAttackCancel: 0
-  poisonTicks: 0
-  healthBar: {fileID: 0}
-  projectileSpawnPoint: {fileID: 0}
-  animator: {fileID: 0}
-  damageTextPrefab: {fileID: 3984627090072963299, guid: 113a0a1e4022bc1498aa53bebc508732,
-    type: 3}
-  attackRange: 2
-  moveSpeed: 2
-  attackCooldown: 1
-  hitScaleFactor: 1.1
-  hitDuration: 0.3
 --- !u!195 &8234671847528198326
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -2701,6 +2703,41 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &156765703743850976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5640111560456209448}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a0d003c28e891449921a4b3491d5636, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 0}
+  gridSlot: 0
+  isPlayerUnit: 0
+  currentDamage: 0
+  damageMultiplier: 1
+  shieldAmount: 0
+  hasFirstAttackCancel: 0
+  poisonTicks: 0
+  healthBar: {fileID: 0}
+  projectileSpawnPoint: {fileID: 2285730361427137401}
+  animator: {fileID: 0}
+  damageTextPrefab: {fileID: 3984627090072963299, guid: 113a0a1e4022bc1498aa53bebc508732,
+    type: 3}
+  attackRange: 2
+  moveSpeed: 2
+  attackCooldown: 1
+  hitScaleFactor: 1.1
+  hitDuration: 0.3
+  projectilePrefabID: bone_mage_skull
+  projectilePrefab: {fileID: 0}
+  hasShieldAbility: 0
+  shieldCooldown: 10
+  shieldAmount: 25
 --- !u!1 &5654291043005561418
 GameObject:
   m_ObjectHideFlags: 0

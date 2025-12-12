@@ -44,6 +44,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 013cc2619fb02ef469b0d3227ff14ae9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SourceObjects: []
+  categories:
+  - categoryName: ToySoldier
+    sourceObjects:
+    - ID: toy_soldier_bullet
+      SourcePrefab: {fileID: 1664368712142932928, guid: a5cb5a3e69c0ef949833d6ad82c4031c,
+        type: 3}
+      MinNumberOfObject: 10
+      AllowGrow: 1
+      AutoDestroy: 0
+      clones: []
+  - categoryName: BoneMage
+    sourceObjects:
+    - ID: bone_mage_skull
+      SourcePrefab: {fileID: 1664368712142932928, guid: 41182c9d7c739ee489254f9f6feae0bc,
+        type: 3}
+      MinNumberOfObject: 10
+      AllowGrow: 1
+      AutoDestroy: 0
+      clones: []
   DefaultCount: 10
   initScale: {x: 0, y: 0, z: 0}

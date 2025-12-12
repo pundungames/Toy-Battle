@@ -98,8 +98,8 @@ GameObject:
   - component: {fileID: 1758607303100730657}
   - component: {fileID: 6034855744213764652}
   - component: {fileID: 2207267426581316507}
-  - component: {fileID: -7113110365179885575}
   - component: {fileID: 4487008877896269425}
+  - component: {fileID: 9097780176655068528}
   m_Layer: 0
   m_Name: Toy Soldier
   m_TagString: Untagged
@@ -168,36 +168,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.24934912, y: 0.9519274, z: 0.5665508}
   m_Center: {x: 0, y: 0.47097754, z: 0}
---- !u!114 &-7113110365179885575
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1381484317276526491}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3242cb6882373547a7fb97eb124c037, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data: {fileID: 0}
-  gridSlot: 0
-  isPlayerUnit: 0
-  currentDamage: 0
-  damageMultiplier: 1
-  shieldAmount: 0
-  hasFirstAttackCancel: 0
-  poisonTicks: 0
-  healthBar: {fileID: 0}
-  projectileSpawnPoint: {fileID: 0}
-  animator: {fileID: 0}
-  damageTextPrefab: {fileID: 3984627090072963299, guid: 113a0a1e4022bc1498aa53bebc508732,
-    type: 3}
-  attackRange: 2
-  moveSpeed: 2
-  attackCooldown: 1
-  hitScaleFactor: 1.1
-  hitDuration: 0.3
 --- !u!195 &4487008877896269425
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -220,6 +190,38 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &9097780176655068528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1381484317276526491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58c2157e1cea3bb47b7bb73ed0bf3456, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 0}
+  gridSlot: 0
+  isPlayerUnit: 0
+  currentDamage: 0
+  damageMultiplier: 1
+  shieldAmount: 0
+  hasFirstAttackCancel: 0
+  poisonTicks: 0
+  healthBar: {fileID: 0}
+  projectileSpawnPoint: {fileID: 1193120281408107977}
+  animator: {fileID: 6034855744213764652}
+  damageTextPrefab: {fileID: 3984627090072963299, guid: 113a0a1e4022bc1498aa53bebc508732,
+    type: 3}
+  attackRange: 2
+  moveSpeed: 2
+  attackCooldown: 1
+  hitScaleFactor: 1.1
+  hitDuration: 0.3
+  projectilePrefabID: toy_soldier_bullet
+  projectilePrefab: {fileID: 0}
 --- !u!1 &2739127779688367096
 GameObject:
   m_ObjectHideFlags: 0
@@ -493,6 +495,37 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.06004928, y: 0.7497382, z: 0.15507843}
     m_Extent: {x: 0.02058027, y: 0.050584495, z: 0.2365324}
   m_DirtyAABB: 0
+--- !u!1 &4154164205830496970
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1193120281408107977}
+  m_Layer: 0
+  m_Name: ProjectileSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1193120281408107977
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4154164205830496970}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.775, z: 0.353}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6117306259141588103}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5306237892852772969
 GameObject:
   m_ObjectHideFlags: 0
@@ -990,6 +1023,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 928804512162933538}
+  - {fileID: 1193120281408107977}
   m_Father: {fileID: 3440913016214207452}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8563200629093616133

@@ -16,8 +16,8 @@ MonoBehaviour:
   toyName: Toy Soldier
   toyInfo: Ranged attacker with low HP but consistent DPS
   level: 1
-  baseHP: 7
-  baseDamage: 20
+  baseHP: 20
+  baseDamage: 7
   unitType: 1
   toyRarityType: 0
   toySprite: {fileID: 21300000, guid: 96b7af48aa91f6e41a26dd02e6d9b84a, type: 3}

@@ -1620,7 +1620,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6421714557038837289}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 73.75905, y: 180, z: 90}
 --- !u!1 &4473576138802031294
 GameObject:
   m_ObjectHideFlags: 0
@@ -1814,8 +1814,8 @@ GameObject:
   - component: {fileID: 3770871760233446371}
   - component: {fileID: 4025980028220706957}
   - component: {fileID: 2159161473356712945}
-  - component: {fileID: 5836539513325956218}
   - component: {fileID: 2488743543065140255}
+  - component: {fileID: 1001374235725605026}
   m_Layer: 0
   m_Name: Blast Racer
   m_TagString: Untagged
@@ -1884,36 +1884,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &5836539513325956218
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4548357788802507097}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3242cb6882373547a7fb97eb124c037, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data: {fileID: 0}
-  gridSlot: 0
-  isPlayerUnit: 0
-  currentDamage: 0
-  damageMultiplier: 1
-  shieldAmount: 0
-  hasFirstAttackCancel: 0
-  poisonTicks: 0
-  healthBar: {fileID: 0}
-  projectileSpawnPoint: {fileID: 0}
-  animator: {fileID: 0}
-  damageTextPrefab: {fileID: 3984627090072963299, guid: 113a0a1e4022bc1498aa53bebc508732,
-    type: 3}
-  attackRange: 2
-  moveSpeed: 2
-  attackCooldown: 1
-  hitScaleFactor: 1.1
-  hitDuration: 0.3
 --- !u!195 &2488743543065140255
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1936,6 +1906,42 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &1001374235725605026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4548357788802507097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a3d2bf38a4675047bcd410d9ee4a214, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 0}
+  gridSlot: 0
+  isPlayerUnit: 0
+  currentDamage: 0
+  damageMultiplier: 1
+  shieldAmount: 0
+  hasFirstAttackCancel: 0
+  poisonTicks: 0
+  healthBar: {fileID: 0}
+  projectileSpawnPoint: {fileID: 0}
+  animator: {fileID: 0}
+  damageTextPrefab: {fileID: 3984627090072963299, guid: 113a0a1e4022bc1498aa53bebc508732,
+    type: 3}
+  attackRange: 2
+  moveSpeed: 2
+  attackCooldown: 1
+  hitScaleFactor: 1.1
+  hitDuration: 0.3
+  explosionDelay: 0.75
+  explosionRadius: 2.5
+  explosionVFX: blast_racer_explosion
+  explosionSFX: blast_racer_boom
+  applyKnockback: 1
+  knockbackForce: 2
 --- !u!1 &5185646999477074386
 GameObject:
   m_ObjectHideFlags: 0
@@ -2240,7 +2246,7 @@ Transform:
   m_Children:
   - {fileID: 6421714557038837289}
   m_Father: {fileID: 3770871760233446371}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -89.98021, y: 0, z: 0}
 --- !u!1 &6036819260961955938
 GameObject:
   m_ObjectHideFlags: 0
@@ -2453,7 +2459,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6421714557038837289}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 73.739815, y: 180, z: -90}
 --- !u!1 &6373376524213632448
 GameObject:
   m_ObjectHideFlags: 0
@@ -2580,7 +2586,7 @@ Transform:
   - {fileID: 6550427077264906789}
   - {fileID: 4570857523574570600}
   m_Father: {fileID: 2468232885543385002}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 89.98021, y: 0, z: 0}
 --- !u!1 &6804593181350995841
 GameObject:
   m_ObjectHideFlags: 0
@@ -2702,7 +2708,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6421714557038837289}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 73.758995, y: 180, z: 90}
 --- !u!1 &7157126673900063107
 GameObject:
   m_ObjectHideFlags: 0
@@ -2824,7 +2830,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6421714557038837289}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 77.16008, y: 180, z: -90}
 --- !u!1 &7256626719574394859
 GameObject:
   m_ObjectHideFlags: 0
