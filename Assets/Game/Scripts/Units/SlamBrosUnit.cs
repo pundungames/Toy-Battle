@@ -1,140 +1,232 @@
 ﻿// ============================================================================
-// SLAM BROS UNIT - JUMP ATTACK FIGHTER
-// ✅ Jumps to target with DOTween
-// ✅ Jump duration based on distance
-// ✅ Attack on landing
-// Stats: Damage=7, Range=5, Cooldown=1.3s, Speed=3.6, HP=30
-// Note: 2 units spawn per slot (future implementation)
+// SLAM BROS UNIT - JUMP ATTACK FIGHTER (COROUTINE VERSION)
+// ✅ Manual position tracking with coroutine (no ChangeEndValue)
+// ✅ Compatible with all DOTween versions
+// ✅ Knockback on landing
 // ============================================================================
 
 using UnityEngine;
 using DG.Tweening;
+using System.Collections;
 using Zenject;
 
 public class SlamBrosUnit : RuntimeUnit
 {
     [Header("Jump Attack Settings")]
-    [SerializeField] float jumpHeight = 3f; // Arc height
-    [SerializeField] float jumpSpeed = 8f; // Units per second
-    [SerializeField] float attackAnimationDuration = 0.5f; // Land attack anim
+    [SerializeField] float jumpHeight = 3f;
+    [SerializeField] float jumpSpeed = 8f;
+    [SerializeField] float attackAnimationDuration = 0.5f;
+    [SerializeField] bool applyKnockback = true;
+    [SerializeField] float knockbackForce = 0.5f;
+    [SerializeField] float knockbackDuration = 0.3f;
+    [SerializeField] float trackingUpdateRate = 0.05f; // Update every 0.05s
 
+    private RuntimeUnit jumpTarget;
     private bool isJumping = false;
-
-    // ===== OVERRIDE EXECUTE ATTACK =====
+    private Coroutine trackingCoroutine;
 
     protected override void ExecuteAttack(RuntimeUnit target)
     {
         if (isJumping) return;
-
-        // Start jump attack
         StartJumpAttack(target);
     }
-
-    // ===== JUMP ATTACK SEQUENCE =====
 
     private void StartJumpAttack(RuntimeUnit target)
     {
         if (target == null || !target.IsAlive()) return;
 
+        jumpTarget = target;
         isJumping = true;
         LockAttack();
 
-        // Calculate jump duration based on distance
-        float distance = Vector3.Distance(transform.position, target.transform.position);
-        float jumpDuration = distance / jumpSpeed;
-
-        // Disable NavMeshAgent during jump
         if (agent != null && agent.enabled)
         {
             agent.enabled = false;
         }
 
-        // Play jump animation (rising)
         if (animator != null)
         {
             animator.SetTrigger("Jump");
         }
+    }
 
-        // Calculate landing position
-        Vector3 landingPos = target.transform.position;
+    // ===== ANIMATION EVENT: JUMP =====
 
-        // ✅ CRITICAL: Check if landing position is on NavMesh
-        UnityEngine.AI.NavMeshHit hit;
-        if (UnityEngine.AI.NavMesh.SamplePosition(landingPos, out hit, 3f, UnityEngine.AI.NavMesh.AllAreas))
+    public void JumpEvent()
+    {
+        if (jumpTarget == null || !jumpTarget.IsAlive())
         {
-            landingPos = hit.position;
-        }
-        else
-        {
-            Debug.LogWarning($"⚠️ Slam Bros: Landing position not on NavMesh, adjusting");
-            landingPos = transform.position + (target.transform.position - transform.position).normalized * 2f;
+            UnlockJump();
+            return;
         }
 
-        // Jump with DOTween arc
-        Sequence jumpSeq = DOTween.Sequence();
+        float distance = Vector3.Distance(transform.position, jumpTarget.transform.position);
+        float jumpDuration = distance / jumpSpeed;
 
-        // Jump to target
-        jumpSeq.Append(transform.DOJump(landingPos, jumpHeight, 1, jumpDuration)
-            .SetEase(Ease.Linear));
+        // Start tracking coroutine
+        trackingCoroutine = StartCoroutine(JumpWithTracking(jumpDuration));
+    }
 
-        // Rotate during jump (optional cool effect)
-       /* jumpSeq.Join(transform.DORotate(new Vector3(0, 360, 0), jumpDuration, RotateMode.FastBeyond360)
-            .SetEase(Ease.Linear));*/
+    // ===== JUMP WITH TRACKING COROUTINE =====
 
-        jumpSeq.OnComplete(() =>
+    private IEnumerator JumpWithTracking(float duration)
+    {
+        Vector3 startPos = transform.position;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
         {
-            // Landing! Play attack animation
-            if (animator != null)
+            elapsedTime += Time.deltaTime;
+            float progress = elapsedTime / duration;
+
+            // Check if target still alive
+            if (jumpTarget == null || !jumpTarget.IsAlive())
             {
-                animator.SetTrigger("Attack");
+                // Target died, land at current position
+                break;
             }
 
-            // Deal damage to nearby enemies (landing impact)
-            DealLandingDamage(landingPos);
+            // Get current target position
+            Vector3 targetPos = jumpTarget.transform.position;
 
-            // Play landing VFX
-            PlayLandingVFX(landingPos);
-
-            // Play landing SFX
-            if (audioManager != null)
+            // Validate NavMesh
+            UnityEngine.AI.NavMeshHit hit;
+            if (!UnityEngine.AI.NavMesh.SamplePosition(targetPos, out hit, 3f, UnityEngine.AI.NavMesh.AllAreas))
             {
-                audioManager.Play("slam_bros_land");
+                // Invalid position, use last valid position
+                targetPos = transform.position + (targetPos - transform.position).normalized * 2f;
+            }
+            else
+            {
+                targetPos = hit.position;
             }
 
-            Taptic.Heavy();
+            // Calculate position with arc
+            Vector3 horizontalPos = Vector3.Lerp(startPos, targetPos, progress);
 
-            // Re-enable agent after landing
-            if (agent != null && !agent.enabled)
+            // Parabolic arc for height
+            float heightProgress = 1 - Mathf.Pow(2 * progress - 1, 2); // Parabola
+            float currentHeight = jumpHeight * heightProgress;
+
+            // Apply position
+            transform.position = new Vector3(
+                horizontalPos.x,
+                horizontalPos.y + currentHeight,
+                horizontalPos.z
+            );
+
+            // Look at target
+            Vector3 lookDirection = (targetPos - transform.position).normalized;
+            if (lookDirection != Vector3.zero)
             {
-                agent.enabled = true;
+                transform.rotation = Quaternion.LookRotation(lookDirection);
             }
 
-            // Unlock after attack animation
-            Invoke(nameof(UnlockJump), attackAnimationDuration);
-        });
+            yield return null; // Update every frame for smooth tracking
+        }
+
+        // Jump complete
+        OnJumpComplete();
+    }
+
+    private void OnJumpComplete()
+    {
+        if (animator != null)
+        {
+            animator.SetTrigger("Attack");
+        }
+
+        Vector3 finalLandingPos = transform.position;
+
+        DealLandingDamage(finalLandingPos);
+        PlayLandingVFX(finalLandingPos);
+
+        if (audioManager != null)
+        {
+            audioManager.Play("slam_bros_land");
+        }
+
+        Taptic.Heavy();
+
+        if (agent != null && !agent.enabled)
+        {
+            agent.enabled = true;
+        }
+
+        Invoke(nameof(UnlockJump), attackAnimationDuration);
     }
 
     private void UnlockJump()
     {
         isJumping = false;
         UnlockAttack();
+        jumpTarget = null;
+
+        if (trackingCoroutine != null)
+        {
+            StopCoroutine(trackingCoroutine);
+            trackingCoroutine = null;
+        }
     }
 
     // ===== LANDING DAMAGE =====
 
     private void DealLandingDamage(Vector3 landingPos)
     {
-        // Find target (should still be current target)
         if (currentTarget != null && currentTarget.IsAlive())
         {
             float distance = Vector3.Distance(landingPos, currentTarget.transform.position);
 
-            // If close enough, deal damage
             if (distance <= attackRange)
             {
                 DealInstantDamage(currentTarget);
+
+                if (applyKnockback)
+                {
+                    ApplyLandingKnockback(currentTarget, landingPos);
+                }
             }
         }
+    }
+
+    // ===== KNOCKBACK =====
+
+    private void ApplyLandingKnockback(RuntimeUnit target, Vector3 impactPosition)
+    {
+        Vector3 knockbackDirection = (target.transform.position - impactPosition).normalized;
+        Vector3 knockbackTarget = target.transform.position + knockbackDirection * knockbackForce;
+
+        UnityEngine.AI.NavMeshHit hit;
+        if (UnityEngine.AI.NavMesh.SamplePosition(knockbackTarget, out hit, knockbackForce + 1f, UnityEngine.AI.NavMesh.AllAreas))
+        {
+            knockbackTarget = hit.position;
+        }
+        else
+        {
+            Debug.LogWarning($"⚠️ Slam Bros: Knockback position outside NavMesh, skipping knockback for {target.data.toyName}");
+            return;
+        }
+
+        UnityEngine.AI.NavMeshAgent targetAgent = target.GetComponent<UnityEngine.AI.NavMeshAgent>();
+        bool wasAgentEnabled = false;
+
+        if (targetAgent != null && targetAgent.enabled)
+        {
+            wasAgentEnabled = true;
+            targetAgent.enabled = false;
+        }
+
+        target.transform.DOMove(knockbackTarget, knockbackDuration)
+            .SetEase(Ease.OutQuad)
+            .OnComplete(() =>
+            {
+                if (targetAgent != null && wasAgentEnabled && !targetAgent.enabled)
+                {
+                    targetAgent.enabled = true;
+                }
+            });
+
+        Debug.Log($"💥 Slam Bros knocked back {target.data.toyName} to {knockbackTarget}");
     }
 
     // ===== VFX =====
@@ -151,28 +243,25 @@ public class SlamBrosUnit : RuntimeUnit
         }
     }
 
-    // ===== ANIMATION EVENT (Optional) =====
-
-    /// <summary>
-    /// If you want damage on animation event instead of landing, override this
-    /// </summary>
     public override void ExecuteAttackEvent()
     {
-        // Deal damage at animation frame (alternative to landing damage)
         if (currentTarget != null && currentTarget.IsAlive())
         {
             DealInstantDamage(currentTarget);
         }
-
-        // Note: Don't unlock here, UnlockJump handles it
     }
-
-    // ===== RESET ON DEATH =====
 
     private void OnDestroy()
     {
         transform.DOKill();
         isJumping = false;
+        jumpTarget = null;
+
+        if (trackingCoroutine != null)
+        {
+            StopCoroutine(trackingCoroutine);
+        }
+
         CancelInvoke(nameof(UnlockJump));
     }
 }

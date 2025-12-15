@@ -7,6 +7,7 @@
 // ============================================================================
 
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using Zenject;
 
@@ -14,8 +15,9 @@ public class GuidedProjectile : ProjectileBase
 {
     [Header("Guided Settings")]
     [SerializeField] float projectileSpeed = 15f;
-    [SerializeField] float rotationSpeed = 10f;
+    [SerializeField] float rotationSpeed = 15f; // ✅ Increased from 10 for straighter path
     [SerializeField] float maxLifetime = 5f; // Auto-destroy after 5s
+    [SerializeField] bool useDirectShot = false; // ✅ NEW: Fly straight to target position (no tracking)
 
     private RuntimeUnit targetUnit;
     private bool hasHit = false;
@@ -29,6 +31,16 @@ public class GuidedProjectile : ProjectileBase
         attackDamage = damage;
         hasHit = false;
         lifetimeTimer = 0f;
+
+        // ✅ FIX: Face target immediately at spawn
+        if (targetUnit != null)
+        {
+            Vector3 direction = (targetUnit.transform.position - transform.position).normalized;
+            if (direction != Vector3.zero)
+            {
+                transform.rotation = Quaternion.LookRotation(direction);
+            }
+        }
 
         // Enable trail
         if (trail)
@@ -50,6 +62,15 @@ public class GuidedProjectile : ProjectileBase
 
     private IEnumerator TrackTarget()
     {
+        // ✅ If direct shot mode, calculate initial direction and fly straight
+        Vector3 fixedDirection = Vector3.zero;
+        if (useDirectShot && targetUnit != null)
+        {
+            Vector3 targetPos = targetUnit.transform.position + Vector3.up * 1.2f;
+            fixedDirection = (targetPos - transform.position).normalized;
+            transform.rotation = Quaternion.LookRotation(fixedDirection);
+        }
+
         while (!hasHit && lifetimeTimer < maxLifetime)
         {
             lifetimeTimer += Time.deltaTime;
@@ -62,19 +83,25 @@ public class GuidedProjectile : ProjectileBase
                 yield break;
             }
 
-            // Calculate direction to target
-            Vector3 targetPosition = targetUnit.transform.position + Vector3.up * 1f; // Aim at center
-            Vector3 direction = (targetPosition - transform.position).normalized;
+            if (useDirectShot)
+            {
+                // ✅ DIRECT SHOT: Fly straight (no tracking)
+                transform.position += fixedDirection * projectileSpeed * Time.deltaTime;
+            }
+            else
+            {
+                // ✅ HOMING: Track target continuously
+                Vector3 targetPosition = targetUnit.transform.position + Vector3.up * 1.2f;
+                Vector3 direction = (targetPosition - transform.position).normalized;
 
-            // Rotate towards target
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+                Quaternion targetRotation = Quaternion.LookRotation(direction);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
 
-            // Move forward
-            transform.position += transform.forward * projectileSpeed * Time.deltaTime;
+                transform.position += transform.forward * projectileSpeed * Time.deltaTime;
+            }
 
             // Check distance to target
-            float distance = Vector3.Distance(transform.position, targetPosition);
+            float distance = Vector3.Distance(transform.position, targetUnit.transform.position + Vector3.up * 1.2f);
             if (distance < 0.5f)
             {
                 // Close enough, trigger hit

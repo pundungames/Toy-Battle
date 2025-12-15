@@ -214,7 +214,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             Vector3 lookDirection = (currentTarget.transform.position - transform.position).normalized;
             if (lookDirection != Vector3.zero)
             {
-              //  transform.rotation = Quaternion.LookRotation(lookDirection);
+                //  transform.rotation = Quaternion.LookRotation(lookDirection);
             }
 
             if (animator != null)
@@ -512,7 +512,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             Debug.Log($"💥 {data.toyName} exploded!");
         }
 
-        Destroy(gameObject, 1f);
+        Destroy(gameObject, .1f);
     }
 
     // ===== BATTLE RESET =====

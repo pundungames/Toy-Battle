@@ -1,8 +1,7 @@
 ﻿// ============================================================================
 // DRAFT CARD MANAGER - Kart seçim sistemini yönetir
-// Her turn 3 kart gösterir: 2 Toy Unit + 1 Bonus (veya 3 Unit)
+// ✅ TEST MODE: Inspector'dan istediğin karakterleri test edebilirsin!
 // ✅ FIX: Aynı kart birden fazla gelmez (no duplicates)
-// ❌ REMOVED: Reroll system (ribbon button removed)
 // ============================================================================
 
 using DG.Tweening;
@@ -21,6 +20,10 @@ public class DraftCardManager : MonoBehaviour
     [Inject] BonusSystem bonusSystem;
     [Inject] UnlockSystem unlockSystem;
 
+    [Header("⚡ TEST MODE")]
+    [SerializeField] bool testMode = false; // ✅ Enable to test specific characters
+    [SerializeField] List<ToyUnitData> testCharacters = new List<ToyUnitData>(); // ✅ Drag characters here to test
+
     [Header("Card Pool")]
     [SerializeField] List<ToyUnitData> allToyUnits;
     [SerializeField] List<BonusCardData> allBonusCards;
@@ -28,8 +31,13 @@ public class DraftCardManager : MonoBehaviour
     [Header("Active Cards")]
     [SerializeField] List<DraftCardContent> activeCards = new List<DraftCardContent>();
 
+    [Header("UI Elements")]
+    [SerializeField] TextMeshProUGUI rerollPriceText;
+    [SerializeField] Button rerollButton;
+
     [Header("Settings")]
     [SerializeField] bool isShopMode = false;
+    [SerializeField] int rerollCost = 10;
     [SerializeField] int currentPips = 2;
 
     [Header("Rarity Weights")]
@@ -58,21 +66,51 @@ public class DraftCardManager : MonoBehaviour
 
         GenerateDraftCards();
         DisplayCards();
+        SetupUI();
 
-        // ✅ GameObject'i aktif et
         gameObject.SetActive(true);
     }
 
-    // ===== CARD GENERATION (NO DUPLICATES) =====
+    private void SetupUI()
+    {
+        if (rerollButton != null)
+        {
+            rerollPriceText.text = rerollCost.ToString();
+            rerollButton.gameObject.SetActive(true);
+            rerollButton.interactable = currencyManager.HasGold(rerollCost);
+            rerollButton.onClick.RemoveAllListeners();
+            rerollButton.onClick.AddListener(OnRerollClick);
+        }
+
+        CheckCurrency();
+    }
+
+    // ===== CARD GENERATION =====
 
     private void GenerateDraftCards()
     {
         currentDraftPool.Clear();
 
-        // Get unlocked units
-        List<ToyUnitData> unlockedUnits = unlockSystem.GetUnlockedUnits(allToyUnits);
+        // ✅ TEST MODE: Use test characters if enabled
+        if (testMode && testCharacters.Count > 0)
+        {
+            Debug.Log("🧪 TEST MODE ACTIVE - Using test characters");
 
-        // ✅ FIX: Create a temporary pool to prevent duplicates
+            // Add up to 3 test characters
+            int count = Mathf.Min(testCharacters.Count, 3);
+            for (int i = 0; i < count; i++)
+            {
+                if (testCharacters[i] != null)
+                {
+                    currentDraftPool.Add(testCharacters[i]);
+                }
+            }
+
+            return; // ✅ Skip normal generation
+        }
+
+        // ✅ NORMAL MODE: Random generation
+        List<ToyUnitData> unlockedUnits = unlockSystem.GetUnlockedUnits(allToyUnits);
         List<ToyUnitData> availableUnits = new List<ToyUnitData>(unlockedUnits);
 
         // Add 2 unique toy units
@@ -84,7 +122,7 @@ public class DraftCardManager : MonoBehaviour
             if (randomUnit != null)
             {
                 currentDraftPool.Add(randomUnit);
-                availableUnits.Remove(randomUnit); // ✅ Remove to prevent duplicate
+                availableUnits.Remove(randomUnit);
             }
         }
 
@@ -102,7 +140,7 @@ public class DraftCardManager : MonoBehaviour
                 if (randomUnit != null)
                 {
                     currentDraftPool.Add(randomUnit);
-                    availableUnits.Remove(randomUnit); // ✅ Remove to prevent duplicate
+                    availableUnits.Remove(randomUnit);
                 }
             }
         }
@@ -184,10 +222,10 @@ public class DraftCardManager : MonoBehaviour
         hasCardBeenChosen = true;
 
         Taptic.Medium();
+        rerollButton.gameObject.SetActive(false);
 
         SetAllCardsInteractable(false);
 
-        // Auto-confirm after delay
         Invoke(nameof(ConfirmSelection), 0.5f);
     }
 
@@ -199,7 +237,6 @@ public class DraftCardManager : MonoBehaviour
 
         if (cardData is ToyUnitData unitData)
         {
-            // Spawn unit
             bool spawned = gridManager.SpawnUnit(unitData, true);
 
             if (spawned)
@@ -215,7 +252,6 @@ public class DraftCardManager : MonoBehaviour
         }
         else if (cardData is BonusCardData bonusData)
         {
-            // Apply bonus
             if (currentPips >= bonusData.pipCost)
             {
                 bonusSystem.ApplyBonus(bonusData);
@@ -236,16 +272,12 @@ public class DraftCardManager : MonoBehaviour
         selectedCard.Placed();
         Taptic.Light();
 
-        // Draft complete
         Invoke(nameof(FinishDraft), 0.3f);
     }
 
     private void FinishDraft()
     {
-        // ✅ Kartları gizle ama GameObject'i kapatma
         HideCards();
-
-        // Turn indicator güncelle
         Debug.Log("Player draft complete, waiting for AI...");
     }
 
@@ -255,6 +287,8 @@ public class DraftCardManager : MonoBehaviour
         {
             card.gameObject.SetActive(false);
         }
+
+        if (rerollButton != null) rerollButton.gameObject.SetActive(false);
     }
 
     public void CancelSelection()
@@ -266,6 +300,7 @@ public class DraftCardManager : MonoBehaviour
         }
 
         hasCardBeenChosen = false;
+        rerollButton.gameObject.SetActive(true);
         SetAllCardsInteractable(true);
     }
 
@@ -280,10 +315,38 @@ public class DraftCardManager : MonoBehaviour
         }
     }
 
-    // ❌ REMOVED: Reroll system
-    // - No reroll button
-    // - No reroll cost
-    // - No OnRerollClick method
+    // ===== REROLL =====
+
+    private void OnRerollClick()
+    {
+        Taptic.Light();
+
+        if (!currencyManager.HasGold(rerollCost)) return;
+
+        currencyManager.Payment(rerollCost);
+
+        foreach (var card in activeCards)
+        {
+            card.ResetCardVisuals();
+            card.transform.DOScale(Vector3.one * 1.1f, 0.1f)
+                .SetUpdate(true)
+                .OnComplete(() => card.transform.DOScale(Vector3.one, 0.1f).SetUpdate(true));
+        }
+
+        GenerateDraftCards();
+        DisplayCards();
+        SetupUI();
+
+        EventManager.OnReroll();
+    }
+
+    private void CheckCurrency()
+    {
+        foreach (var card in activeCards)
+        {
+            card.CheckCurrency();
+        }
+    }
 
     private void OnCardConfirmed(ToyUnitData unitData)
     {

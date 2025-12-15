@@ -1936,8 +1936,8 @@ MonoBehaviour:
   attackCooldown: 1
   hitScaleFactor: 1.1
   hitDuration: 0.3
-  explosionDelay: 0.75
-  explosionRadius: 2.5
+  explosionDelay: 0.25
+  explosionRadius: 2
   explosionVFX: blast_racer_explosion
   explosionSFX: blast_racer_boom
   applyKnockback: 1

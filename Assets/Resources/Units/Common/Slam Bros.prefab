@@ -1410,6 +1410,9 @@ MonoBehaviour:
   jumpHeight: 1
   jumpSpeed: 6
   attackAnimationDuration: 0.5
+  applyKnockback: 1
+  knockbackForce: 0.5
+  knockbackDuration: 0.3
 --- !u!114 &8399887653088109882
 MonoBehaviour:
   m_ObjectHideFlags: 0

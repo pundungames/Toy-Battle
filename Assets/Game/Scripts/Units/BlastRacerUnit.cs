@@ -144,7 +144,7 @@ public class BlastRacerUnit : RuntimeUnit
             GameObject vfx = poolingSystem.InstantiateAPS(explosionVFX, transform.position);
             if (vfx != null)
             {
-                vfx.transform.localScale = Vector3.one * explosionRadius;
+                vfx.transform.localScale = Vector3.one * (explosionRadius / 2);
                 poolingSystem.DestroyAPS(vfx, 3f);
             }
         }

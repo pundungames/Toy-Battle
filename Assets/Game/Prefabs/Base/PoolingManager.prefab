@@ -63,5 +63,13 @@ MonoBehaviour:
       AllowGrow: 1
       AutoDestroy: 0
       clones: []
+  - categoryName: BlastRacer
+    sourceObjects:
+    - ID: blast_racer_explosion
+      SourcePrefab: {fileID: 150222, guid: 9f03f372adf02874cb666857a9f97abd, type: 3}
+      MinNumberOfObject: 10
+      AllowGrow: 1
+      AutoDestroy: 0
+      clones: []
   DefaultCount: 10
   initScale: {x: 0, y: 0, z: 0}
