@@ -1,7 +1,8 @@
 // ============================================================================
-// GRID MANAGER - FORMATION SYSTEM WITH NAVMESHAGENT SUPPORT
-// ✅ Formation animation with DOTween (agent disabled)
-// ✅ After animation: Enable agents for battle
+// GRID MANAGER - COMPLETE SYSTEM
+// ✅ Multi-unit spawn support (Punchy Bots, Slam Bros, MiniBoy)
+// ✅ Formation system with NavMeshAgent
+// ✅ Twin linking system
 // ============================================================================
 
 using System.Collections;
@@ -76,13 +77,11 @@ public class GridManager : MonoBehaviour
         Debug.Log("✅ Grid slots initialized");
     }
 
-    // ===== SPAWN UNIT (DRAFT) =====
+    // ===== SPAWN UNIT (UPDATED FOR MULTI-UNIT) =====
 
     public bool SpawnUnit(ToyUnitData unitData, bool isPlayer, int slotIndex = -1)
     {
-        GridSlot[] targetGrid = isPlayer ? playerGrid : enemyGrid;
-        Transform[] targetSlots = isPlayer ? playerGridSlots : enemyGridSlots;
-
+        // Find slot
         if (slotIndex == -1)
         {
             slotIndex = FindSlotForUnit(unitData, isPlayer);
@@ -94,13 +93,32 @@ public class GridManager : MonoBehaviour
             return false;
         }
 
-        GridSlot slot = targetGrid[slotIndex];
+        GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
+        Transform slotTransform = isPlayer ? playerGridSlots[slotIndex] : enemyGridSlots[slotIndex];
 
+        // Check if slot can accept
         if (!slot.CanAddUnit(unitData))
         {
             Debug.LogWarning($"❌ Slot {slotIndex} cannot accept {unitData.toyName}");
             return false;
         }
+
+        // ✅ Check if multi-unit
+        if (unitData.isMultiUnit && unitData.unitsPerSlot > 1)
+        {
+            return SpawnMultipleUnits(unitData, isPlayer, slotIndex);
+        }
+
+        // Standard single unit spawn
+        return SpawnSingleUnit(unitData, isPlayer, slotIndex);
+    }
+
+    // ===== SPAWN SINGLE UNIT =====
+
+    private bool SpawnSingleUnit(ToyUnitData unitData, bool isPlayer, int slotIndex)
+    {
+        GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
+        Transform slotTransform = isPlayer ? playerGridSlots[slotIndex] : enemyGridSlots[slotIndex];
 
         GameObject unitPrefab = LoadUnitPrefab(unitData);
 
@@ -110,7 +128,7 @@ public class GridManager : MonoBehaviour
             return false;
         }
 
-        GameObject unitObj = Instantiate(unitPrefab, targetSlots[slotIndex]);
+        GameObject unitObj = Instantiate(unitPrefab, slotTransform);
         RuntimeUnit runtimeUnit = unitObj.GetComponent<RuntimeUnit>();
 
         if (runtimeUnit == null)
@@ -132,13 +150,138 @@ public class GridManager : MonoBehaviour
 
         EventManager.OnUnitSpawn(runtimeUnit);
 
+        Debug.Log($"✅ Spawned single unit: {unitData.toyName} at slot {slotIndex}");
+
         return true;
     }
+
+    // ===== SPAWN MULTIPLE UNITS (NEW!) =====
+
+    private bool SpawnMultipleUnits(ToyUnitData unitData, bool isPlayer, int slotIndex)
+    {
+        GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
+        Transform slotTransform = isPlayer ? playerGridSlots[slotIndex] : enemyGridSlots[slotIndex];
+
+        int unitsToSpawn = Mathf.Min(unitData.unitsPerSlot, unitData.maxStackPerSlot);
+        List<RuntimeUnit> spawnedUnits = new List<RuntimeUnit>();
+
+        Debug.Log($"🎯 Spawning {unitsToSpawn} units for {unitData.toyName}");
+
+        GameObject unitPrefab = LoadUnitPrefab(unitData);
+
+        if (unitPrefab == null)
+        {
+            Debug.LogError($"❌ Unit prefab not found for: {unitData.toyName}");
+            return false;
+        }
+
+        // Spawn each unit
+        for (int i = 0; i < unitsToSpawn; i++)
+        {
+            // Calculate position
+            Vector3 spawnPos = slotTransform.position;
+
+            if (i < unitData.unitOffsets.Length)
+            {
+                spawnPos += unitData.unitOffsets[i];
+            }
+            else
+            {
+                // Default offset (spread left-right)
+                float offsetX = (i - (unitsToSpawn - 1) / 2f) * 0.8f;
+                spawnPos += Vector3.right * offsetX;
+            }
+
+            // Instantiate
+            GameObject unitObj = Instantiate(unitPrefab, spawnPos, Quaternion.identity, slotTransform);
+            RuntimeUnit unit = unitObj.GetComponent<RuntimeUnit>();
+
+            if (unit == null)
+            {
+                Debug.LogError($"❌ RuntimeUnit component not found on prefab: {unitData.toyName}");
+                Destroy(unitObj);
+                continue;
+            }
+
+            // Initialize
+            unit.Initialize(unitData, slotIndex, isPlayer);
+
+            // Inject dependencies
+            container.InjectGameObject(unitObj);
+
+            // Store
+            spawnedUnits.Add(unit);
+            slot.units.Add(unit);
+
+            EventManager.OnUnitSpawn(unit);
+        }
+
+        // Set unit type
+        if (slot.unitType == null)
+        {
+            slot.unitType = unitData;
+        }
+
+        // ✅ Link twins if this is a twin system (Punchy Bots)
+        if (unitData.isTwinSystem && spawnedUnits.Count >= 2)
+        {
+            LinkTwinUnits(spawnedUnits);
+        }
+
+        UpdatePermanentState(slotIndex, isPlayer);
+
+        Debug.Log($"✅ Spawned {spawnedUnits.Count} units for {unitData.toyName} at slot {slotIndex}");
+
+        return spawnedUnits.Count > 0;
+    }
+
+    // ===== LINK TWIN UNITS =====
+
+    private void LinkTwinUnits(List<RuntimeUnit> units)
+    {
+        // Set first unit as primary
+        PunchyBotsUnit primary = units[0].GetComponent<PunchyBotsUnit>();
+        if (primary != null)
+        {
+            primary.isPrimaryBot = true;
+        }
+
+        // Link all units to each other
+        for (int i = 0; i < units.Count; i++)
+        {
+            PunchyBotsUnit currentBot = units[i].GetComponent<PunchyBotsUnit>();
+            if (currentBot == null) continue;
+
+            // Set secondary flag
+            if (i > 0)
+            {
+                currentBot.isPrimaryBot = false;
+            }
+
+            // Link to all other bots
+            for (int j = 0; j < units.Count; j++)
+            {
+                if (i == j) continue;
+
+                PunchyBotsUnit otherBot = units[j].GetComponent<PunchyBotsUnit>();
+                if (otherBot != null)
+                {
+                    currentBot.LinkTwin(otherBot);
+                    break; // For now, just link to first twin
+                }
+            }
+        }
+
+        Debug.Log($"👊 Linked {units.Count} twin units");
+    }
+
+    // ===== FIND SLOT FOR UNIT =====
 
     private int FindSlotForUnit(ToyUnitData unitData, bool isPlayer)
     {
         GridSlot[] targetGrid = isPlayer ? playerGrid : enemyGrid;
 
+        // Try to find existing slot with same unit type
         for (int i = 0; i < targetGrid.Length; i++)
         {
             if (!targetGrid[i].IsEmpty)
@@ -151,6 +294,7 @@ public class GridManager : MonoBehaviour
             }
         }
 
+        // Find empty slot
         for (int i = 0; i < targetGrid.Length; i++)
         {
             if (targetGrid[i].IsEmpty)
@@ -170,6 +314,12 @@ public class GridManager : MonoBehaviour
         int unitCount = slot.units.Count;
 
         if (unitCount == 0) return;
+
+        // Don't rearrange multi-unit spawns (they have custom offsets)
+        if (slot.unitType != null && slot.unitType.isMultiUnit)
+        {
+            return;
+        }
 
         int gridSize = Mathf.CeilToInt(Mathf.Sqrt(unitCount));
         float spacing = slot.unitType.unitSpacing;
@@ -301,6 +451,8 @@ public class GridManager : MonoBehaviour
         return positions;
     }
 
+    // ===== PERMANENT STATE =====
+
     private void UpdatePermanentState(int slotIndex, bool isPlayer)
     {
         GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
@@ -312,9 +464,23 @@ public class GridManager : MonoBehaviour
         }
         else
         {
-            stateDict[slotIndex] = new GridSlotData(slot.unitType, slotIndex, slot.units.Count);
+            // ✅ For multi-units, save actual count but spawn will handle multiplication
+            int stateCount = slot.units.Count;
+
+            // ✅ CRITICAL: If this is a multi-unit, divide by unitsPerSlot to get "spawn count"
+            // Example: 2 Punchy Bots in slot → Save as 1 spawn (will create 2 units)
+            if (slot.unitType != null && slot.unitType.isMultiUnit && slot.unitType.unitsPerSlot > 1)
+            {
+                stateCount = Mathf.CeilToInt((float)slot.units.Count / slot.unitType.unitsPerSlot);
+            }
+
+            stateDict[slotIndex] = new GridSlotData(slot.unitType, slotIndex, stateCount);
+
+            Debug.Log($"💾 Saved state: Slot {slotIndex}, UnitType: {slot.unitType.toyName}, StateCount: {stateCount}, ActualUnits: {slot.units.Count}");
         }
     }
+
+    // ===== LOAD PREFAB =====
 
     private GameObject LoadUnitPrefab(ToyUnitData unitData)
     {
@@ -336,6 +502,8 @@ public class GridManager : MonoBehaviour
             return null;
         }
     }
+
+    // ===== GET UNITS =====
 
     public List<RuntimeUnit> GetPlayerUnits()
     {
@@ -372,6 +540,8 @@ public class GridManager : MonoBehaviour
 
         return allUnits;
     }
+
+    // ===== UTILITY =====
 
     public void IncreaseDeployLimit()
     {

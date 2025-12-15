@@ -73,6 +73,21 @@ public class ToyUnitData : ScriptableObject
     [Header("Economy")]
     public int toyPrice;
 
+    [Header("Multi-Unit System")]
+    [Tooltip("If true, spawns multiple units per slot (Punchy Bots, Slam Bros, MiniBoy)")]
+    public bool isMultiUnit = false;
+
+    [Tooltip("How many units spawn per slot")]
+    [Range(1, 3)]
+    public int unitsPerSlot = 1;
+
+    [Tooltip("Position offsets for each unit (local to slot position)")]
+    public Vector3[] unitOffsets = new Vector3[0];
+
+    [Header("Twin System (for Punchy Bots)")]
+    [Tooltip("If true, units share target and attack counter")]
+    public bool isTwinSystem = false;
+
     // Level scaling
     public int GetScaledHP()
     {

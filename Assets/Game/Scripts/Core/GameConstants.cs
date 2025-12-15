@@ -10,6 +10,8 @@ using UnityEngine;
 public static class GameConstants
 {
     public const int TOTAL_TURNS = 30;
+    public const int MAX_UNITS_PER_SLOT = 3; // ✅ NEW: Max units per slot (for MiniBoy x3)
+
     public const int GRID_SIZE = 9; // ✅ 3x3 grid = 9 slots
     public const float COMBAT_TICK_INTERVAL = 0.5f;
     public const int CARDS_PER_DRAFT = 3;

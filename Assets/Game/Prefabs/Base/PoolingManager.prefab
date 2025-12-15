@@ -71,5 +71,14 @@ MonoBehaviour:
       AllowGrow: 1
       AutoDestroy: 0
       clones: []
+  - categoryName: Tanklet
+    sourceObjects:
+    - ID: kaboom_tanklet_missile
+      SourcePrefab: {fileID: 8230371502984270342, guid: e00515f819cb948448363ab2a719494e,
+        type: 3}
+      MinNumberOfObject: 10
+      AllowGrow: 1
+      AutoDestroy: 0
+      clones: []
   DefaultCount: 10
   initScale: {x: 0, y: 0, z: 0}

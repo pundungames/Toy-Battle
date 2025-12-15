@@ -18,6 +18,7 @@ public class ShellNinjaUnit : RuntimeUnit
     [SerializeField] string teleportSFX = "ninja_teleport";
 
     private bool hasTeleported = false;
+    private bool isPreparingTeleport = false; // ✅ NEW: Prevent movement before teleport
 
     // ===== BATTLE START OVERRIDE =====
 
@@ -25,13 +26,21 @@ public class ShellNinjaUnit : RuntimeUnit
     {
         base.Initialize(unitData, slot, isPlayer);
         hasTeleported = false;
+        isPreparingTeleport = false;
     }
-
-    // ===== TELEPORT ON BATTLE START =====
 
     public override void StartBattle()
     {
         base.StartBattle();
+
+        // ✅ Disable movement until teleport completes
+        isPreparingTeleport = true;
+
+        // Disable NavMeshAgent immediately
+        if (agent != null && agent.enabled)
+        {
+            agent.enabled = false;
+        }
 
         // Start teleport sequence after delay
         if (!hasTeleported)
@@ -148,14 +157,19 @@ public class ShellNinjaUnit : RuntimeUnit
                 transform.DOScale(1f, 0.2f)
                     .OnComplete(() =>
                     {
-                        // Re-enable agent
+                        // ✅ Re-enable agent AFTER teleport
                         if (agent != null && !agent.enabled)
                         {
                             agent.enabled = true;
                         }
 
                         hasTeleported = true;
-                        Debug.Log($"⚡ Shell Ninja teleported to backline!");
+                        isPreparingTeleport = false;
+
+                        // ✅ CRITICAL: Force target to backline enemy after teleport!
+                        ForceTargetBacklineEnemy();
+
+                        Debug.Log($"⚡ Shell Ninja teleported to backline and targeting!");
                     });
             });
 
@@ -166,6 +180,45 @@ public class ShellNinjaUnit : RuntimeUnit
         }
 
         Taptic.Medium();
+    }
+
+    // ===== OVERRIDE UPDATE TO PREVENT MOVEMENT BEFORE TELEPORT =====
+
+    protected override void Update()
+    {
+        // ✅ Don't do anything if preparing to teleport
+        if (isPreparingTeleport)
+        {
+            // Stay still, disable agent
+            if (agent != null && agent.enabled)
+            {
+                agent.enabled = false;
+            }
+            return;
+        }
+
+        // Normal update after teleport
+        base.Update();
+    }
+
+    // ===== FORCE TARGET BACKLINE ENEMY =====
+
+    private void ForceTargetBacklineEnemy()
+    {
+        // Find backline enemy again (might have changed)
+        RuntimeUnit backlineTarget = FindBacklineEnemy();
+
+        if (backlineTarget != null && backlineTarget.IsAlive())
+        {
+            // ✅ Manually override currentTarget
+            currentTarget = backlineTarget;
+
+            Debug.Log($"🎯 Shell Ninja now targeting backline: {backlineTarget.data.toyName}");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ Shell Ninja: No backline target available after teleport");
+        }
     }
 
     // ===== ATTACK (Standard Melee) =====

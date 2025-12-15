@@ -24,8 +24,8 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     public bool isPlayerUnit;
 
     // ===== HEALTH (IHealthProvider) =====
-    private float maxHealth;
-    private float currentHealthValue;
+    protected float maxHealth;
+    public float currentHealthValue;
 
     public float MaxHealth => maxHealth;
     public float CurrentHealth => currentHealthValue;
@@ -65,11 +65,11 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     // ===== PRIVATE STATE =====
     protected RuntimeUnit currentTarget;
-    private float lastAttackTime = 0f;
+    protected float lastAttackTime = 0f;
     private bool isInBattle = false;
-    protected bool isExecutingAttack = false; // ✅ NEW: Prevent attack spam
+    [SerializeField] bool isExecutingAttack = false; // ✅ NEW: Prevent attack spam
     private Vector3 originalPosition;
-    private Vector3 originalScale;
+    protected Vector3 originalScale;
     private bool isHitFeedbackActive = false;
 
     // ===== INITIALIZATION =====
@@ -133,8 +133,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         agent.acceleration = moveSpeed * 4f;
         agent.angularSpeed = 360f;
         agent.stoppingDistance = attackRange * 0.8f;
-        agent.radius = 0.5f;
-        agent.height = 2.0f;
         agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
 
         agent.enabled = false;
@@ -156,7 +154,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         }
     }
 
-    public void StopBattle()
+    public virtual void StopBattle()
     {
         isInBattle = false;
 
@@ -283,7 +281,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     /// ✅ Helper: Lock attack state (for animation-based attacks)
     /// Call this at the start of attack
     /// </summary>
-    protected void LockAttack()
+    public void LockAttack()
     {
         isExecutingAttack = true;
     }
@@ -292,7 +290,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     /// ✅ Helper: Unlock attack state
     /// Call this when attack completes
     /// </summary>
-    protected void UnlockAttack()
+    public void UnlockAttack()
     {
         isExecutingAttack = false;
     }
@@ -416,7 +414,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     public void TakeDamage(int damage) => TakeDamage((float)damage);
 
-    public void TakeDamage(float damage)
+    public virtual void TakeDamage(float damage)
     {
         float actualDamage = Mathf.Max(0, damage - shieldAmount);
         currentHealthValue -= actualDamage;

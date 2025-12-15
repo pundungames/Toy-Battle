@@ -251,7 +251,7 @@ Transform:
   m_GameObject: {fileID: 441365297273649330}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -0.007, z: 0}
   m_LocalScale: {x: 0.87051153, y: 0.87051153, z: 0.87051153}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2408,8 +2408,8 @@ GameObject:
   - component: {fileID: 7231275432226942875}
   - component: {fileID: 1358743672327808952}
   - component: {fileID: 4975082822433690228}
-  - component: {fileID: -9105589837725227637}
   - component: {fileID: 4055983094171120304}
+  - component: {fileID: 6604227633743023707}
   m_Layer: 0
   m_Name: RoboCore Mk-I
   m_TagString: Untagged
@@ -2480,36 +2480,6 @@ CapsuleCollider:
   m_Height: 1.5393014
   m_Direction: 1
   m_Center: {x: 0, y: 0.7759259, z: 0}
---- !u!114 &-9105589837725227637
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8003307883101238561}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c3242cb6882373547a7fb97eb124c037, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  data: {fileID: 0}
-  gridSlot: 0
-  isPlayerUnit: 0
-  currentDamage: 0
-  damageMultiplier: 1
-  shieldAmount: 0
-  hasFirstAttackCancel: 0
-  poisonTicks: 0
-  healthBar: {fileID: 0}
-  projectileSpawnPoint: {fileID: 0}
-  animator: {fileID: 0}
-  damageTextPrefab: {fileID: 3984627090072963299, guid: 113a0a1e4022bc1498aa53bebc508732,
-    type: 3}
-  attackRange: 2
-  moveSpeed: 2
-  attackCooldown: 1
-  hitScaleFactor: 1.1
-  hitDuration: 0.3
 --- !u!195 &4055983094171120304
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -2528,10 +2498,48 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 1.58
+  m_Height: 1.29
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &6604227633743023707
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8003307883101238561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a1ee9aecc72d1247968d4c2681ef4f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  data: {fileID: 0}
+  gridSlot: 0
+  isPlayerUnit: 0
+  currentHealthValue: 0
+  currentDamage: 0
+  damageMultiplier: 1
+  shieldAmount: 0
+  hasFirstAttackCancel: 0
+  poisonTicks: 0
+  healthBar: {fileID: 0}
+  projectileSpawnPoint: {fileID: 0}
+  animator: {fileID: 0}
+  damageTextPrefab: {fileID: 3984627090072963299, guid: 113a0a1e4022bc1498aa53bebc508732,
+    type: 3}
+  attackRange: 2
+  moveSpeed: 2
+  attackCooldown: 1
+  hitScaleFactor: 1.1
+  hitDuration: 0.3
+  isExecutingAttack: 0
+  transformTime: 5
+  mkIIData: {fileID: 11400000, guid: 53ed0e9a5bac2c846aad4a967a4b9938, type: 2}
+  mkIIScaleMultiplier: 1.5
+  transformVFX: robocore_transform_vfx
+  transformSFX: robocore_transform
+  transformAnimationDuration: 1
 --- !u!1 &8295991817243237578
 GameObject:
   m_ObjectHideFlags: 0
