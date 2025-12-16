@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 62a61fd5ee60be64688d648b1aaf6849
+guid: b1a1595be1c6a3b498d7070d0bd7f91b
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,106 +110,106 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: TBommer_0
+      name: Car_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 55
-        width: 531
-        height: 712
-      alignment: 9
-      pivot: {x: 0.45000774, y: 0.30612516}
+        x: 6
+        y: 197
+        width: 544
+        height: 536
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 90bcf8f05c689e14184b1df8b8bf4761
-      internalID: 1411139126
+      spriteID: a452c4337991aaf4798e9dc8f7ea5e42
+      internalID: -15557647
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_1
+      name: Car_1
       rect:
         serializedVersion: 2
-        x: 581
-        y: 47
-        width: 605
-        height: 728
-      alignment: 9
-      pivot: {x: 0.42979595, y: 0.3650824}
+        x: 563
+        y: 197
+        width: 651
+        height: 548
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7b84d7e1d43d23043a7c767d216f407b
-      internalID: 1387845403
+      spriteID: 9852cbffe67579d4280c497e81a73550
+      internalID: -1470173919
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_2
+      name: Car_2
       rect:
         serializedVersion: 2
-        x: 1257
-        y: 57
-        width: 647
-        height: 719
-      alignment: 9
-      pivot: {x: 0.37925115, y: 0.4476834}
+        x: 1210
+        y: 161
+        width: 708
+        height: 588
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6598525458da56944a3751afd01fd76a
-      internalID: -1050856078
+      spriteID: 56cf694620c758147b2ef51455abd46f
+      internalID: 1698668005
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_4
+      name: Car_3
       rect:
         serializedVersion: 2
-        x: 1921
-        y: 53
-        width: 720
-        height: 723
-      alignment: 9
-      pivot: {x: 0.34749892, y: 0.54802495}
+        x: 1934
+        y: 186
+        width: 689
+        height: 580
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 619ac753688d72544ae5ddb36c191968
-      internalID: 1295395498
+      spriteID: 15474d98621a6234f9007a69138e2bda
+      internalID: -856004143
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_5
+      name: Car_4
       rect:
         serializedVersion: 2
-        x: 2680
-        y: 57
-        width: 604
-        height: 719
-      alignment: 9
-      pivot: {x: 0.4520943, y: 0.52414596}
+        x: 2660
+        y: 184
+        width: 591
+        height: 581
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c73daf7a1fd542f4c97d6d9b46c9d85c
-      internalID: 1279853093
+      spriteID: 6157c180dbf3e5e4d927ffb68fdc0c3c
+      internalID: 1292238954
       vertices: []
       indices: 
       edges: []
@@ -217,7 +217,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 935e5235365c9654bbbc4e2375800e0c
+    spriteID: 825ee92a0add57a42926efd342226733
     internalID: 0
     vertices: []
     indices: 
@@ -225,12 +225,11 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      TBommer_0: 1411139126
-      TBommer_1: 1387845403
-      TBommer_2: -1050856078
-      TBommer_3: 1238097959
-      TBommer_4: 1295395498
-      TBommer_5: 1279853093
+      Car_0: -15557647
+      Car_1: -1470173919
+      Car_2: 1698668005
+      Car_3: -856004143
+      Car_4: 1292238954
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

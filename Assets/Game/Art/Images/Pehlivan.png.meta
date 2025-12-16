@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 62a61fd5ee60be64688d648b1aaf6849
+guid: 0f670af63d5f56149b8346ca6c51f44f
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,106 +110,106 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: TBommer_0
+      name: Pehlivan_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 55
-        width: 531
-        height: 712
-      alignment: 9
-      pivot: {x: 0.45000774, y: 0.30612516}
+        x: 0
+        y: 0
+        width: 822
+        height: 811
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 90bcf8f05c689e14184b1df8b8bf4761
-      internalID: 1411139126
+      spriteID: 25684ba6d8c93c84c97f616bc17ab606
+      internalID: -1839349593
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_1
+      name: Pehlivan_1
       rect:
         serializedVersion: 2
-        x: 581
-        y: 47
-        width: 605
-        height: 728
-      alignment: 9
-      pivot: {x: 0.42979595, y: 0.3650824}
+        x: 722
+        y: 0
+        width: 822
+        height: 811
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7b84d7e1d43d23043a7c767d216f407b
-      internalID: 1387845403
+      spriteID: 4b274da068456b448b7962fd86c60e52
+      internalID: -282450702
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_2
+      name: Pehlivan_3
       rect:
         serializedVersion: 2
-        x: 1257
-        y: 57
-        width: 647
-        height: 719
-      alignment: 9
-      pivot: {x: 0.37925115, y: 0.4476834}
+        x: 1551
+        y: 3
+        width: 822
+        height: 808
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6598525458da56944a3751afd01fd76a
-      internalID: -1050856078
+      spriteID: 0044cb57a0a22854db2136a2225752ee
+      internalID: 2080541073
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_4
+      name: Pehlivan_4
       rect:
         serializedVersion: 2
-        x: 1921
-        y: 53
-        width: 720
-        height: 723
-      alignment: 9
-      pivot: {x: 0.34749892, y: 0.54802495}
+        x: 2380
+        y: 0
+        width: 822
+        height: 811
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 619ac753688d72544ae5ddb36c191968
-      internalID: 1295395498
+      spriteID: 0062faf9813c1594ea00fdac8dedbbed
+      internalID: -278126522
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_5
+      name: Pehlivan_6
       rect:
         serializedVersion: 2
-        x: 2680
-        y: 57
-        width: 604
-        height: 719
-      alignment: 9
-      pivot: {x: 0.4520943, y: 0.52414596}
+        x: 3315
+        y: 0
+        width: 822
+        height: 811
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c73daf7a1fd542f4c97d6d9b46c9d85c
-      internalID: 1279853093
+      spriteID: ee63fa49039cfdf43909ae4f4f16210a
+      internalID: 1102690349
       vertices: []
       indices: 
       edges: []
@@ -217,7 +217,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 935e5235365c9654bbbc4e2375800e0c
+    spriteID: 25a01e29f57e40a439d4019ac3006019
     internalID: 0
     vertices: []
     indices: 
@@ -225,12 +225,13 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      TBommer_0: 1411139126
-      TBommer_1: 1387845403
-      TBommer_2: -1050856078
-      TBommer_3: 1238097959
-      TBommer_4: 1295395498
-      TBommer_5: 1279853093
+      Pehlivan_0: -1839349593
+      Pehlivan_1: -282450702
+      Pehlivan_2: -187723375
+      Pehlivan_3: 2080541073
+      Pehlivan_4: -278126522
+      Pehlivan_5: -2127018388
+      Pehlivan_6: 1102690349
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

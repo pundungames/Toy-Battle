@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 62a61fd5ee60be64688d648b1aaf6849
+guid: 19fcab1af7b465648bc32ab0d3543c72
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -110,106 +110,85 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: TBommer_0
+      name: Ciyo_0
       rect:
         serializedVersion: 2
-        x: 5
-        y: 55
-        width: 531
-        height: 712
+        x: 0
+        y: 0
+        width: 737
+        height: 784
       alignment: 9
-      pivot: {x: 0.45000774, y: 0.30612516}
+      pivot: {x: 0.425785, y: 0.4900334}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 90bcf8f05c689e14184b1df8b8bf4761
-      internalID: 1411139126
+      spriteID: 782606b1808e9784ca993e3fdee12cce
+      internalID: -185339598
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_1
+      name: Ciyo_1
       rect:
         serializedVersion: 2
-        x: 581
-        y: 47
-        width: 605
-        height: 728
+        x: 790
+        y: 0
+        width: 737
+        height: 784
       alignment: 9
-      pivot: {x: 0.42979595, y: 0.3650824}
+      pivot: {x: 0.4098818, y: 0.465117}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7b84d7e1d43d23043a7c767d216f407b
-      internalID: 1387845403
+      spriteID: 8508df44759b3d64eaa9a7bd866acfea
+      internalID: 91646977
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_2
+      name: Ciyo_2
       rect:
         serializedVersion: 2
-        x: 1257
-        y: 57
-        width: 647
-        height: 719
+        x: 1596
+        y: 0
+        width: 737
+        height: 784
       alignment: 9
-      pivot: {x: 0.37925115, y: 0.4476834}
+      pivot: {x: 0.40988162, y: 0.47010028}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6598525458da56944a3751afd01fd76a
-      internalID: -1050856078
+      spriteID: 3ffb5ba76d302954a839054476c968f9
+      internalID: 527614140
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TBommer_4
+      name: Ciyo_3
       rect:
         serializedVersion: 2
-        x: 1921
-        y: 53
-        width: 720
-        height: 723
+        x: 2359
+        y: 0
+        width: 737
+        height: 784
       alignment: 9
-      pivot: {x: 0.34749892, y: 0.54802495}
+      pivot: {x: 0.45229053, y: 0.4900334}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 619ac753688d72544ae5ddb36c191968
-      internalID: 1295395498
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: TBommer_5
-      rect:
-        serializedVersion: 2
-        x: 2680
-        y: 57
-        width: 604
-        height: 719
-      alignment: 9
-      pivot: {x: 0.4520943, y: 0.52414596}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c73daf7a1fd542f4c97d6d9b46c9d85c
-      internalID: 1279853093
+      spriteID: 5f01fcf7092941f488930d1f1b7ca5b7
+      internalID: -527508848
       vertices: []
       indices: 
       edges: []
@@ -217,7 +196,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 935e5235365c9654bbbc4e2375800e0c
+    spriteID: feeb543704031534c9fb293ec2016442
     internalID: 0
     vertices: []
     indices: 
@@ -225,12 +204,11 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      TBommer_0: 1411139126
-      TBommer_1: 1387845403
-      TBommer_2: -1050856078
-      TBommer_3: 1238097959
-      TBommer_4: 1295395498
-      TBommer_5: 1279853093
+      Ciyo_0: -185339598
+      Ciyo_1: 91646977
+      Ciyo_2: 527614140
+      Ciyo_3: -527508848
+      Ciyo_4: 1848502537
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
