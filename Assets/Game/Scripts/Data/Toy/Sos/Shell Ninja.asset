@@ -22,9 +22,10 @@ MonoBehaviour:
   toyRarityType: 1
   toySprite: {fileID: 21300000, guid: 96b7af48aa91f6e41a26dd02e6d9b84a, type: 3}
   animationFrames:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 785597855, guid: c8717226bee4cf54ab32065f0e4eeda5, type: 3}
+  - {fileID: 1636024429, guid: c8717226bee4cf54ab32065f0e4eeda5, type: 3}
+  - {fileID: 1484456242, guid: c8717226bee4cf54ab32065f0e4eeda5, type: 3}
+  - {fileID: -1448513874, guid: c8717226bee4cf54ab32065f0e4eeda5, type: 3}
   hasTeleport: 1
   isExplosive: 0
   explosionDamage: 0

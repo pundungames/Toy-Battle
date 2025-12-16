@@ -15,7 +15,7 @@ public class SpriteImageAnimation : MonoBehaviour
     }
     IEnumerator Anim()
     {
-        while (true)
+        while (gameObject.activeInHierarchy)
         {
             foreach (var item in sprites)
             {

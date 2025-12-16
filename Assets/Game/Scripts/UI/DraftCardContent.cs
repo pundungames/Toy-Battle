@@ -55,18 +55,8 @@ public class DraftCardContent : MonoBehaviour
         cardImage.StartAnim();
         typeIcon.sprite = unitData.typeSprite;
 
-        // Shop mode
-        if (isShop)
-        {
-            staminaText.text = unitData.toyStamina.ToString();
-            staminaText.transform.parent.gameObject.SetActive(true);
-        }
-        else
-        {
-            staminaText.transform.parent.gameObject.SetActive(false);
-        }
+        staminaText.text = unitData.toyStamina.ToString();
 
-        // Pip cost visual (unit için yok)
 
         // Rarity visual
         ApplyRarityVisual(unitData.toyRarityType);

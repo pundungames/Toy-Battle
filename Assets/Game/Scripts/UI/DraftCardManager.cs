@@ -226,7 +226,7 @@ public class DraftCardManager : MonoBehaviour
 
         SetAllCardsInteractable(false);
 
-        Invoke(nameof(ConfirmSelection), 0.3f);
+        Invoke(nameof(ConfirmSelection), 0.6f);
     }
 
     private void ConfirmSelection()
@@ -271,8 +271,8 @@ public class DraftCardManager : MonoBehaviour
     {
         selectedCard.Placed();
         Taptic.Light();
-
-        Invoke(nameof(FinishDraft), 0.3f);
+        FinishDraft();
+        //Invoke(nameof(FinishDraft), 0.1f);
     }
 
     private void FinishDraft()
