@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b33756181e2889f4690a77d35459962b
+guid: 0303b9f355fa8ab4da420194b156e1e9
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -48,7 +48,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 25
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -69,7 +69,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 1024
+    maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 0
@@ -82,19 +82,6 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   - serializedVersion: 3
     buildTarget: Standalone
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 3
-    buildTarget: iPhone
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
@@ -123,85 +110,85 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Untitled-2_0
+      name: Soldier_0
       rect:
         serializedVersion: 2
-        x: 21
-        y: 0
-        width: 813
-        height: 761
+        x: 14
+        y: 18
+        width: 715
+        height: 743
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ea1c500781df2404e80c1c699686ec38
-      internalID: -1422042383
+      spriteID: 99732b52ef82f1e4f9c6bd210ce9bc13
+      internalID: -1651207392
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Untitled-2_1
+      name: Soldier_2
       rect:
         serializedVersion: 2
-        x: 872
-        y: 65
-        width: 746
-        height: 634
+        x: 871
+        y: 23
+        width: 715
+        height: 738
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d71800a707209c74abf91adcf60b15ef
-      internalID: -1289103348
+      spriteID: 8937da1f1d17f7b4691f36358c1c4569
+      internalID: 1230360111
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Untitled-2_2
+      name: Soldier_3
       rect:
         serializedVersion: 2
-        x: 1657
-        y: 64
-        width: 708
-        height: 627
+        x: 1835
+        y: 22
+        width: 715
+        height: 735
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2c17343ee9d249d48972a0146558149c
-      internalID: -963208534
+      spriteID: be80e74efbdcacb4ea01899c8c8d943f
+      internalID: -1300442130
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Untitled-2_3
+      name: Soldier_4
       rect:
         serializedVersion: 2
-        x: 2376
-        y: 0
-        width: 820
-        height: 761
+        x: 2578
+        y: 27
+        width: 712
+        height: 734
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 23e69642a18fb5f4f913b843e7c79ac0
-      internalID: 972650621
+      spriteID: a5ac717e432d741439955a0ab9219b98
+      internalID: -1022827582
       vertices: []
       indices: 
       edges: []
@@ -209,7 +196,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: c1f7782ecb37ab44aa1dce389fb3e1ad
     internalID: 0
     vertices: []
     indices: 
@@ -217,10 +204,12 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Untitled-2_0: -1422042383
-      Untitled-2_1: -1289103348
-      Untitled-2_2: -963208534
-      Untitled-2_3: 972650621
+      Soldier_0: -1651207392
+      Soldier_1: -1862334460
+      Soldier_2: 1230360111
+      Soldier_3: -1300442130
+      Soldier_4: -1022827582
+      Soldier_5: 908845409
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
