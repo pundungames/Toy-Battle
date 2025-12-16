@@ -100,6 +100,9 @@ public class GameManager : MonoBehaviour
             case GameState.Progress:
                 uiManager.ShowProgressPanel();
                 break;
+            case GameState.Lose:
+                uiManager.ShowLosePanel();
+                break;
         }
     }
 

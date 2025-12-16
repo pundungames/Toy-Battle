@@ -720,6 +720,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4666890990699649146}
   - component: {fileID: 1554902916628136875}
+  - component: {fileID: 1684477448270661191}
+  - component: {fileID: 6714798238143484171}
   m_Layer: 5
   m_Name: Versus
   m_TagString: Untagged
@@ -763,6 +765,49 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HorizontalFit: 2
   m_VerticalFit: 2
+--- !u!114 &1684477448270661191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209212565273601043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96d97071c78ee9a49aa9e81f3abbe8f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+--- !u!114 &6714798238143484171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209212565273601043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f035e20321138c446a6f076f8295cd3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerHeartsFull:
+  - {fileID: 1524134797048063513}
+  - {fileID: 1836263080712803344}
+  - {fileID: 5707512157215161836}
+  playerHeartsEmpty:
+  - {fileID: 6644945442212265441}
+  - {fileID: 4021671274447869766}
+  - {fileID: 4014686419633565145}
+  enemyHeartsFull:
+  - {fileID: 5983550651178440716}
+  - {fileID: 5352127295919111744}
+  - {fileID: 5701351975950165258}
+  enemyHeartsEmpty:
+  - {fileID: 5790403906556080110}
+  - {fileID: 6670846659198436998}
+  - {fileID: 7436578816156498938}
+  heartScaleDamage: 1.3
+  heartScaleDuration: 0.3
 --- !u!1 &1315368760062110314
 GameObject:
   m_ObjectHideFlags: 0
@@ -2718,6 +2763,9 @@ MonoBehaviour:
   - {fileID: -963208534, guid: b33756181e2889f4690a77d35459962b, type: 3}
   - {fileID: 972650621, guid: b33756181e2889f4690a77d35459962b, type: 3}
   delay: 0.1
+  maxWidth: 310
+  maxHeight: 256
+  autoStartOnEnable: 1
 --- !u!1 &3774751396352856158
 GameObject:
   m_ObjectHideFlags: 0
@@ -2887,6 +2935,7 @@ MonoBehaviour:
   battlePanel: {fileID: 6313074833236531050}
   battleCam: {fileID: 0}
   rewardPanel: {fileID: 8989400619924954179}
+  losePanel: {fileID: 1339764087243211896}
   chestPanel: {fileID: 4177335564241221252}
   progressPanel: {fileID: 2676907858096677891}
   tutorialPanel: {fileID: 2703443775422064337}
@@ -4244,9 +4293,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2b4e179b74551084cb40288f31d6930e, type: 2}
   - {fileID: 11400000, guid: 79d1f3a522095d44e889a2fb066efa59, type: 2}
   - {fileID: 11400000, guid: ccefa1c0fac08c44c880d739928e5c2a, type: 2}
-  allBonusCards:
-  - {fileID: 11400000, guid: 1bd6d577e49f83948a6677a6e76a50e1, type: 2}
-  - {fileID: 11400000, guid: 27bc1714fe5ae544389b305b41ba8061, type: 2}
+  allBonusCards: []
   activeCards:
   - {fileID: 852915621323616415}
   - {fileID: 4629357679853794299}
@@ -5075,7 +5122,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &7777845965702070967
 RectTransform:
   m_ObjectHideFlags: 0

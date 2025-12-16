@@ -20,7 +20,8 @@ public class SceneInstaller : MonoInstaller
         Container.Bind<DraftCardManager>().FromComponentInHierarchy().AsSingle().NonLazy();
         Container.Bind<BattleManager>().FromComponentInHierarchy().AsSingle().NonLazy();
         Container.Bind<GridManager>().FromComponentInHierarchy().AsSingle().NonLazy();
-
+        Container.Bind<HealthSystem>().FromComponentInHierarchy().AsSingle().NonLazy();
+        
         // Bonus System (Bonus cards stay!)
         Container.Bind<BonusSystem>().FromComponentInHierarchy().AsSingle().NonLazy();
 

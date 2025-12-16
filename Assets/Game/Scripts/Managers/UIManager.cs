@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject battlePanel;
     [SerializeField] GameObject battleCam;
     [SerializeField] GameObject rewardPanel;
+    [SerializeField] GameObject losePanel;
     [SerializeField] GameObject chestPanel;
     [SerializeField] GameObject progressPanel;
     // ❌ REMOVED: [SerializeField] GameObject skillSelectionPanel;
@@ -63,6 +64,7 @@ public class UIManager : MonoBehaviour
         battlePanel.SetActive(false);
         battleCam.SetActive(false);
         rewardPanel.SetActive(false);
+        losePanel.SetActive(false);
         chestPanel.SetActive(false);
         progressPanel.SetActive(false);
         // ❌ REMOVED: skillSelectionPanel.SetActive(false);
@@ -132,6 +134,17 @@ public class UIManager : MonoBehaviour
 
         Taptic.Success();
         audioManager?.Play("Win");
+    }
+    public void ShowLosePanel()
+    {
+        HideAllPanels();
+        losePanel.SetActive(true);
+        AnimatePanelIn(losePanel.transform);
+
+        // ✅ Hide enemy render in reward
+        SetEnemyRenderPanelVisibility(false);
+
+        Taptic.Failure();
     }
 
     public void ShowChestPanel()

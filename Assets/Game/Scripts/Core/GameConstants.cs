@@ -33,7 +33,8 @@ public enum GameState
     Battle,
     Reward,
     Chest,
-    Progress
+    Progress,
+    Lose
 }
 
 public enum UnitType
