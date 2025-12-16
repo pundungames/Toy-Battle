@@ -9,21 +9,21 @@ using TMPro;
 using DG.Tweening;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class DraftCardContent : MonoBehaviour
 {
     [Header("UI Elements")]
     [SerializeField] TextMeshProUGUI cardName;
     [SerializeField] TextMeshProUGUI cardInfo;
-    [SerializeField] TextMeshProUGUI priceText;
-    [SerializeField] Image cardImage;
-    [SerializeField] Image borderImage;
-
+    [SerializeField] TextMeshProUGUI staminaText;
+    [SerializeField] SpriteImageAnimation cardImage;
+    [SerializeField] Image typeIcon;
+    [SerializeField] Image bg;
+    [SerializeField] Image front;
+    [SerializeField] Image typeBG;
     [Header("States")]
     [SerializeField] GameObject focusVisual;
-    [SerializeField] GameObject soldVisual;
-    [SerializeField] GameObject pipCostVisual;
-    [SerializeField] TextMeshProUGUI pipCostText;
 
     [Header("Rarity Visuals")]
     [SerializeField] List<CardRarityVisual> rarityVisuals;
@@ -35,7 +35,7 @@ public class DraftCardContent : MonoBehaviour
     private readonly float selectedYOffset = 100f;
     private DraftCardManager manager;
     private bool isUnit = true;
-
+    bool selected;
     private void Awake()
     {
         initialLocalPosition = transform.localPosition;
@@ -47,24 +47,26 @@ public class DraftCardContent : MonoBehaviour
     {
         manager = cardManager;
         isUnit = true;
+        selected = false;
 
         cardName.text = unitData.toyName;
         cardInfo.text = unitData.toyInfo;
-        cardImage.sprite = unitData.toySprite;
+        cardImage.sprites = unitData.animationFrames.ToList();
+        cardImage.StartAnim();
+        typeIcon.sprite = unitData.typeSprite;
 
         // Shop mode
         if (isShop)
         {
-            priceText.text = unitData.toyPrice.ToString();
-            priceText.transform.parent.gameObject.SetActive(true);
+            staminaText.text = unitData.toyStamina.ToString();
+            staminaText.transform.parent.gameObject.SetActive(true);
         }
         else
         {
-            priceText.transform.parent.gameObject.SetActive(false);
+            staminaText.transform.parent.gameObject.SetActive(false);
         }
 
         // Pip cost visual (unit için yok)
-        pipCostVisual.SetActive(false);
 
         // Rarity visual
         ApplyRarityVisual(unitData.toyRarityType);
@@ -81,14 +83,12 @@ public class DraftCardContent : MonoBehaviour
 
         cardName.text = bonusData.bonusName;
         cardInfo.text = bonusData.description;
-        cardImage.sprite = bonusData.cardSprite;
+        cardImage.image.sprite = bonusData.cardSprite;
 
         // Price (bonus için yok)
-        priceText.transform.parent.gameObject.SetActive(false);
+        staminaText.transform.parent.gameObject.SetActive(false);
 
-        // Pip cost
-        pipCostVisual.SetActive(true);
-        pipCostText.text = bonusData.pipCost.ToString();
+        staminaText.text = bonusData.pipCost.ToString();
 
         // Check if affordable
         button.interactable = availablePips >= bonusData.pipCost;
@@ -112,9 +112,11 @@ public class DraftCardContent : MonoBehaviour
                 visual.SetActive(isActive);
             }
 
-            if (isActive && rarityVisuals[i].border != null)
+            if (isActive && rarityVisuals[i].bg != null)
             {
-                borderImage.sprite = rarityVisuals[i].border;
+                bg.sprite = rarityVisuals[i].bg;
+                front.sprite = rarityVisuals[i].front;
+                typeBG.sprite = rarityVisuals[i].typeBG;
             }
         }
     }
@@ -123,21 +125,20 @@ public class DraftCardContent : MonoBehaviour
 
     public void SelectCard()
     {
-        if (soldVisual.activeSelf) return;
-
+        if (selected) return;
+        selected = true;
         transform.DOKill(true);
 
         if (manager.CanSelectCard())
         {
             focusVisual.SetActive(true);
-            transform.DOLocalMoveY(initialLocalPosition.y + selectedYOffset, 0.3f).SetUpdate(true);
+            transform.DOLocalMoveY(initialLocalPosition.y + selectedYOffset, 0.5f).SetUpdate(true);
             manager.CardSelected(this);
         }
     }
 
     public void Placed()
     {
-        soldVisual.SetActive(true);
         focusVisual.SetActive(false);
         transform.localPosition = initialLocalPosition;
         cardImage.enabled = true;
@@ -145,7 +146,6 @@ public class DraftCardContent : MonoBehaviour
 
     public void ResetCardVisuals()
     {
-        soldVisual.SetActive(false);
         focusVisual.SetActive(false);
         transform.localPosition = initialLocalPosition;
         cardImage.enabled = true;
@@ -154,10 +154,6 @@ public class DraftCardContent : MonoBehaviour
     public void CheckCurrency()
     {
         // Currency check logic
-        if (!soldVisual.activeSelf)
-        {
-            // Check gold for shop mode
-        }
     }
 }
 
@@ -165,5 +161,7 @@ public class DraftCardContent : MonoBehaviour
 public class CardRarityVisual
 {
     [SerializeField] internal List<GameObject> visuals;
-    [SerializeField] internal Sprite border;
+    [SerializeField] internal Sprite bg;
+    [SerializeField] internal Sprite front;
+    [SerializeField] internal Sprite typeBG;
 }

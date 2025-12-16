@@ -140,6 +140,18 @@ public class GridManager : MonoBehaviour
 
         runtimeUnit.Initialize(unitData, slotIndex, isPlayer);
 
+        // ✅ ROTATION FIX: Set correct facing direction
+        if (!isPlayer)
+        {
+            // Enemy units face south (towards player)
+            unitObj.transform.rotation = Quaternion.Euler(0, 180, 0);
+        }
+        else
+        {
+            // Player units face north (towards enemy)
+            unitObj.transform.rotation = Quaternion.Euler(0, 0, 0);
+        }
+
         slot.units.Add(runtimeUnit);
         slot.unitType = unitData;
 
@@ -155,7 +167,7 @@ public class GridManager : MonoBehaviour
         return true;
     }
 
-    // ===== SPAWN MULTIPLE UNITS (NEW!) =====
+    // ===== SPAWN MULTIPLE UNITS (UPDATED - AUTO SPACING!) =====
 
     private bool SpawnMultipleUnits(ToyUnitData unitData, bool isPlayer, int slotIndex)
     {
@@ -175,22 +187,11 @@ public class GridManager : MonoBehaviour
             return false;
         }
 
-        // Spawn each unit
+        // Spawn each unit at slot position (they will be arranged by grid spacing)
         for (int i = 0; i < unitsToSpawn; i++)
         {
-            // Calculate position
+            // ✅ Spawn at slot center - ArrangeUnitsInSlot will position them properly
             Vector3 spawnPos = slotTransform.position;
-
-            if (i < unitData.unitOffsets.Length)
-            {
-                spawnPos += unitData.unitOffsets[i];
-            }
-            else
-            {
-                // Default offset (spread left-right)
-                float offsetX = (i - (unitsToSpawn - 1) / 2f) * 0.8f;
-                spawnPos += Vector3.right * offsetX;
-            }
 
             // Instantiate
             GameObject unitObj = Instantiate(unitPrefab, spawnPos, Quaternion.identity, slotTransform);
@@ -205,6 +206,18 @@ public class GridManager : MonoBehaviour
 
             // Initialize
             unit.Initialize(unitData, slotIndex, isPlayer);
+
+            // ✅ ROTATION FIX: Set correct facing direction
+            if (!isPlayer)
+            {
+                // Enemy units face south (towards player)
+                unitObj.transform.rotation = Quaternion.Euler(0, 180, 0);
+            }
+            else
+            {
+                // Player units face north (towards enemy)
+                unitObj.transform.rotation = Quaternion.Euler(0, 0, 0);
+            }
 
             // Inject dependencies
             container.InjectGameObject(unitObj);
@@ -227,6 +240,9 @@ public class GridManager : MonoBehaviour
         {
             LinkTwinUnits(spawnedUnits);
         }
+
+        // ✅ CRITICAL: Arrange units using grid spacing system!
+        ArrangeUnitsInSlot(slotIndex, isPlayer);
 
         UpdatePermanentState(slotIndex, isPlayer);
 
@@ -315,14 +331,9 @@ public class GridManager : MonoBehaviour
 
         if (unitCount == 0) return;
 
-        // Don't rearrange multi-unit spawns (they have custom offsets)
-        if (slot.unitType != null && slot.unitType.isMultiUnit)
-        {
-            return;
-        }
-
+        // ✅ ALWAYS use grid spacing system (no special case for multi-units)
         int gridSize = Mathf.CeilToInt(Mathf.Sqrt(unitCount));
-        float spacing = slot.unitType.unitSpacing;
+        float spacing = slot.unitType.unitSpacing; // 1.072 from inspector
         float centerOffset = -((gridSize - 1) * spacing) / 2f;
 
         int index = 0;
@@ -337,6 +348,8 @@ public class GridManager : MonoBehaviour
                 index++;
             }
         }
+
+        Debug.Log($"📐 Arranged {unitCount} units in slot {slotIndex} with spacing {spacing}");
     }
 
     // ===== ARRANGE FORMATION (BATTLE START) =====

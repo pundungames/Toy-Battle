@@ -1,6 +1,7 @@
 ﻿// ============================================================================
 // AI TURN MANAGER - AI'ın draft turn'ünü yönetir
-// Player seçim yaptıktan sonra AI otomatik seçim yapar
+// ✅ UPDATED: Multi-unit spawn support
+// ✅ FIXED: Enemy rotation (face player)
 // ============================================================================
 
 using System.Collections;
@@ -54,6 +55,14 @@ public class AITurnManager : MonoBehaviour
         // Generate AI draft cards (same logic as player)
         List<object> aiDraftCards = GenerateAIDraftCards();
 
+        if (aiDraftCards.Count == 0)
+        {
+            Debug.LogWarning("⚠️ AI: No cards available!");
+            isAITurnActive = false;
+            OnAITurnComplete();
+            yield break;
+        }
+
         // AI makes decision
         object selectedCard = aiController.SelectCard(aiDraftCards);
 
@@ -76,8 +85,17 @@ public class AITurnManager : MonoBehaviour
     {
         List<object> cards = new List<object>();
 
+        if (allToyUnits == null || allToyUnits.Count == 0)
+        {
+            Debug.LogError("❌ AITurnManager: allToyUnits is empty!");
+            return cards;
+        }
+
         // Get unlocked units
-        List<ToyUnitData> unlockedUnits = unlockSystem.GetUnlockedUnits(allToyUnits);
+        List<ToyUnitData> unlockedUnits = unlockSystem != null ?
+            unlockSystem.GetUnlockedUnits(allToyUnits) :
+            new List<ToyUnitData>(allToyUnits);
+
         List<ToyUnitData> availableUnits = new List<ToyUnitData>(unlockedUnits);
 
         // Add 2 unique toy units
@@ -94,7 +112,7 @@ public class AITurnManager : MonoBehaviour
         }
 
         // 15% chance for bonus card
-        if (Random.value < 0.15f && allBonusCards.Count > 0)
+        if (Random.value < 0.15f && allBonusCards != null && allBonusCards.Count > 0)
         {
             BonusCardData randomBonus = allBonusCards[Random.Range(0, allBonusCards.Count)];
             cards.Add(randomBonus);
@@ -146,26 +164,59 @@ public class AITurnManager : MonoBehaviour
         return units[0];
     }
 
-    // ===== EXECUTE AI ACTION =====
+    // ===== EXECUTE AI ACTION (FIXED!) =====
 
     private void ExecuteAIAction(object selectedCard)
     {
         if (selectedCard is ToyUnitData unitData)
         {
-            // Spawn unit for enemy (isPlayer = false)
+            // ✅ FIXED: Correct SpawnUnit signature
+            // isPlayer = false for AI/enemy units
             bool spawned = gridManager.SpawnUnit(unitData, false);
 
-            if (!spawned)
+            if (spawned)
             {
-                Debug.LogWarning("🤖 AI: Grid is full! Cannot spawn unit.");
+                Debug.Log($"✅ AI spawned: {unitData.toyName}");
+
+                // ✅ ROTATION FIX: Make sure enemy units face player
+                FixEnemyUnitsRotation();
+            }
+            else
+            {
+                Debug.LogWarning($"❌ AI: Cannot spawn {unitData.toyName} - Grid may be full or prefab missing!");
             }
         }
         else if (selectedCard is BonusCardData bonusData)
         {
-            // AI uses bonus (we can add AI bonus logic later)
+            // AI uses bonus
             Debug.Log($"🤖 AI used bonus: {bonusData.bonusName}");
-            // bonusSystem.ApplyBonusToEnemy(bonusData);
+
+            if (bonusSystem != null)
+            {
+                // Apply bonus to AI units
+                // bonusSystem.ApplyBonusToEnemy(bonusData);
+            }
         }
+    }
+
+    // ===== FIX ENEMY ROTATION =====
+
+    private void FixEnemyUnitsRotation()
+    {
+        // ✅ Get all enemy units and ensure they face player (180 degrees)
+        List<RuntimeUnit> enemyUnits = gridManager.GetEnemyUnits();
+
+        foreach (var unit in enemyUnits)
+        {
+            if (unit != null && unit.gameObject != null)
+            {
+                // ✅ Enemy units should face SOUTH (towards player)
+                // Y rotation = 180 means facing down/south
+                unit.transform.rotation = Quaternion.Euler(0, 180, 0);
+            }
+        }
+
+        Debug.Log($"🔄 Fixed rotation for {enemyUnits.Count} enemy units");
     }
 
     // ===== AI TURN COMPLETE =====

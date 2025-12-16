@@ -26,7 +26,7 @@ public class ToyUnitData : ScriptableObject
 
     [Header("Visual")]
     public Sprite toySprite;
-    public Sprite[] animationFrames = new Sprite[3];
+    public Sprite[] animationFrames;
 
     [Header("Special Abilities")]
     public bool hasTeleport;
@@ -41,12 +41,6 @@ public class ToyUnitData : ScriptableObject
     public float moveSpeed = 2f;
     [Tooltip("Time between attacks (seconds)")]
     public float attackCooldown = 1f;
-
-    // Recommended combat values by type:
-    // MELEE: attackRange: 1.5f, moveSpeed: 2f, attackCooldown: 1f
-    // RANGED: attackRange: 5f, moveSpeed: 1.5f, attackCooldown: 0.8f
-    // ASSASSIN: attackRange: 1.2f, moveSpeed: 3f, attackCooldown: 0.6f
-    // EXPLOSIVE: attackRange: 2f, moveSpeed: 1.8f, attackCooldown: 1.5f
 
     [Header("Formation Settings")]
     [Tooltip("Position priority (0-100). Higher = Further back")]
@@ -71,7 +65,7 @@ public class ToyUnitData : ScriptableObject
     public int maxStackPerSlot = 9;
 
     [Header("Economy")]
-    public int toyPrice;
+    public int toyStamina;
 
     [Header("Multi-Unit System")]
     [Tooltip("If true, spawns multiple units per slot (Punchy Bots, Slam Bros, MiniBoy)")]
@@ -81,13 +75,12 @@ public class ToyUnitData : ScriptableObject
     [Range(1, 3)]
     public int unitsPerSlot = 1;
 
-    [Tooltip("Position offsets for each unit (local to slot position)")]
-    public Vector3[] unitOffsets = new Vector3[0];
-
     [Header("Twin System (for Punchy Bots)")]
     [Tooltip("If true, units share target and attack counter")]
     public bool isTwinSystem = false;
 
+    [Header("UI")]
+    public Sprite typeSprite;
     // Level scaling
     public int GetScaledHP()
     {

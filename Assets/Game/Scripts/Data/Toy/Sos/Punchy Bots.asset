@@ -36,10 +36,8 @@ MonoBehaviour:
   maxUnitsPerRow: 4
   unitSpacing: 1.072
   maxStackPerSlot: 4
-  toyPrice: 0
+  toyStamina: 0
   isMultiUnit: 1
   unitsPerSlot: 2
-  unitOffsets:
-  - {x: -0.536, y: 0, z: 0}
-  - {x: 0.536, y: 0, z: 0}
   isTwinSystem: 1
+  typeSprite: {fileID: 21300000, guid: abf4d350c5102ed428f957fca4cab389, type: 3}

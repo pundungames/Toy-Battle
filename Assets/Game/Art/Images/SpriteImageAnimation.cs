@@ -4,12 +4,12 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-public class SpriteTEst : MonoBehaviour
+public class SpriteImageAnimation : MonoBehaviour
 {
-    [SerializeField] Image image;
-    [SerializeField] List<Sprite> sprites;
+    [SerializeField] internal Image image;
+    [SerializeField] internal List<Sprite> sprites;
     [SerializeField] float delay = .1f;
-    private void Start()
+    public void StartAnim()
     {
         StartCoroutine(Anim());
     }

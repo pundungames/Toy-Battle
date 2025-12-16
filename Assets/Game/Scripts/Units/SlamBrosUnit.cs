@@ -139,6 +139,7 @@ public class SlamBrosUnit : RuntimeUnit
         Vector3 finalLandingPos = transform.position;
 
         DealLandingDamage(finalLandingPos);
+        finalLandingPos.y = 0;
         PlayLandingVFX(finalLandingPos);
 
         if (audioManager != null)
@@ -236,6 +237,7 @@ public class SlamBrosUnit : RuntimeUnit
         if (poolingSystem != null)
         {
             GameObject vfx = poolingSystem.InstantiateAPS("slam_bros_land_vfx", position);
+            vfx.transform.rotation = Quaternion.Euler(-90, 0, 0);
             if (vfx != null)
             {
                 poolingSystem.DestroyAPS(vfx, 2f);

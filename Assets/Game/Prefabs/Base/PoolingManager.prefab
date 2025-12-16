@@ -80,5 +80,22 @@ MonoBehaviour:
       AllowGrow: 1
       AutoDestroy: 0
       clones: []
+  - categoryName: SlamBros
+    sourceObjects:
+    - ID: slam_bros_land_vfx
+      SourcePrefab: {fileID: 195466, guid: 56c3274d2f9ec214ab584a80b5ce2d6d, type: 3}
+      MinNumberOfObject: 10
+      AllowGrow: 1
+      AutoDestroy: 0
+      clones: []
+  - categoryName: General
+    sourceObjects:
+    - ID: DeathVfx
+      SourcePrefab: {fileID: 1046733363732004, guid: ef2eaeb0661c7734fb86586b45e7a08e,
+        type: 3}
+      MinNumberOfObject: 10
+      AllowGrow: 1
+      AutoDestroy: 0
+      clones: []
   DefaultCount: 10
   initScale: {x: 0, y: 0, z: 0}

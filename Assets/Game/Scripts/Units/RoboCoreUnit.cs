@@ -20,6 +20,7 @@ public class RoboCoreUnit : RuntimeUnit
     [SerializeField] string transformVFX = "robocore_transform_vfx";
     [SerializeField] string transformSFX = "robocore_transform";
     [SerializeField] float transformAnimationDuration = 2f;
+    [SerializeField] ParticleSystem mk2AttackVfx;
 
     private bool hasTransformed = false;
     private float survivalTimer = 0f;
@@ -176,7 +177,7 @@ public class RoboCoreUnit : RuntimeUnit
         attackRange = mkIIData.attackRange;
         attackCooldown = mkIIData.attackCooldown;
         moveSpeed = mkIIData.moveSpeed;
-
+        attackVfx = mk2AttackVfx;
         // ✅ CRITICAL: Update NavMeshAgent with scaled values!
         if (agent != null)
         {

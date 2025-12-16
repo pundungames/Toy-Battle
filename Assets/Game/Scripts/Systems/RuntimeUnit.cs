@@ -15,6 +15,7 @@ using Zenject;
 public class RuntimeUnit : MonoBehaviour, IHealthProvider
 {
     // ===== INJECTED DEPENDENCIES =====
+    [Inject] DiContainer container;
     [Inject] protected PoolingSystem poolingSystem;
     [Inject] protected AudioManager audioManager;
 
@@ -58,6 +59,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     [SerializeField] protected float attackRange = 2f;
     [SerializeField] protected float moveSpeed = 2f;
     [SerializeField] protected float attackCooldown = 1f;
+    [SerializeField] protected ParticleSystem attackVfx;
 
     [Header("Hit Feedback")]
     [SerializeField] float hitScaleFactor = 1.1f;
@@ -322,14 +324,9 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     protected void PlayAttackVFX()
     {
-        if (poolingSystem != null && !string.IsNullOrEmpty(data.unitID))
+        if (attackVfx)
         {
-            string vfxID = $"{data.unitID}_attack_vfx";
-            GameObject vfx = poolingSystem.InstantiateAPS(vfxID, projectileSpawnPoint.position);
-            if (vfx != null)
-            {
-                poolingSystem.DestroyAPS(vfx, 2f);
-            }
+            attackVfx.Play();
         }
     }
 
@@ -509,7 +506,11 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         {
             Debug.Log($"💥 {data.toyName} exploded!");
         }
-
+        Vector3 pos = transform.position;
+        pos.y += .5f;
+        GameObject deathVfx = poolingSystem.InstantiateAPS("DeathVfx", pos);
+        container.InjectGameObject(deathVfx);
+        deathVfx.GetComponent<VfxDestroyer>().DestroyObject(1f);
         Destroy(gameObject, .1f);
     }
 

@@ -226,7 +226,7 @@ public class DraftCardManager : MonoBehaviour
 
         SetAllCardsInteractable(false);
 
-        Invoke(nameof(ConfirmSelection), 0.5f);
+        Invoke(nameof(ConfirmSelection), 0.3f);
     }
 
     private void ConfirmSelection()

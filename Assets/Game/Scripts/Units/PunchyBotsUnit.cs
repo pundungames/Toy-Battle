@@ -10,6 +10,7 @@ using UnityEngine;
 using DG.Tweening;
 using System.Collections;
 using Zenject;
+using MK.Toon;
 
 public class PunchyBotsUnit : RuntimeUnit
 {
@@ -25,6 +26,7 @@ public class PunchyBotsUnit : RuntimeUnit
 
     private static int sharedAttackCount = 0; // ✅ Shared between twins!
     private bool isStunning = false;
+    [SerializeField] ParticleSystem rightAttackVfx;
 
     // ===== OVERRIDE INITIALIZE =====
 
@@ -38,7 +40,10 @@ public class PunchyBotsUnit : RuntimeUnit
             sharedAttackCount = 0;
         }
     }
-
+    public void RightAttackVfx()
+    {
+         rightAttackVfx.Play();
+    }
     // ===== LINK TWIN =====
 
     public void LinkTwin(PunchyBotsUnit twin)

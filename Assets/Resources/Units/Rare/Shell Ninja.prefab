@@ -121,6 +121,7 @@ MonoBehaviour:
   data: {fileID: 0}
   gridSlot: 0
   isPlayerUnit: 0
+  currentHealthValue: 0
   currentDamage: 0
   damageMultiplier: 1
   shieldAmount: 0
@@ -134,8 +135,10 @@ MonoBehaviour:
   attackRange: 2
   moveSpeed: 2
   attackCooldown: 1
+  attackVfx: {fileID: 8022376703530674713}
   hitScaleFactor: 1.1
   hitDuration: 0.3
+  isExecutingAttack: 0
   teleportDelay: 1
   teleportVFX: ninja_teleport_vfx
   teleportSFX: ninja_teleport
@@ -4175,6 +4178,7 @@ Transform:
   - {fileID: 634271985888793438}
   - {fileID: 4851639923760636795}
   - {fileID: 5110588169981067663}
+  - {fileID: 8022376703550059015}
   m_Father: {fileID: 8719833862404259756}
   m_LocalEulerAnglesHint: {x: -14.397582, y: -62.70125, z: -2.9040499}
 --- !u!1 &6287626018475539556
@@ -5844,3 +5848,100 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.0007041395, y: -0.26559418, z: 0.5352787}
     m_Extent: {x: 0.31436747, y: 0.33502525, z: 0.2479725}
   m_DirtyAABB: 0
+--- !u!1001 &8022376703550553707
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5803838488238533600}
+    m_Modifications:
+    - target: {fileID: 178598, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_Name
+      value: SwordHitMagicYellow
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.6647889
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.6647889
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.6647889
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.705
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.038
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.948
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 19841576, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: playOnAwake
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 19842714, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: playOnAwake
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 19855404, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: playOnAwake
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 19879026, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+      propertyPath: playOnAwake
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 351dec89524a0c64b97fd0eeb9fbbba1, type: 3}
+--- !u!198 &8022376703530674713 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 19879026, guid: 351dec89524a0c64b97fd0eeb9fbbba1,
+    type: 3}
+  m_PrefabInstance: {fileID: 8022376703550553707}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8022376703550059015 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 494700, guid: 351dec89524a0c64b97fd0eeb9fbbba1,
+    type: 3}
+  m_PrefabInstance: {fileID: 8022376703550553707}
+  m_PrefabAsset: {fileID: 0}
