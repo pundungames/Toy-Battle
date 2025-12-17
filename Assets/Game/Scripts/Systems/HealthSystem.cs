@@ -1,8 +1,8 @@
 ﻿// ============================================================================
-// HEALTH SYSTEM - SIMPLE VERSION
+// HEALTH SYSTEM - FIXED VERSION WITH GAME OVER STOP
 // ✅ Each side starts with 3 hearts
 // ✅ Lose 1 heart when battle is lost
-// ✅ Check if game over (0 hearts)
+// ✅ Game stops when 0 hearts (no more drafts!)
 // ============================================================================
 
 using System;
@@ -15,6 +15,7 @@ public class HealthSystem : MonoBehaviour
 
     private int playerHealth;
     private int enemyHealth;
+    private bool gameIsOver = false; // ✅ NEW: Track game over state
 
     // Events
     public event Action<int, int> OnHealthChanged; // (playerHealth, enemyHealth)
@@ -34,6 +35,7 @@ public class HealthSystem : MonoBehaviour
     {
         playerHealth = maxHealth;
         enemyHealth = maxHealth;
+        gameIsOver = false; // ✅ Reset game over flag
 
         OnHealthChanged?.Invoke(playerHealth, enemyHealth);
 
@@ -44,6 +46,13 @@ public class HealthSystem : MonoBehaviour
 
     private void OnBattleEnd(bool playerWon)
     {
+        // ✅ Don't process if game is already over
+        if (gameIsOver)
+        {
+            Debug.LogWarning("⚠️ Game is already over, ignoring battle result");
+            return;
+        }
+
         Debug.Log($"⚔️ Battle ended! {(playerWon ? "Player" : "Enemy")} won");
 
         // Loser takes damage
@@ -61,7 +70,7 @@ public class HealthSystem : MonoBehaviour
 
     private void DamagePlayer()
     {
-        if (playerHealth <= 0) return;
+        if (playerHealth <= 0 || gameIsOver) return;
 
         playerHealth--;
         OnHealthChanged?.Invoke(playerHealth, enemyHealth);
@@ -76,7 +85,7 @@ public class HealthSystem : MonoBehaviour
 
     private void DamageEnemy()
     {
-        if (enemyHealth <= 0) return;
+        if (enemyHealth <= 0 || gameIsOver) return;
 
         enemyHealth--;
         OnHealthChanged?.Invoke(playerHealth, enemyHealth);
@@ -93,24 +102,22 @@ public class HealthSystem : MonoBehaviour
 
     private void TriggerGameOver(bool playerWon)
     {
+        // ✅ Set game over flag FIRST
+        gameIsOver = true;
+
         Debug.Log("=================================");
         if (playerWon)
         {
-            EventManager.OnGameStateChange(GameState.Reward);
             Debug.Log("🎉 PLAYER WINS THE GAME!");
         }
         else
         {
-            EventManager.OnGameStateChange(GameState.Lose);
-
             Debug.Log("💀 ENEMY WINS THE GAME!");
         }
         Debug.Log("=================================");
 
+        // ✅ Trigger event - GameManager will handle state change
         OnGameOver?.Invoke(playerWon);
-
-        // TODO: Show game over screen, stop drafts
-        // EventManager.OnShowGameOver(playerWon);
     }
 
     // ===== GETTERS =====
@@ -119,7 +126,7 @@ public class HealthSystem : MonoBehaviour
     public int GetEnemyHealth() => enemyHealth;
     public int GetMaxHealth() => maxHealth;
 
-    public bool IsGameOver() => playerHealth <= 0 || enemyHealth <= 0;
+    public bool IsGameOver() => gameIsOver;
 
     // ===== CLEANUP =====
 

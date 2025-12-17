@@ -1,5 +1,41 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-7284429480899445503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5d96b09ddaf37042b925b14decbf20e, type: 3}
+  m_Name: ToonDetailerFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  m_Settings:
+    _DetailerType: 0
+    _MaskUse: 0
+    _MaskLayer:
+      serializedVersion: 2
+      m_Bits: 0
+    _FastMode: 0
+    _ColorHue: {r: 0, g: 0, b: 0, a: 1}
+    _UseFade: 0
+    _FadeAffectsOnlyContours: 0
+    _FadeStart: 40
+    _FadeEnd: 60
+    _BlackOffset: 0.2
+    _ContoursIntensity: 1
+    _ContoursThickness: 0.5
+    _ContoursElevationStrength: 1
+    _ContoursElevationSmoothness: 0
+    _ContoursDepressionStrength: 2
+    _ContoursDepressionSmoothness: 0
+    _CavityIntensity: 1
+    _CavityRadius: 0.5
+    _CavityStrength: 1.25
+    _CavitySamples: 12
 --- !u!114 &-1878332245247344467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -53,7 +89,8 @@ MonoBehaviour:
     hdrDebugViewPS: {fileID: 4800000, guid: 573620ae32aec764abd4d728906d2587, type: 3}
   m_RendererFeatures:
   - {fileID: -1878332245247344467}
-  m_RendererFeatureMap: adc0de57c6d2eee5
+  - {fileID: -7284429480899445503}
+  m_RendererFeatureMap: adc0de57c6d2eee501fd9a4ffb81e89a
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}

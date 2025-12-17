@@ -720,7 +720,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4666890990699649146}
   - component: {fileID: 1554902916628136875}
-  - component: {fileID: 1684477448270661191}
   - component: {fileID: 6714798238143484171}
   m_Layer: 5
   m_Name: Versus
@@ -765,19 +764,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HorizontalFit: 2
   m_VerticalFit: 2
---- !u!114 &1684477448270661191
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1209212565273601043}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96d97071c78ee9a49aa9e81f3abbe8f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxHealth: 3
 --- !u!114 &6714798238143484171
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2840,6 +2826,7 @@ RectTransform:
   - {fileID: 6172627603796934126}
   - {fileID: 6141880581723289203}
   - {fileID: 7875530800467693712}
+  - {fileID: 4666890990699649146}
   - {fileID: 8989400619924954180}
   - {fileID: 740080191222121985}
   - {fileID: 8494984491253297568}
@@ -2847,7 +2834,6 @@ RectTransform:
   - {fileID: 1339764087243211897}
   - {fileID: 3073781994526866197}
   - {fileID: 7962188653857915995}
-  - {fileID: 4666890990699649146}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

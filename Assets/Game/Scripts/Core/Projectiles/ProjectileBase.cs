@@ -48,7 +48,7 @@ public abstract class ProjectileBase : MonoBehaviour
             if (trailVfx.TryGetComponent<ParticleSystem>(out ParticleSystem particle))
             {
                 particle.Stop();
-                Invoke("DelayTrailVfx", .2f);
+                Invoke("DelayTrailVfx", .02f);
             }
         }
         SceneManager.activeSceneChanged += OnSceneChanged;

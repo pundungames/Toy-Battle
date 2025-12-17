@@ -1,8 +1,8 @@
 // ============================================================================
-// GAME MANAGER - Ana oyun state machine'i
-// ✅ FIXED: Battle state management
-// ✅ FIXED: Respawn timing - AFTER battle complete, BEFORE next turn
-// ❌ REMOVED: Skill system (Turn 8/16/24 now normal draft)
+// GAME MANAGER - FIXED WITH HEALTH SYSTEM CHECK
+// ✅ Checks if game is over before respawning
+// ✅ 2 second delay before respawn (better visual)
+// ✅ Stops game flow when health depleted
 // ============================================================================
 
 using UnityEngine;
@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
     [Inject] TutorialController tutorialController;
     [Inject] AITurnManager aiTurnManager;
     [Inject] GridManager gridManager;
-    // ❌ REMOVED: [Inject] SkillSystem skillSystem;
+    [Inject] HealthSystem healthSystem; // ✅ INJECT HEALTH SYSTEM
 
     [Header("Game State")]
     [SerializeField] internal GameState currentState;
@@ -29,6 +29,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private bool isPlayerTurnComplete = false;
     [SerializeField] private bool isAITurnComplete = false;
 
+    [Header("Battle Delay")]
+    [SerializeField] private float postBattleDelay = 2f; // ✅ Delay before respawn
+
     private void Start()
     {
         InitializeGame();
@@ -39,7 +42,6 @@ public class GameManager : MonoBehaviour
         EventManager.onCardSelected += OnPlayerCardSelected;
         EventManager.onDraftComplete += OnBothTurnsComplete;
         EventManager.onBattleComplete += OnBattleComplete;
-        // ❌ REMOVED: EventManager.onSkillSelected += OnSkillSelected;
     }
 
     private void OnDisable()
@@ -47,7 +49,6 @@ public class GameManager : MonoBehaviour
         EventManager.onCardSelected -= OnPlayerCardSelected;
         EventManager.onDraftComplete -= OnBothTurnsComplete;
         EventManager.onBattleComplete -= OnBattleComplete;
-        // ❌ REMOVED: EventManager.onSkillSelected -= OnSkillSelected;
     }
 
     private void InitializeGame()
@@ -67,6 +68,13 @@ public class GameManager : MonoBehaviour
     public void StartButton()
     {
         currentTurn = 1;
+
+        // ✅ Reset health when starting new game
+        if (healthSystem != null)
+        {
+            healthSystem.ResetHealth();
+        }
+
         ChangeState(GameState.Draft);
     }
 
@@ -195,7 +203,7 @@ public class GameManager : MonoBehaviour
         battleManager.StartBattle();
     }
 
-    // ===== BATTLE COMPLETE =====
+    // ===== BATTLE COMPLETE (FIXED!) =====
 
     private void OnBattleComplete(bool playerWon)
     {
@@ -216,21 +224,49 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("🧹 Scene cleared, state preserved");
 
-        // ✅ FIX: Final battle check
+        // ✅ NEW: Wait for delay before continuing (better visual!)
+        Invoke(nameof(ContinueAfterBattle), postBattleDelay);
+    }
+
+    /// <summary>
+    /// ✅ NEW: Called after delay, checks game over before respawning
+    /// </summary>
+    private void ContinueAfterBattle()
+    {
+        // ✅ CRITICAL: Check if game is over (health depleted)
+        if (healthSystem != null && healthSystem.IsGameOver())
+        {
+            Debug.Log("🛑 Game is over! Not respawning units.");
+
+            // ✅ Show win/lose screen based on who won
+            if (healthSystem.GetPlayerHealth() <= 0)
+            {
+                // Player lost
+                ChangeState(GameState.Lose);
+            }
+            else
+            {
+                // Player won
+                ChangeState(GameState.Reward);
+            }
+
+            return;
+        }
+
+        // ✅ Check if final turn
         if (currentTurn == GameConstants.TOTAL_TURNS)
         {
-            // Match ended
+            // Match ended by turn limit
             ChangeState(GameState.Reward);
+            return;
         }
-        else
-        {
-            // ✅ FIX: Respawn BEFORE advancing turn
-            gridManager.RespawnPreviousUnits();
-            Debug.Log("♻️ Units respawned for next draft");
 
-            // Continue to next turn
-            AdvanceTurn();
-        }
+        // ✅ Game continues - respawn and advance
+        gridManager.RespawnPreviousUnits();
+        Debug.Log("♻️ Units respawned for next draft");
+
+        // Continue to next turn
+        AdvanceTurn();
     }
 
     // ===== REWARD =====
@@ -261,6 +297,12 @@ public class GameManager : MonoBehaviour
 
         // Reset grid completely
         gridManager.ResetGridState();
+
+        // ✅ Reset health
+        if (healthSystem != null)
+        {
+            healthSystem.ResetHealth();
+        }
 
         ChangeState(GameState.Draft);
     }
