@@ -72,7 +72,7 @@ public class ToySoldierUnit : RuntimeUnit
         GuidedProjectile projectile = projectileObj.GetComponent<GuidedProjectile>();
         if (projectile != null)
         {
-            projectile.SetTarget(target, GetFinalDamage());
+            projectile.SetTarget(target, GetFinalDamage(), data.attackRange);
             Debug.Log($"🎯 Toy Soldier fired homing bullet at {target.data.toyName}");
         }
         else

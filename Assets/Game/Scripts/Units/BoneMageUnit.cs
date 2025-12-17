@@ -78,7 +78,7 @@ public class BoneMageUnit : RuntimeUnit
         GuidedProjectile projectile = projectileObj.GetComponent<GuidedProjectile>();
         if (projectile != null)
         {
-            projectile.SetTarget(target, GetFinalDamage());
+            projectile.SetTarget(target, GetFinalDamage(), data.attackRange);
             Debug.Log($"💀 Bone Mage fired homing skull at {target.data.toyName}");
         }
         else

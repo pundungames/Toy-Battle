@@ -1252,7 +1252,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 6960212739724912985}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: FailMainScrene
+        m_MethodName: Retry
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5452,7 +5452,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5950760342824786172
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7525,9 +7525,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: OnRewardContinue
+      - m_Target: {fileID: 6960212739724912985}
+        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
+        m_MethodName: Retry
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

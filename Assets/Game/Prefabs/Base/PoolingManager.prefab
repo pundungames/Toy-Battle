@@ -80,6 +80,13 @@ MonoBehaviour:
       AllowGrow: 1
       AutoDestroy: 0
       clones: []
+    - ID: kaboom_explosion_vfx
+      SourcePrefab: {fileID: 2783736263403227113, guid: e5afb06126b99e545a21873d9e86852b,
+        type: 3}
+      MinNumberOfObject: 10
+      AllowGrow: 1
+      AutoDestroy: 0
+      clones: []
   - categoryName: SlamBros
     sourceObjects:
     - ID: slam_bros_land_vfx

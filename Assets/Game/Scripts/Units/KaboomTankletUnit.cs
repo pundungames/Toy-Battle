@@ -111,7 +111,7 @@ public class KaboomTankletUnit : RuntimeUnit
             Destroy(projectileObj);
             return;
         }
-
+        container.InjectGameObject(projectile.gameObject);
         // Calculate flight time
         float distance = Vector3.Distance(spawnPos, targetPos);
         float flightTime = distance / projectileSpeed;

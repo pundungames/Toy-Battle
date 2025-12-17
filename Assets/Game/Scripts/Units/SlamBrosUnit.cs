@@ -1,8 +1,7 @@
 ﻿// ============================================================================
-// SLAM BROS UNIT - JUMP ATTACK FIGHTER (COROUTINE VERSION)
-// ✅ Manual position tracking with coroutine (no ChangeEndValue)
-// ✅ Compatible with all DOTween versions
-// ✅ Knockback on landing
+// SLAM BROS - FIXED TARGET DEATH HANDLING
+// ✅ Checks target alive during entire jump
+// ✅ Lands at last valid position if target dies
 // ============================================================================
 
 using UnityEngine;
@@ -19,15 +18,20 @@ public class SlamBrosUnit : RuntimeUnit
     [SerializeField] bool applyKnockback = true;
     [SerializeField] float knockbackForce = 0.5f;
     [SerializeField] float knockbackDuration = 0.3f;
-    [SerializeField] float trackingUpdateRate = 0.05f; // Update every 0.05s
 
-    private RuntimeUnit jumpTarget;
+    private RuntimeUnit jumpTarget; // ✅ Stored jump target
     private bool isJumping = false;
     private Coroutine trackingCoroutine;
+    private Vector3 lastValidTargetPosition; // ✅ Store last valid position
 
     protected override void ExecuteAttack(RuntimeUnit target)
     {
         if (isJumping) return;
+
+        // ✅ Store target at attack start
+        jumpTarget = target;
+        lastValidTargetPosition = target.transform.position;
+
         StartJumpAttack(target);
     }
 
@@ -35,7 +39,6 @@ public class SlamBrosUnit : RuntimeUnit
     {
         if (target == null || !target.IsAlive()) return;
 
-        jumpTarget = target;
         isJumping = true;
         LockAttack();
 
@@ -50,12 +53,12 @@ public class SlamBrosUnit : RuntimeUnit
         }
     }
 
-    // ===== ANIMATION EVENT: JUMP =====
-
     public void JumpEvent()
     {
+        // ✅ Check if target still valid
         if (jumpTarget == null || !jumpTarget.IsAlive())
         {
+            Debug.Log($"💀 Slam Bros: Jump target died before jump started, canceling");
             UnlockJump();
             return;
         }
@@ -63,37 +66,43 @@ public class SlamBrosUnit : RuntimeUnit
         float distance = Vector3.Distance(transform.position, jumpTarget.transform.position);
         float jumpDuration = distance / jumpSpeed;
 
-        // Start tracking coroutine
         trackingCoroutine = StartCoroutine(JumpWithTracking(jumpDuration));
     }
-
-    // ===== JUMP WITH TRACKING COROUTINE =====
 
     private IEnumerator JumpWithTracking(float duration)
     {
         Vector3 startPos = transform.position;
         float elapsedTime = 0f;
+        bool targetDiedDuringJump = false;
 
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
             float progress = elapsedTime / duration;
 
-            // Check if target still alive
+            // ✅ Check if target still alive
             if (jumpTarget == null || !jumpTarget.IsAlive())
             {
-                // Target died, land at current position
-                break;
+                if (!targetDiedDuringJump)
+                {
+                    Debug.Log($"💀 Slam Bros: Target died during jump, landing at last position");
+                    targetDiedDuringJump = true;
+                    // Continue to last valid position instead of stopping
+                }
+            }
+            else
+            {
+                // Update last valid position
+                lastValidTargetPosition = jumpTarget.transform.position;
             }
 
-            // Get current target position
-            Vector3 targetPos = jumpTarget.transform.position;
+            // Use last valid position (either current or stored)
+            Vector3 targetPos = lastValidTargetPosition;
 
             // Validate NavMesh
             UnityEngine.AI.NavMeshHit hit;
             if (!UnityEngine.AI.NavMesh.SamplePosition(targetPos, out hit, 3f, UnityEngine.AI.NavMesh.AllAreas))
             {
-                // Invalid position, use last valid position
                 targetPos = transform.position + (targetPos - transform.position).normalized * 2f;
             }
             else
@@ -103,26 +112,23 @@ public class SlamBrosUnit : RuntimeUnit
 
             // Calculate position with arc
             Vector3 horizontalPos = Vector3.Lerp(startPos, targetPos, progress);
-
-            // Parabolic arc for height
-            float heightProgress = 1 - Mathf.Pow(2 * progress - 1, 2); // Parabola
+            float heightProgress = 1 - Mathf.Pow(2 * progress - 1, 2);
             float currentHeight = jumpHeight * heightProgress;
 
-            // Apply position
             transform.position = new Vector3(
                 horizontalPos.x,
                 horizontalPos.y + currentHeight,
                 horizontalPos.z
             );
 
-            // Look at target
+            // Look at target position
             Vector3 lookDirection = (targetPos - transform.position).normalized;
             if (lookDirection != Vector3.zero)
             {
                 transform.rotation = Quaternion.LookRotation(lookDirection);
             }
 
-            yield return null; // Update every frame for smooth tracking
+            yield return null;
         }
 
         // Jump complete
@@ -137,9 +143,26 @@ public class SlamBrosUnit : RuntimeUnit
         }
 
         Vector3 finalLandingPos = transform.position;
-
-        DealLandingDamage(finalLandingPos);
         finalLandingPos.y = 0;
+
+        // ✅ Only deal damage if original target still alive and in range
+        if (jumpTarget != null && jumpTarget.IsAlive())
+        {
+            float distance = Vector3.Distance(finalLandingPos, jumpTarget.transform.position);
+            if (distance <= attackRange)
+            {
+                DealLandingDamage(finalLandingPos);
+            }
+            else
+            {
+                Debug.Log($"💀 Slam Bros: Target too far after landing ({distance:F1}m), no damage");
+            }
+        }
+        else
+        {
+            Debug.Log($"💀 Slam Bros: Target died during jump, landing without damage");
+        }
+
         PlayLandingVFX(finalLandingPos);
 
         if (audioManager != null)
@@ -170,27 +193,18 @@ public class SlamBrosUnit : RuntimeUnit
         }
     }
 
-    // ===== LANDING DAMAGE =====
-
     private void DealLandingDamage(Vector3 landingPos)
     {
-        if (currentTarget != null && currentTarget.IsAlive())
+        if (jumpTarget != null && jumpTarget.IsAlive())
         {
-            float distance = Vector3.Distance(landingPos, currentTarget.transform.position);
+            DealInstantDamage(jumpTarget);
 
-            if (distance <= attackRange)
+            if (applyKnockback)
             {
-                DealInstantDamage(currentTarget);
-
-                if (applyKnockback)
-                {
-                    ApplyLandingKnockback(currentTarget, landingPos);
-                }
+                ApplyLandingKnockback(jumpTarget, landingPos);
             }
         }
     }
-
-    // ===== KNOCKBACK =====
 
     private void ApplyLandingKnockback(RuntimeUnit target, Vector3 impactPosition)
     {
@@ -204,7 +218,7 @@ public class SlamBrosUnit : RuntimeUnit
         }
         else
         {
-            Debug.LogWarning($"⚠️ Slam Bros: Knockback position outside NavMesh, skipping knockback for {target.data.toyName}");
+            Debug.LogWarning($"⚠️ Slam Bros: Knockback position outside NavMesh, skipping");
             return;
         }
 
@@ -226,20 +240,16 @@ public class SlamBrosUnit : RuntimeUnit
                     targetAgent.enabled = true;
                 }
             });
-
-        Debug.Log($"💥 Slam Bros knocked back {target.data.toyName} to {knockbackTarget}");
     }
-
-    // ===== VFX =====
 
     private void PlayLandingVFX(Vector3 position)
     {
         if (poolingSystem != null)
         {
             GameObject vfx = poolingSystem.InstantiateAPS("slam_bros_land_vfx", position);
-            vfx.transform.rotation = Quaternion.Euler(-90, 0, 0);
             if (vfx != null)
             {
+                vfx.transform.rotation = Quaternion.Euler(-90, 0, 0);
                 poolingSystem.DestroyAPS(vfx, 2f);
             }
         }
@@ -247,9 +257,9 @@ public class SlamBrosUnit : RuntimeUnit
 
     public override void ExecuteAttackEvent()
     {
-        if (currentTarget != null && currentTarget.IsAlive())
+        if (jumpTarget != null && jumpTarget.IsAlive())
         {
-            DealInstantDamage(currentTarget);
+            DealInstantDamage(jumpTarget);
         }
     }
 

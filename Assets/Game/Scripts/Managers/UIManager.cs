@@ -7,6 +7,7 @@
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Zenject;
 
@@ -42,7 +43,10 @@ public class UIManager : MonoBehaviour
     {
         HideAllPanels();
     }
-
+    public void Retry()
+    {
+        SceneManager.LoadScene(1);
+    }
     private void OnEnable()
     {
         EventManager.onGameStateChange += OnGameStateChange;
@@ -97,6 +101,13 @@ public class UIManager : MonoBehaviour
     public void ShowDraftPanel()
     {
         HideAllPanels();
+        DelayShowDraftPanel();
+      //  Invoke(nameof(DelayShowDraftPanel), 1f);
+        // ✅ Show enemy render during draft
+        SetEnemyRenderPanelVisibility(true);
+    }
+    void DelayShowDraftPanel()
+    {
         draftPanel.SetActive(true);
 
         // ✅ DraftCardManager'ı aktif et
@@ -108,10 +119,7 @@ public class UIManager : MonoBehaviour
 
         AnimatePanelIn(draftPanel.transform);
 
-        // ✅ Show enemy render during draft
-        SetEnemyRenderPanelVisibility(true);
     }
-
     public void ShowBattlePanel()
     {
         HideAllPanels();

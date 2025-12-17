@@ -117,7 +117,6 @@ Transform:
   m_Children:
   - {fileID: 4455064674733295831}
   - {fileID: 1742852956335503719}
-  - {fileID: 3940787595683000014}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2034734963223515117
@@ -146,12 +145,13 @@ MonoBehaviour:
   hitSfxName: 
   trailVfx: {fileID: 4455064674733295831}
   damageRange: 1.5
-  arcHeight: 5
-  maxLifetime: 10
+  minArcHeight: 1
+  maxArcHeight: 5
+  maxLifetime: 15
   fullDamageRadius: 1
   partialDamageRadius: 2
   partialDamageMultiplier: 0.6
-  explosionVFX: {fileID: 3940787595664674850}
+  explosionVFX: kaboom_explosion_vfx
   explosionSFX: kaboom_boom
 --- !u!135 &5658669766638559055
 SphereCollider:
@@ -201,111 +201,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!1001 &3940787595683100386
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 4887416429025985442}
-    m_Modifications:
-    - target: {fileID: 161422, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_Name
-      value: GrenadeExplosionBlue
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.49999997
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.49999997
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalScale.z
-      value: 0.49999997
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 19867328, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: playOnAwake
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 19869450, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: playOnAwake
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 19871652, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: playOnAwake
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 19887858, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: playOnAwake
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 19892234, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
-      propertyPath: playOnAwake
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 02b55b1514278964187c93c0b09a3dc4, type: 3}
---- !u!198 &3940787595664674850 stripped
-ParticleSystem:
-  m_CorrespondingSourceObject: {fileID: 19867328, guid: 02b55b1514278964187c93c0b09a3dc4,
-    type: 3}
-  m_PrefabInstance: {fileID: 3940787595683100386}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &3940787595683000014 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 497708, guid: 02b55b1514278964187c93c0b09a3dc4,
-    type: 3}
-  m_PrefabInstance: {fileID: 3940787595683100386}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4455064674732969561
 PrefabInstance:
   m_ObjectHideFlags: 0

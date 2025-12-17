@@ -15,7 +15,7 @@ using Zenject;
 public class RuntimeUnit : MonoBehaviour, IHealthProvider
 {
     // ===== INJECTED DEPENDENCIES =====
-    [Inject] DiContainer container;
+    [Inject] protected DiContainer container;
     [Inject] protected PoolingSystem poolingSystem;
     [Inject] protected AudioManager audioManager;
 
@@ -363,6 +363,22 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             battleManager.GetEnemyUnits() :
             battleManager.GetPlayerUnits();
 
+        // ✅ NEW: Use SmartTargetingSystem if available
+        SmartTargetingSystem smartTargeting = SmartTargetingSystem.Instance;
+
+        if (smartTargeting != null)
+        {
+            RuntimeUnit smartTarget = smartTargeting.SelectTarget(this, enemies);
+
+            // If smart system returned a target, use it
+            if (smartTarget != null)
+            {
+                return smartTarget;
+            }
+        }
+
+        // ✅ FALLBACK: Normal nearest targeting
+        // (Also used after smart targeting period ends)
         RuntimeUnit nearest = null;
         float minDistance = float.MaxValue;
 
@@ -380,7 +396,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
         return nearest;
     }
-
     // ===== NAVIGATE TO TARGET =====
 
     private void NavigateToTarget(RuntimeUnit target)
@@ -482,39 +497,75 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     private void OnDeath()
     {
         isInBattle = false;
-        EventManager.OnUnitDeath(this);
 
+        Debug.Log($"💀 {data.toyName} is dying...");
+
+        // ✅ Stop all coroutines and tweens FIRST
+        StopAllCoroutines();
+        transform.DOKill();
+        CancelInvoke();
+
+        // ✅ Disable agent immediately
         if (agent != null && agent.enabled)
         {
             agent.ResetPath();
             agent.enabled = false;
         }
 
+        // ✅ Check if this is a Golem with split ability
+       /* GolemSplitAbility golemSplit = GetComponent<GolemSplitAbility>();
+        if (golemSplit != null)
+        {
+            Debug.Log($"🪨 {data.toyName} has split ability, triggering...");
+            golemSplit.TriggerSplit();
+            return; // Let GolemSplitAbility handle cleanup
+        }*/
+
+        // ✅ Trigger death event BEFORE cleanup
+        EventManager.OnUnitDeath(this);
+
+        // ✅ Clear from grid BEFORE GameObject destruction
         GridManager gridManager = FindObjectOfType<GridManager>();
         if (gridManager != null)
         {
             gridManager.ClearSceneSlot(gridSlot, isPlayerUnit, this);
-            Debug.Log($"💀 {data.toyName} died");
+            Debug.Log($"💀 {data.toyName} removed from grid slot {gridSlot}");
         }
 
+        // ✅ Play death animation (if exists)
         if (animator != null)
         {
             animator.SetTrigger("Death");
         }
 
-        if (data.isExplosive)
-        {
-            Debug.Log($"💥 {data.toyName} exploded!");
-        }
-        Vector3 pos = transform.position;
-        pos.y += .5f;
-        GameObject deathVfx = poolingSystem.InstantiateAPS("DeathVfx", pos);
-        container.InjectGameObject(deathVfx);
-        deathVfx.GetComponent<VfxDestroyer>().DestroyObject(1f);
-        Destroy(gameObject, .1f);
-    }
+        // Death VFX
+        Vector3 deathPos = transform.position;
+        deathPos.y += 0.5f;
 
-    // ===== BATTLE RESET =====
+        if (poolingSystem != null)
+        {
+            GameObject deathVfx = poolingSystem.InstantiateAPS("DeathVfx", deathPos);
+            if (deathVfx != null)
+            {
+                container.InjectGameObject(deathVfx);
+                VfxDestroyer destroyer = deathVfx.GetComponent<VfxDestroyer>();
+                if (destroyer != null)
+                {
+                    destroyer.DestroyObject(1f);
+                }
+                else
+                {
+                    poolingSystem.DestroyAPS(deathVfx, 1f);
+                }
+            }
+        }
+
+        // ✅ CRITICAL: Destroy GameObject IMMEDIATELY!
+        // No delay - prevents lingering in hierarchy and targeting bugs
+        Destroy(gameObject);
+
+        Debug.Log($"💀 {data.toyName} destroyed immediately from hierarchy");
+    }    // ===== BATTLE RESET =====
 
     public void ResetBattleBuffs()
     {

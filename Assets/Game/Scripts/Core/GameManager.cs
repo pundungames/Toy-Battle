@@ -5,6 +5,7 @@
 // ✅ Stops game flow when health depleted
 // ============================================================================
 
+using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 
@@ -32,9 +33,14 @@ public class GameManager : MonoBehaviour
     [Header("Battle Delay")]
     [SerializeField] private float postBattleDelay = 2f; // ✅ Delay before respawn
 
+
+    [Header("Transition Animations")]
+    [SerializeField] BattleToDraftTransition battleToDraftTransition;
+    [SerializeField] internal DraftCardSpawnAnimation draftCardSpawnAnimation;
     private void Start()
     {
         InitializeGame();
+        StartButton();
     }
 
     private void OnEnable()
@@ -204,7 +210,6 @@ public class GameManager : MonoBehaviour
     }
 
     // ===== BATTLE COMPLETE (FIXED!) =====
-
     private void OnBattleComplete(bool playerWon)
     {
         Debug.Log($"⚔️ Battle complete! Winner: {(playerWon ? "PLAYER" : "ENEMY")}");
@@ -219,54 +224,45 @@ public class GameManager : MonoBehaviour
             currencyManager.UpdateCashAndSave(GameConstants.LOSE_GOLD);
         }
 
-        // ✅ FIX: Clear scene objects IMMEDIATELY after battle
+        // Clear battle scene (but don't respawn yet!)
         gridManager.ClearSceneObjects();
 
-        Debug.Log("🧹 Scene cleared, state preserved");
-
-        // ✅ NEW: Wait for delay before continuing (better visual!)
+        // ✅ NEW: Wait for delay, then continue
         Invoke(nameof(ContinueAfterBattle), postBattleDelay);
     }
 
-    /// <summary>
-    /// ✅ NEW: Called after delay, checks game over before respawning
-    /// </summary>
     private void ContinueAfterBattle()
     {
-        // ✅ CRITICAL: Check if game is over (health depleted)
-        if (healthSystem != null && healthSystem.IsGameOver())
+        // Check game over
+        if (healthSystem.IsGameOver())
         {
-            Debug.Log("🛑 Game is over! Not respawning units.");
-
-            // ✅ Show win/lose screen based on who won
             if (healthSystem.GetPlayerHealth() <= 0)
-            {
-                // Player lost
                 ChangeState(GameState.Lose);
-            }
             else
-            {
-                // Player won
                 ChangeState(GameState.Reward);
-            }
-
             return;
         }
 
-        // ✅ Check if final turn
-        if (currentTurn == GameConstants.TOTAL_TURNS)
+        // ✅ NEW: Get units to spawn
+        List<RuntimeUnit> unitsToSpawn = gridManager.GetPreviousUnits();
+
+        // ✅ NEW: Use transition animation instead of instant respawn
+        if (battleToDraftTransition != null)
         {
-            // Match ended by turn limit
-            ChangeState(GameState.Reward);
-            return;
+            battleToDraftTransition.StartTransition(unitsToSpawn, () =>
+            {
+                // After animation completes:
+                AdvanceTurn();
+                ChangeState(GameState.Draft);
+            });
         }
-
-        // ✅ Game continues - respawn and advance
-        gridManager.RespawnPreviousUnits();
-        Debug.Log("♻️ Units respawned for next draft");
-
-        // Continue to next turn
-        AdvanceTurn();
+        else
+        {
+            // Fallback: Old instant respawn
+            gridManager.RespawnPreviousUnits();
+            AdvanceTurn();
+            ChangeState(GameState.Draft);
+        }
     }
 
     // ===== REWARD =====

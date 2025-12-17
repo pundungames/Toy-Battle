@@ -15,6 +15,9 @@ using Zenject;
 public class GridManager : MonoBehaviour
 {
     [Inject] DiContainer container;
+    [Inject] GameManager gameManager;
+    [Inject] PoolingSystem poolingSystem;
+    [Inject] AudioManager audioManager;
 
     [Header("Grid Slots")]
     [SerializeField] Transform[] playerGridSlots = new Transform[GameConstants.GRID_SIZE];
@@ -115,6 +118,38 @@ public class GridManager : MonoBehaviour
 
     // ===== SPAWN SINGLE UNIT =====
 
+    private Vector3 CalculateArrangementPosition(int slotIndex, bool isPlayer, int unitIndexInSlot)
+    {
+        GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
+        Transform slotTransform = isPlayer ? playerGridSlots[slotIndex] : enemyGridSlots[slotIndex];
+
+        if (slot.unitType == null)
+        {
+            // First unit in slot, spawn at center
+            return slotTransform.position;
+        }
+
+        // Calculate where this unit will be after arrangement
+        int totalUnits = slot.units.Count + 1; // +1 for the unit being spawned
+        int gridSize = Mathf.CeilToInt(Mathf.Sqrt(totalUnits));
+        float spacing = slot.unitType.unitSpacing;
+        float centerOffset = -((gridSize - 1) * spacing) / 2f;
+
+        // Calculate position for this unit
+        int row = unitIndexInSlot / gridSize;
+        int col = unitIndexInSlot % gridSize;
+
+        float xPos = centerOffset + (col * spacing);
+        float zPos = centerOffset + (row * spacing);
+
+        Vector3 localPos = new Vector3(xPos, 0, zPos);
+        return slotTransform.TransformPoint(localPos);
+    }
+
+    // ============================================================================
+    // UPDATE SpawnSingleUnit() - spawn at arrangement position
+    // ============================================================================
+
     private bool SpawnSingleUnit(ToyUnitData unitData, bool isPlayer, int slotIndex)
     {
         GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
@@ -128,7 +163,13 @@ public class GridManager : MonoBehaviour
             return false;
         }
 
-        GameObject unitObj = Instantiate(unitPrefab, slotTransform);
+        ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
+        // ✅ Calculate spawn position (where it will be after arrangement)
+        int unitIndex = slot.units.Count; // Current count = index for new unit
+        Vector3 spawnPos = CalculateArrangementPosition(slotIndex, isPlayer, unitIndex);
+
+        // Instantiate at calculated position
+        GameObject unitObj = Instantiate(unitPrefab, spawnPos, Quaternion.identity, slotTransform);
         RuntimeUnit runtimeUnit = unitObj.GetComponent<RuntimeUnit>();
 
         if (runtimeUnit == null)
@@ -140,15 +181,13 @@ public class GridManager : MonoBehaviour
 
         runtimeUnit.Initialize(unitData, slotIndex, isPlayer);
 
-        // ✅ ROTATION FIX: Set correct facing direction
+        // ✅ ROTATION FIX
         if (!isPlayer)
         {
-            // Enemy units face south (towards player)
             unitObj.transform.rotation = Quaternion.Euler(0, 180, 0);
         }
         else
         {
-            // Player units face north (towards enemy)
             unitObj.transform.rotation = Quaternion.Euler(0, 0, 0);
         }
 
@@ -157,18 +196,33 @@ public class GridManager : MonoBehaviour
 
         container.InjectGameObject(unitObj);
 
-        ArrangeUnitsInSlot(slotIndex, isPlayer);
-        UpdatePermanentState(slotIndex, isPlayer);
+        // ✅ Animate if in draft phase
+        if (gameManager != null && gameManager.currentState == GameState.Draft)
+        {
+            DraftCardSpawnAnimation animator = FindObjectOfType<DraftCardSpawnAnimation>();
+            if (animator != null)
+            {
+                unitObj.SetActive(false); // Hide first
+                animator.SpawnUnitInSlot(runtimeUnit, () =>
+                {
+                    // No need to arrange - already at correct position!
+                    ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
+                });
+            }
+        }
+        else
+        {
+            // Battle transition - units already at correct positions
+            ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
+        }
 
+        UpdatePermanentState(slotIndex, isPlayer);
         EventManager.OnUnitSpawn(runtimeUnit);
 
-        Debug.Log($"✅ Spawned single unit: {unitData.toyName} at slot {slotIndex}");
+        Debug.Log($"✅ Spawned single unit: {unitData.toyName} at slot {slotIndex} position {spawnPos}");
 
         return true;
     }
-
-    // ===== SPAWN MULTIPLE UNITS (UPDATED - AUTO SPACING!) =====
-
     private bool SpawnMultipleUnits(ToyUnitData unitData, bool isPlayer, int slotIndex)
     {
         GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
@@ -186,14 +240,16 @@ public class GridManager : MonoBehaviour
             Debug.LogError($"❌ Unit prefab not found for: {unitData.toyName}");
             return false;
         }
+        ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
 
-        // Spawn each unit at slot position (they will be arranged by grid spacing)
+        // Spawn each unit at its calculated arrangement position
         for (int i = 0; i < unitsToSpawn; i++)
         {
-            // ✅ Spawn at slot center - ArrangeUnitsInSlot will position them properly
-            Vector3 spawnPos = slotTransform.position;
+            // ✅ Calculate spawn position for this unit
+            int unitIndex = slot.units.Count + i; // Current count + offset
+            Vector3 spawnPos = CalculateArrangementPosition(slotIndex, isPlayer, unitIndex);
 
-            // Instantiate
+            // Instantiate at calculated position
             GameObject unitObj = Instantiate(unitPrefab, spawnPos, Quaternion.identity, slotTransform);
             RuntimeUnit unit = unitObj.GetComponent<RuntimeUnit>();
 
@@ -204,25 +260,20 @@ public class GridManager : MonoBehaviour
                 continue;
             }
 
-            // Initialize
             unit.Initialize(unitData, slotIndex, isPlayer);
 
-            // ✅ ROTATION FIX: Set correct facing direction
+            // ✅ ROTATION FIX
             if (!isPlayer)
             {
-                // Enemy units face south (towards player)
                 unitObj.transform.rotation = Quaternion.Euler(0, 180, 0);
             }
             else
             {
-                // Player units face north (towards enemy)
                 unitObj.transform.rotation = Quaternion.Euler(0, 0, 0);
             }
 
-            // Inject dependencies
             container.InjectGameObject(unitObj);
 
-            // Store
             spawnedUnits.Add(unit);
             slot.units.Add(unit);
 
@@ -235,14 +286,23 @@ public class GridManager : MonoBehaviour
             slot.unitType = unitData;
         }
 
-        // ✅ Link twins if this is a twin system (Punchy Bots)
+        // ✅ Link twins if needed
         if (unitData.isTwinSystem && spawnedUnits.Count >= 2)
         {
             LinkTwinUnits(spawnedUnits);
         }
 
-        // ✅ CRITICAL: Arrange units using grid spacing system!
-        ArrangeUnitsInSlot(slotIndex, isPlayer);
+        // ✅ Animate if in draft phase
+        if (gameManager != null && gameManager.currentState == GameState.Draft)
+        {
+            DraftCardSpawnAnimation animator = FindObjectOfType<DraftCardSpawnAnimation>();
+            if (animator != null)
+            {
+                StartCoroutine(AnimateMultipleUnits(spawnedUnits, slotIndex, isPlayer, animator));
+            }
+            // No need to arrange - already at correct positions!
+        }
+        // else: Battle transition - units already at correct positions
 
         UpdatePermanentState(slotIndex, isPlayer);
 
@@ -251,6 +311,25 @@ public class GridManager : MonoBehaviour
         return spawnedUnits.Count > 0;
     }
 
+    // ✅ UPDATE AnimateMultipleUnits - no arrangement needed
+    private IEnumerator AnimateMultipleUnits(List<RuntimeUnit> units, int slotIndex, bool isPlayer, DraftCardSpawnAnimation animator)
+    {
+        // Hide all units first
+        foreach (var unit in units)
+        {
+            unit.gameObject.SetActive(false);
+        }
+
+        // Animate each unit with delay
+        foreach (var unit in units)
+        {
+            animator.SpawnUnitInSlot(unit, null);
+            yield return new WaitForSeconds(0.15f); // Small delay between units
+        }
+
+        // No need to arrange after animation - already at correct positions!
+        ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
+    }
     // ===== LINK TWIN UNITS =====
 
     private void LinkTwinUnits(List<RuntimeUnit> units)
@@ -331,9 +410,9 @@ public class GridManager : MonoBehaviour
 
         if (unitCount == 0) return;
 
-        // ✅ ALWAYS use grid spacing system (no special case for multi-units)
+        // Grid spacing system
         int gridSize = Mathf.CeilToInt(Mathf.Sqrt(unitCount));
-        float spacing = slot.unitType.unitSpacing; // 1.072 from inspector
+        float spacing = slot.unitType.unitSpacing;
         float centerOffset = -((gridSize - 1) * spacing) / 2f;
 
         int index = 0;
@@ -344,14 +423,18 @@ public class GridManager : MonoBehaviour
                 RuntimeUnit unit = slot.units[index];
                 float xPos = centerOffset + (col * spacing);
                 float zPos = centerOffset + (row * spacing);
-                unit.transform.localPosition = new Vector3(xPos, 0, zPos);
+                Vector3 targetLocalPos = new Vector3(xPos, 0, zPos);
+
+                // ✅ Smooth DOTween movement instead of instant
+                unit.transform.DOLocalMove(targetLocalPos, 0.3f)
+                    .SetEase(Ease.OutQuad);
+
                 index++;
             }
         }
 
-        Debug.Log($"📐 Arranged {unitCount} units in slot {slotIndex} with spacing {spacing}");
+        Debug.Log($"📐 Arranged {unitCount} units in slot {slotIndex} with smooth animation");
     }
-
     // ===== ARRANGE FORMATION (BATTLE START) =====
 
     public IEnumerator ArrangeUnitsInFormationCoroutine(bool isPlayer)
@@ -553,7 +636,23 @@ public class GridManager : MonoBehaviour
 
         return allUnits;
     }
+    public GridSlot GetPlayerSlot(int slotIndex)
+    {
+        if (slotIndex >= 0 && slotIndex < playerGrid.Length)
+        {
+            return playerGrid[slotIndex];
+        }
+        return null;
+    }
 
+    public GridSlot GetEnemySlot(int slotIndex)
+    {
+        if (slotIndex >= 0 && slotIndex < enemyGrid.Length)
+        {
+            return enemyGrid[slotIndex];
+        }
+        return null;
+    }
     // ===== UTILITY =====
 
     public void IncreaseDeployLimit()
@@ -575,29 +674,71 @@ public class GridManager : MonoBehaviour
 
     public void ClearSceneObjects()
     {
-        for (int i = 0; i < playerGrid.Length; i++)
+        StartCoroutine(ClearSceneObjectsWithEffect());
+    }
+
+    private IEnumerator ClearSceneObjectsWithEffect()
+    {
+        List<RuntimeUnit> allUnits = new List<RuntimeUnit>();
+
+        // Collect all units
+        foreach (var slot in playerGrid)
         {
-            foreach (var unit in playerGrid[i].units)
-            {
-                if (unit != null && unit.gameObject != null)
-                {
-                    Destroy(unit.gameObject);
-                }
-            }
-            playerGrid[i].units.Clear();
+            allUnits.AddRange(slot.units);
         }
 
-        for (int i = 0; i < enemyGrid.Length; i++)
+        foreach (var slot in enemyGrid)
         {
-            foreach (var unit in enemyGrid[i].units)
-            {
-                if (unit != null && unit.gameObject != null)
-                {
-                    Destroy(unit.gameObject);
-                }
-            }
-            enemyGrid[i].units.Clear();
+            allUnits.AddRange(slot.units);
         }
+
+        Debug.Log($"🧹 Clearing {allUnits.Count} units with poof effect...");
+
+        // Destroy each unit with effect
+        foreach (var unit in allUnits)
+        {
+            if (unit != null && unit.gameObject != null)
+            {
+                // Play poof VFX
+                Vector3 poofPos = unit.transform.position;
+                poofPos.y += 0.5f;
+
+                if (poolingSystem != null)
+                {
+                    GameObject vfx = poolingSystem.InstantiateAPS("DeathVfx", poofPos);
+                    if (vfx != null)
+                    {
+                        container.InjectGameObject(vfx);
+                        poolingSystem.DestroyAPS(vfx, 1f);
+                    }
+                }
+
+                // Play sound
+                if (audioManager != null)
+                {
+                    audioManager.Play("unit_despawn");
+                }
+
+                // Destroy unit
+                Destroy(unit.gameObject);
+
+                // Small delay between each
+                yield return new WaitForSeconds(0.05f);
+            }
+        }
+
+        // Clear lists
+        foreach (var slot in playerGrid)
+        {
+            slot.units.Clear();
+        }
+
+        foreach (var slot in enemyGrid)
+        {
+            slot.units.Clear();
+        }
+
+        Debug.Log("✅ All units cleared with poof effects!");
     }
 
     public void RespawnPreviousUnits()
@@ -633,7 +774,70 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+    // ============================================================================
+    // FIXED: GetPreviousUnits - doesn't spawn, just returns what needs spawning
+    // ============================================================================
 
+    public List<RuntimeUnit> GetPreviousUnits()
+    {
+        List<RuntimeUnit> unitsToAnimate = new List<RuntimeUnit>();
+
+        // ✅ Don't spawn here! Just spawn and collect references
+        // Make snapshot to avoid modification during enumeration
+        var playerStateSnapshot = playerGridState.ToList();
+        var enemyStateSnapshot = enemyGridState.ToList();
+
+        // Spawn player units
+        foreach (var kvp in playerStateSnapshot)
+        {
+            GridSlotData slotData = kvp.Value;
+            if (slotData.isFilled && slotData.unitData != null)
+            {
+                for (int i = 0; i < slotData.unitCount; i++)
+                {
+                    // Spawn and get units
+                    int slotIndex = kvp.Key;
+                    GridSlot slot = playerGrid[slotIndex];
+                    int beforeCount = slot.units.Count;
+
+                    if (SpawnUnit(slotData.unitData, true, slotIndex))
+                    {
+                        // Add newly spawned units
+                        for (int j = beforeCount; j < slot.units.Count; j++)
+                        {
+                            unitsToAnimate.Add(slot.units[j]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Spawn enemy units
+        foreach (var kvp in enemyStateSnapshot)
+        {
+            GridSlotData slotData = kvp.Value;
+            if (slotData.isFilled && slotData.unitData != null)
+            {
+                for (int i = 0; i < slotData.unitCount; i++)
+                {
+                    int slotIndex = kvp.Key;
+                    GridSlot slot = enemyGrid[slotIndex];
+                    int beforeCount = slot.units.Count;
+
+                    if (SpawnUnit(slotData.unitData, false, slotIndex))
+                    {
+                        for (int j = beforeCount; j < slot.units.Count; j++)
+                        {
+                            unitsToAnimate.Add(slot.units[j]);
+                        }
+                    }
+                }
+            }
+        }
+
+        Debug.Log($"📋 GetPreviousUnits: {unitsToAnimate.Count} units spawned for animation");
+        return unitsToAnimate;
+    }
     public void ResetGridState()
     {
         ClearSceneObjects();

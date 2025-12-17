@@ -1,8 +1,9 @@
 ﻿// ============================================================================
-// GUIDED PROJECTILE - HOMING MISSILE
+// GUIDED PROJECTILE - HOMING MISSILE (FIXED!)
 // ✅ Follows moving targets
-// ✅ Smooth tracking with LookAt
-// ✅ Auto-destroy on hit or timeout
+// ✅ Destroys if target dies
+// ✅ Max lifetime and range check
+// ✅ No retargeting - just destroy
 // Used by: Toy Soldier, Bone Mage
 // ============================================================================
 
@@ -15,31 +16,40 @@ public class GuidedProjectile : ProjectileBase
 {
     [Header("Guided Settings")]
     [SerializeField] float projectileSpeed = 15f;
-    [SerializeField] float rotationSpeed = 15f; // ✅ Increased from 10 for straighter path
+    [SerializeField] float rotationSpeed = 15f;
     [SerializeField] float maxLifetime = 5f; // Auto-destroy after 5s
-    [SerializeField] bool useDirectShot = false; // ✅ NEW: Fly straight to target position (no tracking)
+    [SerializeField] bool useDirectShot = false; // Fly straight (no tracking)
 
     private RuntimeUnit targetUnit;
     private bool hasHit = false;
     private float lifetimeTimer = 0f;
+    private Vector3 startPosition; // ✅ Track starting position for range check
+    private float attackRange; // ✅ Character's attack range
 
     // ===== SET TARGET =====
 
-    public void SetTarget(RuntimeUnit target, float damage)
+    public void SetTarget(RuntimeUnit target, float damage, float characterAttackRange)
     {
         targetUnit = target;
         attackDamage = damage;
+        attackRange = characterAttackRange; // ✅ Store character's attack range
         hasHit = false;
         lifetimeTimer = 0f;
+        startPosition = transform.position; // ✅ Store start position
 
-        // ✅ FIX: Face target immediately at spawn
-        if (targetUnit != null)
+        // ✅ CRITICAL: Check if target is already dead!
+        if (targetUnit == null || !targetUnit.IsAlive())
         {
-            Vector3 direction = (targetUnit.transform.position - transform.position).normalized;
-            if (direction != Vector3.zero)
-            {
-                transform.rotation = Quaternion.LookRotation(direction);
-            }
+            Debug.LogWarning("⚠️ GuidedProjectile: Target is already dead on spawn!");
+            DestroyProjectile();
+            return;
+        }
+
+        // Face target immediately at spawn
+        Vector3 direction = (targetUnit.transform.position - transform.position).normalized;
+        if (direction != Vector3.zero)
+        {
+            transform.rotation = Quaternion.LookRotation(direction);
         }
 
         // Enable trail
@@ -75,22 +85,31 @@ public class GuidedProjectile : ProjectileBase
         {
             lifetimeTimer += Time.deltaTime;
 
-            // Check if target still exists and is alive
+            // ✅ CRITICAL: Check if target died during flight!
             if (targetUnit == null || !targetUnit.IsAlive())
             {
-                // Target died, destroy projectile
+                Debug.Log($"💨 GuidedProjectile: Target died mid-flight, destroying projectile");
+                DestroyProjectile();
+                yield break;
+            }
+
+            // ✅ NEW: Check if exceeded character's attack range
+            float distanceTraveled = Vector3.Distance(startPosition, transform.position);
+            if (distanceTraveled > attackRange)
+            {
+                Debug.Log($"💨 GuidedProjectile: Character's attack range ({attackRange}m) exceeded, destroying");
                 DestroyProjectile();
                 yield break;
             }
 
             if (useDirectShot)
             {
-                // ✅ DIRECT SHOT: Fly straight (no tracking)
+                // DIRECT SHOT: Fly straight (no tracking)
                 transform.position += fixedDirection * projectileSpeed * Time.deltaTime;
             }
             else
             {
-                // ✅ HOMING: Track target continuously
+                // HOMING: Track target continuously
                 Vector3 targetPosition = targetUnit.transform.position + Vector3.up * 1.2f;
                 Vector3 direction = (targetPosition - transform.position).normalized;
 
@@ -113,6 +132,7 @@ public class GuidedProjectile : ProjectileBase
         }
 
         // Timeout reached
+        Debug.Log($"💨 GuidedProjectile: Lifetime ({maxLifetime}s) expired, destroying");
         DestroyProjectile();
     }
 
@@ -123,19 +143,24 @@ public class GuidedProjectile : ProjectileBase
         if (hasHit) return;
         hasHit = true;
 
-        // Deal damage
-        if (targetUnit != null && targetUnit.IsAlive())
+        // ✅ CRITICAL: Final check before damage
+        if (targetUnit == null || !targetUnit.IsAlive())
         {
-            targetUnit.TakeDamage(attackDamage);
-
-            // Play hit VFX
-            PlayHitVFX();
-
-            // Play hit SFX
-            PlayHitSFX();
-
-            Taptic.Light();
+            Debug.LogWarning("⚠️ GuidedProjectile: Target died just before hit!");
+            DestroyProjectile();
+            return;
         }
+
+        // Deal damage
+        targetUnit.TakeDamage(attackDamage);
+
+        // Play hit VFX
+        PlayHitVFX();
+
+        // Play hit SFX
+        PlayHitSFX();
+
+        Taptic.Light();
 
         DestroyProjectile();
     }
@@ -171,9 +196,15 @@ public class GuidedProjectile : ProjectileBase
         // Check if hit the target unit
         if (other.TryGetComponent<RuntimeUnit>(out RuntimeUnit unit))
         {
-            if (unit == targetUnit)
+            // ✅ CRITICAL: Only hit our intended target!
+            if (unit == targetUnit && unit.IsAlive())
             {
                 OnReachTarget();
+            }
+            else
+            {
+                // Hit wrong unit or dead unit, ignore
+                Debug.LogWarning($"⚠️ GuidedProjectile: Hit wrong unit or dead unit, ignoring");
             }
         }
     }
@@ -183,6 +214,7 @@ public class GuidedProjectile : ProjectileBase
     private void DestroyProjectile()
     {
         StopAllCoroutines();
+        CancelInvoke();
 
         if (poolingSystem != null)
         {
@@ -203,5 +235,6 @@ public class GuidedProjectile : ProjectileBase
         lifetimeTimer = 0f;
         targetUnit = null;
         StopAllCoroutines();
+        CancelInvoke();
     }
 }
