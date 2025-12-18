@@ -1,10 +1,11 @@
 // ============================================================================
-// GAME MANAGER - FIXED WITH HEALTH SYSTEM CHECK
-// ✅ Checks if game is over before respawning
-// ✅ 2 second delay before respawn (better visual)
-// ✅ Stops game flow when health depleted
+// GAME MANAGER - FIXED VERSION
+// ✅ Battle Result UI now shows properly
+// ✅ No double panel opening
+// ✅ Delay only on battle→draft transition
 // ============================================================================
 
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
@@ -18,7 +19,7 @@ public class GameManager : MonoBehaviour
     [Inject] TutorialController tutorialController;
     [Inject] AITurnManager aiTurnManager;
     [Inject] GridManager gridManager;
-    [Inject] HealthSystem healthSystem; // ✅ INJECT HEALTH SYSTEM
+    [Inject] HealthSystem healthSystem;
 
     [Header("Game State")]
     [SerializeField] internal GameState currentState;
@@ -31,20 +32,35 @@ public class GameManager : MonoBehaviour
     [SerializeField] private bool isAITurnComplete = false;
 
     [Header("Battle Delay")]
-    [SerializeField] private float postBattleDelay = 2f; // ✅ Delay before respawn
-
+    [SerializeField] private float postBattleDelay = 2f;
 
     [Header("Transition Animations")]
     [SerializeField] BattleToDraftTransition battleToDraftTransition;
     [SerializeField] internal DraftCardSpawnAnimation draftCardSpawnAnimation;
+
+    // ✅ NEW: Flag to track if coming from battle
+    private bool isComingFromBattle = false;
+
+    // ===== MOBILE DEBUG START =====
     private void Start()
     {
+        StartCoroutine(MobileSafeStart());
+    }
+
+    private IEnumerator MobileSafeStart()
+    {
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForSeconds(0.5f);
+
         InitializeGame();
+        yield return new WaitForSeconds(1f);
+
         StartButton();
     }
 
     private void OnEnable()
     {
+        Debug.Log("📌 GameManager OnEnable called");
         EventManager.onCardSelected += OnPlayerCardSelected;
         EventManager.onDraftComplete += OnBothTurnsComplete;
         EventManager.onBattleComplete += OnBattleComplete;
@@ -52,106 +68,211 @@ public class GameManager : MonoBehaviour
 
     private void OnDisable()
     {
+        Debug.Log("📌 GameManager OnDisable called");
         EventManager.onCardSelected -= OnPlayerCardSelected;
         EventManager.onDraftComplete -= OnBothTurnsComplete;
         EventManager.onBattleComplete -= OnBattleComplete;
     }
 
+    // ===== INITIALIZE GAME =====
     private void InitializeGame()
     {
-        if (isTutorial && PlayerPrefs.GetInt("TutorialComplete", 0) == 0)
+        Debug.Log($"🔧 InitializeGame: isTutorial={isTutorial}, TutorialComplete={PlayerPrefs.GetInt("TutorialComplete", 0)}");
+
+        try
         {
-            isTutorial = true;
-            tutorialController.StartTutorial();
+            if (isTutorial && PlayerPrefs.GetInt("TutorialComplete", 0) == 0)
+            {
+                Debug.Log("📚 Tutorial mode detected, starting tutorial...");
+                isTutorial = true;
+
+                if (tutorialController != null)
+                {
+                    tutorialController.StartTutorial();
+                    Debug.Log("✅ Tutorial started");
+                }
+                else
+                {
+                    Debug.LogError("❌ TutorialController is NULL!");
+                }
+            }
+            else
+            {
+                Debug.Log("🎮 Normal mode, changing to MainMenu state...");
+                isTutorial = false;
+                ChangeState(GameState.MainMenu);
+                Debug.Log($"✅ Changed to MainMenu (currentState={currentState})");
+            }
         }
-        else
+        catch (System.Exception e)
         {
-            isTutorial = false;
-            ChangeState(GameState.MainMenu);
+            Debug.LogError($"❌ InitializeGame Exception: {e.Message}");
+            throw;
         }
     }
 
+    // ===== START BUTTON =====
     public void StartButton()
     {
-        currentTurn = 1;
-
-        // ✅ Reset health when starting new game
-        if (healthSystem != null)
+        try
         {
-            healthSystem.ResetHealth();
-        }
+            currentTurn = 1;
+            if (healthSystem != null)
+            {
+                healthSystem.ResetHealth();
+            }
+            else
+            {
+                Debug.LogError("❌ HealthSystem is NULL!");
+            }
 
-        ChangeState(GameState.Draft);
+            // ✅ Reset battle flag when starting new game
+            isComingFromBattle = false;
+
+            ChangeState(GameState.Draft);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ StartButton Exception: {e.Message}");
+            Debug.LogError($"Stack Trace: {e.StackTrace}");
+            throw;
+        }
     }
 
+    // ===== CHANGE STATE =====
     public void ChangeState(GameState newState)
     {
         currentState = newState;
-        EventManager.OnGameStateChange(newState);
 
-        switch (newState)
+        try
         {
-            case GameState.MainMenu:
-                uiManager.ShowMainMenu();
-                break;
+            EventManager.OnGameStateChange(newState);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ EventManager.OnGameStateChange FAILED: {e.Message}");
+        }
 
-            case GameState.Draft:
-                StartDraftPhase();
-                break;
+        try
+        {
+            switch (newState)
+            {
+                case GameState.MainMenu:
+                    Debug.Log("📋 Case: MainMenu - Calling uiManager.ShowMainMenu()");
+                    if (uiManager != null)
+                    {
+                        uiManager.ShowMainMenu();
+                    }
+                    break;
 
-            case GameState.Battle:
-                StartBattlePhase();
-                break;
+                case GameState.Draft:
+                    StartDraftPhase();
+                    break;
 
-            case GameState.Reward:
-                uiManager.ShowRewardPanel();
-                break;
+                case GameState.Battle:
+                    StartBattlePhase();
+                    break;
 
-            case GameState.Chest:
-                uiManager.ShowChestPanel();
-                break;
+                case GameState.Reward:
+                    if (uiManager != null)
+                    {
+                        uiManager.ShowRewardPanel();
+                    }
+                    break;
 
-            case GameState.Progress:
-                uiManager.ShowProgressPanel();
-                break;
-            case GameState.Lose:
-                uiManager.ShowLosePanel();
-                break;
+                case GameState.Chest:
+                    if (uiManager != null)
+                    {
+                        uiManager.ShowChestPanel();
+                    }
+                    break;
+
+                case GameState.Progress:
+                    if (uiManager != null)
+                    {
+                        uiManager.ShowProgressPanel();
+                    }
+                    break;
+
+                case GameState.Lose:
+                    if (uiManager != null)
+                    {
+                        uiManager.ShowLosePanel();
+                    }
+                    break;
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ Switch case FAILED: {e.Message}");
+            Debug.LogError($"Stack Trace: {e.StackTrace}");
         }
     }
 
     // ===== DRAFT PHASE =====
-
     private void StartDraftPhase()
     {
         isPlayerTurnComplete = false;
         isAITurnComplete = false;
 
-        Debug.Log($"🎴 Starting Draft Phase - Turn {currentTurn}");
 
-        uiManager.ShowDraftPanel();
+        try
+        {
+            if (uiManager != null)
+            {
+                // Pass flag to UIManager to decide delay
+                //uiManager.ShowDraftPanel(isComingFromBattle);
 
-        // ✅ ALL TURNS: Normal draft (no skill turns)
-        OpenPlayerDraft();
+                // ✅ Reset flag after use
+                isComingFromBattle = false;
+            }
+            else
+            {
+                Debug.LogError("❌ UIManager is NULL!");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ ShowDraftPanel FAILED: {e.Message}");
+        }
+
+        try
+        {
+            OpenPlayerDraft();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ OpenPlayerDraft FAILED: {e.Message}");
+        }
+
     }
 
     private void OpenPlayerDraft()
     {
-        Debug.Log("🎴 OpenPlayerDraft() - Opening cards...");
-        draftCardManager.Open(false);
+        try
+        {
+            if (draftCardManager != null)
+            {
+                 draftCardManager.Open(false);
+            }
+            else
+            {
+                Debug.LogError("❌ DraftCardManager is NULL!");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"❌ OpenPlayerDraft Exception: {e.Message}");
+            Debug.LogError($"Stack Trace: {e.StackTrace}");
+        }
     }
-
-    // ===== PLAYER CARD SELECTED =====
 
     private void OnPlayerCardSelected(ToyUnitData unitData)
     {
         Debug.Log($"✅ Player selected: {unitData.toyName}");
         isPlayerTurnComplete = true;
-
         StartAITurn();
     }
-
-    // ===== START AI TURN =====
 
     private void StartAITurn()
     {
@@ -159,12 +280,9 @@ public class GameManager : MonoBehaviour
         aiTurnManager.StartAITurn();
     }
 
-    // ===== BOTH TURNS COMPLETE =====
-
     private void OnBothTurnsComplete()
     {
         isAITurnComplete = true;
-
         if (isPlayerTurnComplete && isAITurnComplete)
         {
             Debug.Log("✅ Both player and AI turns complete!");
@@ -172,16 +290,12 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ===== ADVANCE TURN =====
-
     private void AdvanceTurn()
     {
         currentTurn++;
         EventManager.OnTurnChange(currentTurn);
-
         Debug.Log($"📊 Turn {currentTurn}/{GameConstants.TOTAL_TURNS}");
 
-        // Battle turns: 5, 10, 15, 20, 25, 30
         if (currentTurn == 5 || currentTurn == 10 || currentTurn == 15 ||
             currentTurn == 20 || currentTurn == 25 || currentTurn == 30)
         {
@@ -199,17 +313,17 @@ public class GameManager : MonoBehaviour
 
     private void StartNextDraftTurn()
     {
+        // ✅ Normal draft turn - no delay
+        isComingFromBattle = false;
         ChangeState(GameState.Draft);
     }
-
-    // ===== BATTLE PHASE =====
 
     private void StartBattlePhase()
     {
         battleManager.StartBattle();
     }
 
-    // ===== BATTLE COMPLETE (FIXED!) =====
+    // ===== BATTLE COMPLETE =====
     private void OnBattleComplete(bool playerWon)
     {
         Debug.Log($"⚔️ Battle complete! Winner: {(playerWon ? "PLAYER" : "ENEMY")}");
@@ -223,17 +337,13 @@ public class GameManager : MonoBehaviour
         {
             currencyManager.UpdateCashAndSave(GameConstants.LOSE_GOLD);
         }
-
-        // Clear battle scene (but don't respawn yet!)
-        gridManager.ClearSceneObjects();
-
-        // ✅ NEW: Wait for delay, then continue
         Invoke(nameof(ContinueAfterBattle), postBattleDelay);
     }
 
     private void ContinueAfterBattle()
     {
-        // Check game over
+        Debug.Log("🎬 ContinueAfterBattle called");
+
         if (healthSystem.IsGameOver())
         {
             if (healthSystem.GetPlayerHealth() <= 0)
@@ -243,17 +353,18 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // ✅ NEW: Get units to spawn
+        // ✅ Set flag before spawning units
+        isComingFromBattle = true;
+
+        // ✅ Get units to spawn
         List<RuntimeUnit> unitsToSpawn = gridManager.GetPreviousUnits();
 
-        // ✅ NEW: Use transition animation instead of instant respawn
+        // ✅ Start transition with units
         if (battleToDraftTransition != null)
         {
             battleToDraftTransition.StartTransition(unitsToSpawn, () =>
             {
-                // After animation completes:
                 AdvanceTurn();
-                ChangeState(GameState.Draft);
             });
         }
         else
@@ -264,8 +375,6 @@ public class GameManager : MonoBehaviour
             ChangeState(GameState.Draft);
         }
     }
-
-    // ===== REWARD =====
 
     public void OnRewardContinue()
     {
@@ -284,22 +393,21 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.Reward);
     }
 
-    // ===== NEW GAME =====
-
     public void StartNewGame()
     {
         currentTurn = 1;
         playerWins = 0;
-
-        // Reset grid completely
         gridManager.ResetGridState();
 
-        // ✅ Reset health
         if (healthSystem != null)
         {
             healthSystem.ResetHealth();
         }
 
+        isComingFromBattle = false;
         ChangeState(GameState.Draft);
     }
+
+    // ===== PUBLIC GETTERS =====
+    public GameState CurrentGameState => currentState;
 }

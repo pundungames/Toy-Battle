@@ -1,8 +1,8 @@
 // ============================================================================
-// BATTLE MANAGER - WITH FORMATION SYSTEM
-// ✅ StartBattle() calls ArrangeUnitsInFormation()
-// ✅ 1 second wait for formation animation
-// ✅ Then units start autonomous combat
+// BATTLE MANAGER - WITH VICTORY CELEBRATION
+// ✅ Winner celebrates before units are cleared
+// ✅ Battle result UI shown
+// ✅ Smooth transition to draft
 // ============================================================================
 
 using System.Collections;
@@ -21,7 +21,11 @@ public class BattleManager : MonoBehaviour
     [SerializeField] float poisonTickInterval = 1f;
 
     [Header("Formation Settings")]
-    [SerializeField] float formationWaitTime = 1.0f; // Wait for formation animation
+    [SerializeField] float formationWaitTime = 1.0f;
+
+    [Header("Victory Settings")]
+    [SerializeField] float victoryCelebrationDuration = .7f; // ✅ Winners celebrate for 2s
+    [SerializeField] float battleResultUIDuration = .7f; // ✅ Show result UI for 2s
 
     private List<RuntimeUnit> playerUnits = new List<RuntimeUnit>();
     private List<RuntimeUnit> enemyUnits = new List<RuntimeUnit>();
@@ -36,37 +40,27 @@ public class BattleManager : MonoBehaviour
     public void StartBattle()
     {
         uiManager.ShowBattlePanel();
-
-        // Start formation sequence
         StartCoroutine(BattleFormationSequence());
     }
 
-    /// <summary>
-    /// ✅ NEW: Formation sequence before battle starts
-    /// </summary>
     private IEnumerator BattleFormationSequence()
     {
         Debug.Log("🎯 Starting formation sequence...");
 
-        // 1. Collect units from grid
         playerUnits = gridManager.GetPlayerUnits();
         enemyUnits = gridManager.GetEnemyUnits();
 
         Debug.Log($"📊 Battle units: {playerUnits.Count} player vs {enemyUnits.Count} enemy");
 
-        // 2. Apply pre-battle effects (teleport, etc)
         ApplyPreBattleEffects();
 
-        // 3. Arrange formations (animated)
         gridManager.ArrangeUnitsInFormation(isPlayer: true);
         gridManager.ArrangeUnitsInFormation(isPlayer: false);
 
         Debug.Log($"⏳ Waiting {formationWaitTime}s for formation animation...");
 
-        // 4. Wait for formation animation to complete
         yield return new WaitForSeconds(formationWaitTime);
 
-        // 5. Tell units to start battle
         foreach (var unit in playerUnits)
         {
             unit.StartBattle();
@@ -77,7 +71,6 @@ public class BattleManager : MonoBehaviour
             unit.StartBattle();
         }
 
-        // 6. Start battle
         isBattleActive = true;
         poisonTickTimer = 0f;
 
@@ -90,7 +83,6 @@ public class BattleManager : MonoBehaviour
 
     private void ApplyPreBattleEffects()
     {
-        // Assassin teleport (if still needed)
         foreach (var unit in playerUnits)
         {
             if (unit.data.hasTeleport)
@@ -112,7 +104,6 @@ public class BattleManager : MonoBehaviour
     {
         if (enemies.Count == 0) return;
 
-        // Find back row enemy
         RuntimeUnit backRowEnemy = enemies.Find(e => e != null && e.gridSlot >= 6);
 
         if (backRowEnemy != null)
@@ -132,7 +123,7 @@ public class BattleManager : MonoBehaviour
     {
         if (!isBattleActive) return;
 
-        // 1. Poison tick
+        // Poison tick
         poisonTickTimer += Time.deltaTime;
         if (poisonTickTimer >= poisonTickInterval)
         {
@@ -140,11 +131,11 @@ public class BattleManager : MonoBehaviour
             ApplyPoisonDamage();
         }
 
-        // 2. Remove dead units
+        // Remove dead units
         playerUnits.RemoveAll(u => u == null || !u.IsAlive());
         enemyUnits.RemoveAll(u => u == null || !u.IsAlive());
 
-        // 3. Check battle end
+        // Check battle end
         if (IsBattleOver())
         {
             EndBattle();
@@ -186,21 +177,57 @@ public class BattleManager : MonoBehaviour
 
         Debug.Log($"⚔️ Battle ended! Winner: {(playerWon ? "PLAYER" : "ENEMY")}");
 
-        // Stop all units
-        foreach (var unit in playerUnits)
+        // ✅ NEW: Start victory sequence instead of immediate cleanup
+        StartCoroutine(VictorySequence(playerWon));
+    }
+
+    // ===== NEW: VICTORY SEQUENCE =====
+
+    private IEnumerator VictorySequence(bool playerWon)
+    {
+        Debug.Log("🎉 Starting victory sequence...");
+
+        // 1. Stop all units (but keep them alive for celebration)
+        List<RuntimeUnit> winners = playerWon ? playerUnits : enemyUnits;
+        List<RuntimeUnit> losers = playerWon ? enemyUnits : playerUnits;
+
+        foreach (var unit in winners)
         {
             if (unit != null) unit.StopBattle();
         }
 
-        foreach (var unit in enemyUnits)
+        foreach (var unit in losers)
         {
             if (unit != null) unit.StopBattle();
         }
 
-        // Clear scene
+        // 2. Play victory animations on winners
+        foreach (var winner in winners)
+        {
+            if (winner != null && winner.animator != null)
+            {
+                winner.animator.SetTrigger("Victory"); // If you have victory animation
+            }
+        }
+
+        // 3. Show battle result UI
+        uiManager.ShowBattleResultUI(playerWon);
+
+        // 4. Wait for celebration
+        yield return new WaitForSeconds(victoryCelebrationDuration);
+
+        // 5. Hide battle result UI
+        uiManager.HideBattleResultUI();
+
+        // 6. Wait a bit more for UI
+        yield return new WaitForSeconds(battleResultUIDuration);
+
+        // 7. NOW clear the scene
         gridManager.ClearSceneObjects();
 
-        // Notify game manager
+        // 8. Notify game manager
         EventManager.OnBattleComplete(playerWon);
+
+        Debug.Log("✅ Victory sequence complete!");
     }
 }

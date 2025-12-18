@@ -1292,7 +1292,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &4674826167734367719
 Transform:
   m_ObjectHideFlags: 0
@@ -1417,7 +1417,6 @@ MonoBehaviour:
   applyKnockback: 1
   knockbackForce: 0.5
   knockbackDuration: 0.3
-  trackingUpdateRate: 0.05
 --- !u!114 &8399887653088109882
 MonoBehaviour:
   m_ObjectHideFlags: 0

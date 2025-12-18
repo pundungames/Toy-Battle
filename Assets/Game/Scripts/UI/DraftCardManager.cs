@@ -61,6 +61,18 @@ public class DraftCardManager : MonoBehaviour
 
     public void Open(bool shopMode)
     {
+        if (unlockSystem == null)
+        {
+            Debug.LogError("❌ UnlockSystem is NULL!");
+            return;
+        }
+
+        if (allToyUnits == null || allToyUnits.Count == 0)
+        {
+            Debug.LogError("❌ allToyUnits is empty!");
+            return;
+        }
+
         isShopMode = shopMode;
         currentPips = GameConstants.PIP_PER_TURN;
 

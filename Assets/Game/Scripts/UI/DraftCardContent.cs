@@ -32,7 +32,7 @@ public class DraftCardContent : MonoBehaviour
     [SerializeField] internal Button button;
 
     private Vector3 initialLocalPosition;
-    private readonly float selectedYOffset = 100f;
+    [SerializeField] float selectedYOffset = -100f;
     private DraftCardManager manager;
     private bool isUnit = true;
     bool selected;

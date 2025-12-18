@@ -156,7 +156,7 @@ public class GridManager : MonoBehaviour
         Transform slotTransform = isPlayer ? playerGridSlots[slotIndex] : enemyGridSlots[slotIndex];
 
         GameObject unitPrefab = LoadUnitPrefab(unitData);
-
+        unitPrefab.SetActive(false);
         if (unitPrefab == null)
         {
             Debug.LogError($"❌ Unit prefab not found for: {unitData.toyName}");
@@ -234,6 +234,7 @@ public class GridManager : MonoBehaviour
         Debug.Log($"🎯 Spawning {unitsToSpawn} units for {unitData.toyName}");
 
         GameObject unitPrefab = LoadUnitPrefab(unitData);
+        unitPrefab.SetActive(false);
 
         if (unitPrefab == null)
         {

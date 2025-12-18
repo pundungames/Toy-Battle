@@ -1,8 +1,7 @@
 ﻿// ============================================================================
-// BATTLE TO DRAFT TRANSITION MANAGER
-// ✅ Sequential unit spawning with VFX (puff puff puff!)
-// ✅ Delayed draft panel opening
-// ✅ Smooth, cinematic transitions
+// BATTLE TO DRAFT TRANSITION - OPTIMIZED
+// ✅ Shorter waits, faster transition
+// ✅ No camera changes (you'll handle that)
 // ============================================================================
 
 using System.Collections;
@@ -14,17 +13,17 @@ using Zenject;
 public class BattleToDraftTransition : MonoBehaviour
 {
     [Header("Spawn Animation Settings")]
-    [SerializeField] float delayBetweenSpawns = 0.3f; // Time between each unit spawn
-    [SerializeField] float spawnAnimationDuration = 0.5f; // Scale-in duration
+    [SerializeField] float delayBetweenSpawns = 0.15f; // ✅ Faster (was 0.3f)
+    [SerializeField] float spawnAnimationDuration = 0.4f; // ✅ Faster (was 0.5f)
+    [SerializeField] float waitBeforeSpawn = 0.2f; // ✅ Shorter (was 0.5f)
     [SerializeField] AnimationCurve spawnScaleCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-    [SerializeField] float spawnStartScale = 0.3f; // Start at 30% size
+    [SerializeField] float spawnStartScale = 0.3f;
 
     [Header("Draft Panel Settings")]
-    [SerializeField] float draftPanelDelay = 1.5f; // Wait after all units spawn
-    [SerializeField] float draftPanelFadeDuration = 0.5f;
+    [SerializeField] float draftPanelDelay = 0.3f; // ✅ Shorter (was 0.5f)
 
     [Header("VFX/SFX")]
-    [SerializeField] string spawnVFXName = "DeathVfx"; // Reuse death VFX (puff effect!)
+    [SerializeField] string spawnVFXName = "DeathVfx";
     [SerializeField] string spawnSFXName = "unit_spawn";
     [SerializeField] float vfxOffsetY = 0.5f;
 
@@ -54,20 +53,13 @@ public class BattleToDraftTransition : MonoBehaviour
     {
         isTransitioning = true;
 
-        // Step 1: Spawn units sequentially with animations
-        yield return StartCoroutine(SpawnUnitsSequentially(unitsToSpawn));
-
-        // Step 2: Wait before opening draft panel
-        Debug.Log($"⏳ Waiting {draftPanelDelay}s before opening draft panel...");
         yield return new WaitForSeconds(draftPanelDelay);
-
-        // Step 3: Open draft panel with animation
-        yield return StartCoroutine(OpenDraftPanel());
-
-        // Step 4: Complete
-        Debug.Log("✅ Battle to draft transition complete!");
-        isTransitioning = false;
         onComplete?.Invoke();
+
+        yield return new WaitForSeconds(waitBeforeSpawn);
+
+        yield return StartCoroutine(SpawnUnitsSequentially(unitsToSpawn));
+        isTransitioning = false;
     }
 
     // ===== SPAWN UNITS SEQUENTIALLY =====
@@ -104,10 +96,9 @@ public class BattleToDraftTransition : MonoBehaviour
 
     private void SpawnUnitWithAnimation(RuntimeUnit unit)
     {
-        // Unit is already spawned by GridManager, just animate it
         Vector3 spawnPosition = unit.transform.position;
 
-        // Play spawn VFX (puff effect!)
+        // Play spawn VFX
         PlaySpawnVFX(spawnPosition);
 
         // Play spawn SFX
@@ -122,54 +113,15 @@ public class BattleToDraftTransition : MonoBehaviour
             .SetEase(spawnScaleCurve)
             .OnComplete(() =>
             {
-                Debug.Log($"✅ {unit.data.toyName} spawned with animation");
+                Debug.Log($"✅ {unit.data.toyName} spawned");
             });
-
-        // Optional: Bounce effect
+        // Bounce effect
         Vector3 startPos = spawnPosition;
         startPos.y -= 0.5f;
         unit.transform.position = startPos;
 
         unit.transform.DOMoveY(spawnPosition.y, spawnAnimationDuration)
             .SetEase(Ease.OutBounce);
-    }
-
-    // ===== OPEN DRAFT PANEL =====
-
-    private IEnumerator OpenDraftPanel()
-    {
-        Debug.Log("📋 Opening draft panel with animation...");
-
-        // Find draft panel
-        GameObject draftPanel = GameObject.Find("DraftPanel");
-        if (draftPanel == null)
-        {
-            Debug.LogWarning("⚠️ Draft panel not found!");
-            yield break;
-        }
-
-        CanvasGroup canvasGroup = draftPanel.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
-        {
-            canvasGroup = draftPanel.AddComponent<CanvasGroup>();
-        }
-
-        // Start hidden
-        canvasGroup.alpha = 0f;
-        draftPanel.SetActive(true);
-
-        // Fade in
-        canvasGroup.DOFade(1f, draftPanelFadeDuration)
-            .SetEase(Ease.OutCubic);
-
-        // Scale animation
-        draftPanel.transform.localScale = Vector3.one * 0.8f;
-        draftPanel.transform.DOScale(Vector3.one, draftPanelFadeDuration)
-            .SetEase(Ease.OutBack);
-
-        yield return new WaitForSeconds(draftPanelFadeDuration);
-
-        Debug.Log("✅ Draft panel opened!");
     }
 
     // ===== VFX/SFX =====
@@ -184,13 +136,11 @@ public class BattleToDraftTransition : MonoBehaviour
         GameObject vfx = poolingSystem.InstantiateAPS(spawnVFXName, vfxPos);
         if (vfx != null)
         {
-            // Inject dependencies if needed
             if (container != null)
             {
                 container.InjectGameObject(vfx);
             }
 
-            // Auto-destroy after time
             poolingSystem.DestroyAPS(vfx, 1f);
         }
     }
@@ -205,14 +155,4 @@ public class BattleToDraftTransition : MonoBehaviour
     // ===== PUBLIC HELPERS =====
 
     public bool IsTransitioning => isTransitioning;
-
-    public void SetSpawnDelay(float delay)
-    {
-        delayBetweenSpawns = Mathf.Max(0.1f, delay);
-    }
-
-    public void SetDraftPanelDelay(float delay)
-    {
-        draftPanelDelay = Mathf.Max(0f, delay);
-    }
 }

@@ -39,6 +39,18 @@ public class UIManager : MonoBehaviour
     [SerializeField] Transform waveIndicator;
     [SerializeField] TextMeshProUGUI waveText;
 
+
+    [Header("Battle Result")]
+    [SerializeField] BattleResultUI battleResultUI;
+
+    internal bool battleDraft;
+    // UIManager.Awake() içinde:
+    void Awake()
+    {
+        DOTween.Init(false, true, LogBehaviour.ErrorsOnly);
+        DOTween.defaultAutoPlay = AutoPlay.All;
+        DOTween.defaultAutoKill = true;
+    }
     private void Start()
     {
         HideAllPanels();
@@ -101,24 +113,27 @@ public class UIManager : MonoBehaviour
     public void ShowDraftPanel()
     {
         HideAllPanels();
-        DelayShowDraftPanel();
-      //  Invoke(nameof(DelayShowDraftPanel), 1f);
+
         // ✅ Show enemy render during draft
         SetEnemyRenderPanelVisibility(true);
+
+        // ✅ Delay only if coming from battle
+        if (battleDraft)
+        {
+            battleDraft = false;
+            Invoke(nameof(DelayShowDraftPanel), 1.5f);
+        }
+        else
+        {
+            DelayShowDraftPanel(); // Show immediately
+        }
     }
+
     void DelayShowDraftPanel()
     {
         draftPanel.SetActive(true);
-
-        // ✅ DraftCardManager'ı aktif et
-        DraftCardManager draftManager = draftPanel.GetComponentInChildren<DraftCardManager>(true);
-        if (draftManager != null)
-        {
-            draftManager.gameObject.SetActive(true);
-        }
-
         AnimatePanelIn(draftPanel.transform);
-
+        Debug.Log("✅ Draft panel shown");
     }
     public void ShowBattlePanel()
     {
@@ -246,7 +261,30 @@ public class UIManager : MonoBehaviour
                     .SetDelay(2f);
             });
     }
+    // Add these methods:
 
+    public void ShowBattleResultUI(bool playerWon)
+    {
+        battleDraft = true;
+        if (battleResultUI != null)
+        {
+            battleResultUI.ShowResult(playerWon);
+            Debug.Log($"📊 Battle result UI shown: {(playerWon ? "VICTORY" : "DEFEAT")}");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ BattleResultUI not assigned in UIManager!");
+        }
+    }
+
+    public void HideBattleResultUI()
+    {
+        if (battleResultUI != null)
+        {
+            battleResultUI.HideResult();
+            Debug.Log("👋 Battle result UI hidden");
+        }
+    }
     // ===== UI UPDATE METHODS =====
 
     private void UpdateGoldUI(int goldAmount)
@@ -273,8 +311,14 @@ public class UIManager : MonoBehaviour
 
     private void AnimatePanelIn(Transform panel)
     {
+        // Mobil için önce kesin scale set et
+        panel.localScale = Vector3.one;
+
+#if UNITY_EDITOR
+        // Sadece Editor'de animasyon
         panel.localScale = Vector3.zero;
         panel.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack).SetUpdate(true);
+#endif
     }
 
     private void AnimatePanelOut(Transform panel, System.Action onComplete = null)
