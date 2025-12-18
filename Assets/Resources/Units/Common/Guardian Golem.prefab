@@ -1944,6 +1944,7 @@ MonoBehaviour:
   hitScaleFactor: 1.1
   hitDuration: 0.3
   isExecutingAttack: 0
+  enemyMaterial: {fileID: 2100000, guid: c123dea2e593a01439a9cc24ace6014d, type: 2}
   dashSpeed: 10
   dashDuration: 0.3
   knockbackForce: 1

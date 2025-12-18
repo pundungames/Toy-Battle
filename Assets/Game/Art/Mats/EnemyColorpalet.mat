@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: EnemeyColorpalet
+  m_Name: EnemyColorpalet
   m_Shader: {fileID: 4800000, guid: 41d07659f9985bc41bbea0c9e6da4b01, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0

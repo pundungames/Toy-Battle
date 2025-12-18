@@ -74,7 +74,8 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     protected Vector3 originalScale;
     private bool isHitFeedbackActive = false;
 
-    // ===== INITIALIZATION =====
+    [Header("Enemy Material Settings")]
+    [SerializeField] Material enemyMaterial;
 
     public virtual void Initialize(ToyUnitData unitData, int slot, bool isPlayer)
     {
@@ -110,16 +111,63 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         // ✅ Setup projectile spawn point if not set
         if (projectileSpawnPoint == null)
         {
-            // Create default spawn point at unit position + up
             GameObject spawnPoint = new GameObject("ProjectileSpawnPoint");
             spawnPoint.transform.SetParent(transform);
             spawnPoint.transform.localPosition = Vector3.up * 1f;
             projectileSpawnPoint = spawnPoint.transform;
         }
 
-        Debug.Log($"✅ {unitData.toyName} initialized: Range={attackRange}, Speed={moveSpeed}, Agent={agent != null}");
+        // ✅ NEW: Apply enemy material if enemy unit
+        if (!isPlayer)
+        {
+            ApplyEnemyMaterial();
+        }
+
+        Debug.Log($"✅ {unitData.toyName} initialized: Range={attackRange}, Speed={moveSpeed}, Agent={agent != null}, IsEnemy={!isPlayer}");
     }
 
+    private void ApplyEnemyMaterial()
+    {
+        // ✅ Get all MeshRenderers and SkinnedMeshRenderers
+        MeshRenderer[] meshRenderers = GetComponentsInChildren<MeshRenderer>();
+        SkinnedMeshRenderer[] skinnedMeshRenderers = GetComponentsInChildren<SkinnedMeshRenderer>();
+
+        int changedCount = 0;
+
+        // ✅ Change MeshRenderer materials
+        foreach (var meshRenderer in meshRenderers)
+        {
+            if (enemyMaterial != null)
+            {
+                // Use custom enemy material
+                Material[] newMaterials = new Material[meshRenderer.materials.Length];
+                for (int i = 0; i < newMaterials.Length; i++)
+                {
+                    newMaterials[i] = enemyMaterial;
+                }
+                meshRenderer.materials = newMaterials;
+            }
+            changedCount++;
+        }
+
+        // ✅ Change SkinnedMeshRenderer materials
+        foreach (var skinnedMeshRenderer in skinnedMeshRenderers)
+        {
+            if (enemyMaterial != null)
+            {
+                // Use custom enemy material
+                Material[] newMaterials = new Material[skinnedMeshRenderer.materials.Length];
+                for (int i = 0; i < newMaterials.Length; i++)
+                {
+                    newMaterials[i] = enemyMaterial;
+                }
+                skinnedMeshRenderer.materials = newMaterials;
+            }
+            changedCount++;
+        }
+
+        Debug.Log($"🎨 Applied enemy materials to {changedCount} renderers on {data.toyName}");
+    }
     // ===== NAVMESHAGENT SETUP =====
 
     private void SetupNavMeshAgent()
@@ -398,20 +446,72 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     }
     // ===== NAVIGATE TO TARGET =====
 
-    private void NavigateToTarget(RuntimeUnit target)
+    // RuntimeUnit.cs içindeki NavigateToTarget metodunu güncelle
+
+    protected void NavigateToTarget(RuntimeUnit target)
     {
-        if (agent == null || !agent.enabled) return;
-
-        agent.SetDestination(target.transform.position);
-
-        bool isMoving = agent.velocity.sqrMagnitude > 0.1f;
-
-        if (animator != null)
+        if (target == null || !target.IsAlive())
         {
-            animator.SetBool("Move", isMoving); // Move stays as Bool (continuous state)
+            currentTarget = null;
+            if (agent != null && agent.enabled)
+            {
+                agent.ResetPath();
+            }
+            return;
+        }
+
+        // ✅ CRITICAL: Check if agent is valid and on NavMesh
+        if (agent == null || !agent.enabled || !agent.isOnNavMesh)
+        {
+            // Try to fix position if agent exists but not on NavMesh
+            if (agent != null && agent.enabled && !agent.isOnNavMesh)
+            {
+                Vector3 pos = transform.position;
+                UnityEngine.AI.NavMeshHit hit;
+                if (UnityEngine.AI.NavMesh.SamplePosition(pos, out hit, 5f, UnityEngine.AI.NavMesh.AllAreas))
+                {
+                    transform.position = hit.position;
+                    agent.Warp(hit.position);
+                    Debug.Log($"✅ {data.toyName}: Fixed NavMesh position");
+                }
+                else
+                {
+                    Debug.LogWarning($"⚠️ {data.toyName}: Cannot find NavMesh position, disabling navigation");
+                    return;
+                }
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        float distance = Vector3.Distance(transform.position, target.transform.position);
+
+        if (distance > attackRange)
+        {
+            // ✅ Safe SetDestination call
+            if (agent.isOnNavMesh && agent.enabled)
+            {
+                agent.SetDestination(target.transform.position);
+                if (animator != null)
+                {
+                    animator.SetBool("Move", true); // Move stays as Bool (continuous state)
+                }
+            }
+        }
+        else
+        {
+            if (agent.hasPath)
+            {
+                agent.ResetPath();
+                if (animator != null)
+                {
+                    animator.SetBool("Move", false); // Move stays as Bool (continuous state)
+                }
+            }
         }
     }
-
     // ===== HEALTH INTERFACE =====
 
     public bool IsAlive() => currentHealthValue > 0;
@@ -448,7 +548,8 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
         if (!isHitFeedbackActive)
         {
-            StartCoroutine(HitFeedbackCoroutine());
+            if (gameObject.activeInHierarchy)
+                StartCoroutine(HitFeedbackCoroutine());
         }
 
         if (animator != null)
@@ -497,7 +598,6 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     private void OnDeath()
     {
         isInBattle = false;
-
         Debug.Log($"💀 {data.toyName} is dying...");
 
         // ✅ Stop all coroutines and tweens FIRST
@@ -512,30 +612,18 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             agent.enabled = false;
         }
 
-        // ✅ Check if this is a Golem with split ability
-       /* GolemSplitAbility golemSplit = GetComponent<GolemSplitAbility>();
-        if (golemSplit != null)
-        {
-            Debug.Log($"🪨 {data.toyName} has split ability, triggering...");
-            golemSplit.TriggerSplit();
-            return; // Let GolemSplitAbility handle cleanup
-        }*/
+        // ✅ CRITICAL FIX: Deactivate gameObject IMMEDIATELY
+        // Bu sayede başka karakterler bu unite saldıramaz
+        gameObject.SetActive(false);
 
-        // ✅ Trigger death event BEFORE cleanup
+        // ✅ Trigger death event
         EventManager.OnUnitDeath(this);
 
-        // ✅ Clear from grid BEFORE GameObject destruction
+        // ✅ Clear from grid
         GridManager gridManager = FindObjectOfType<GridManager>();
         if (gridManager != null)
         {
             gridManager.ClearSceneSlot(gridSlot, isPlayerUnit, this);
-            Debug.Log($"💀 {data.toyName} removed from grid slot {gridSlot}");
-        }
-
-        // ✅ Play death animation (if exists)
-        if (animator != null)
-        {
-            animator.SetTrigger("Death");
         }
 
         // Death VFX
@@ -548,25 +636,16 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
             if (deathVfx != null)
             {
                 container.InjectGameObject(deathVfx);
-                VfxDestroyer destroyer = deathVfx.GetComponent<VfxDestroyer>();
-                if (destroyer != null)
-                {
-                    destroyer.DestroyObject(1f);
-                }
-                else
-                {
-                    poolingSystem.DestroyAPS(deathVfx, 1f);
-                }
+                poolingSystem.DestroyAPS(deathVfx, 1f);
             }
         }
 
-        // ✅ CRITICAL: Destroy GameObject IMMEDIATELY!
-        // No delay - prevents lingering in hierarchy and targeting bugs
-        Destroy(gameObject);
+        // ✅ CRITICAL: Destroy after small delay for VFX
+        // GameObject zaten inactive, saldırı imkansız
+        Destroy(gameObject, 0.1f);
 
-        Debug.Log($"💀 {data.toyName} destroyed immediately from hierarchy");
-    }    // ===== BATTLE RESET =====
-
+        Debug.Log($"💀 {data.toyName} deactivated and scheduled for destruction");
+    }
     public void ResetBattleBuffs()
     {
         damageMultiplier = 1f;

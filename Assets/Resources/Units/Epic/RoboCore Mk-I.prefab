@@ -2537,6 +2537,7 @@ MonoBehaviour:
   hitScaleFactor: 1.1
   hitDuration: 0.3
   isExecutingAttack: 0
+  enemyMaterial: {fileID: 2100000, guid: c123dea2e593a01439a9cc24ace6014d, type: 2}
   transformTime: 5
   mkIIData: {fileID: 11400000, guid: 53ed0e9a5bac2c846aad4a967a4b9938, type: 2}
   mkIIScaleMultiplier: 1.5

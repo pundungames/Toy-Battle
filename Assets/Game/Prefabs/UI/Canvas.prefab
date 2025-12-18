@@ -4009,7 +4009,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4746629173566578906}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
   m_Name: 
@@ -7603,7 +7603,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 6960212739724912985}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
         m_MethodName: Retry
         m_Mode: 1
@@ -7723,8 +7723,8 @@ RectTransform:
   - {fileID: 8989400619995658945}
   - {fileID: 8989400619573376745}
   - {fileID: 5778718957638561189}
-  - {fileID: 8989400619379959265}
   - {fileID: 176470353668442281}
+  - {fileID: 8989400619379959265}
   m_Father: {fileID: 707813182123426287}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -8183,6 +8183,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: TowerCardContent
       objectReference: {fileID: 0}
+    - target: {fileID: 6937016478028697816, guid: 40eb3579beceb064fa5eec74047f8f2b,
+        type: 3}
+      propertyPath: selectedYOffset
+      value: 250
+      objectReference: {fileID: 0}
     - target: {fileID: 7353815103672735523, guid: 40eb3579beceb064fa5eec74047f8f2b,
         type: 3}
       propertyPath: m_Pivot.x
@@ -8573,6 +8578,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: TowerCardContent (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 6937016478028697816, guid: 40eb3579beceb064fa5eec74047f8f2b,
+        type: 3}
+      propertyPath: selectedYOffset
+      value: 250
+      objectReference: {fileID: 0}
     - target: {fileID: 7353815103672735523, guid: 40eb3579beceb064fa5eec74047f8f2b,
         type: 3}
       propertyPath: m_Pivot.x
@@ -8827,7 +8837,7 @@ PrefabInstance:
     - target: {fileID: 2559037201541945336, guid: 88a59c8e316774bf68b9a81e990ede96,
         type: 3}
       propertyPath: _bursts.Array.data[0].used
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2559037202506892816, guid: 88a59c8e316774bf68b9a81e990ede96,
         type: 3}
@@ -10584,6 +10594,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: TowerCardContent (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6937016478028697816, guid: 40eb3579beceb064fa5eec74047f8f2b,
+        type: 3}
+      propertyPath: selectedYOffset
+      value: 250
       objectReference: {fileID: 0}
     - target: {fileID: 7353815103672735523, guid: 40eb3579beceb064fa5eec74047f8f2b,
         type: 3}

@@ -4159,31 +4159,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 852915621323616415, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: selectedYOffset
-      value: 250
-      objectReference: {fileID: 0}
-    - target: {fileID: 981483836508370788, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 981483836508370788, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 981483836508370788, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 206.95668
-      objectReference: {fileID: 0}
-    - target: {fileID: 981483836508370788, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -371.0935
-      objectReference: {fileID: 0}
     - target: {fileID: 1910096308564465835, guid: 7524e83b4dc038346b2fe5440e798448,
         type: 3}
       propertyPath: m_SizeDelta.x
@@ -4217,36 +4192,6 @@ PrefabInstance:
     - target: {fileID: 4518575970849429455, guid: 7524e83b4dc038346b2fe5440e798448,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4629357679853794299, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: selectedYOffset
-      value: 250
-      objectReference: {fileID: 0}
-    - target: {fileID: 5077259013936591872, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5077259013936591872, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5077259013936591872, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 554.65
-      objectReference: {fileID: 0}
-    - target: {fileID: 5077259013936591872, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -371.0935
-      objectReference: {fileID: 0}
-    - target: {fileID: 5416532116463665352, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5633562215554261419, guid: 7524e83b4dc038346b2fe5440e798448,
@@ -4343,36 +4288,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8414109863701964261, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_Enabled
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8724230768894232574, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: selectedYOffset
-      value: 250
-      objectReference: {fileID: 0}
-    - target: {fileID: 9176776714951786501, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9176776714951786501, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 9176776714951786501, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 902.3434
-      objectReference: {fileID: 0}
-    - target: {fileID: 9176776714951786501, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -371.0935
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

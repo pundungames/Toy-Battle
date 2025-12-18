@@ -1939,6 +1939,7 @@ MonoBehaviour:
   hitScaleFactor: 1.1
   hitDuration: 0.3
   isExecutingAttack: 0
+  enemyMaterial: {fileID: 2100000, guid: c123dea2e593a01439a9cc24ace6014d, type: 2}
   explosionDelay: 0.25
   explosionRadius: 2
   explosionVFX: blast_racer_explosion

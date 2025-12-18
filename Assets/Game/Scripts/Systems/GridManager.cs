@@ -84,7 +84,6 @@ public class GridManager : MonoBehaviour
 
     public bool SpawnUnit(ToyUnitData unitData, bool isPlayer, int slotIndex = -1)
     {
-        // Find slot
         if (slotIndex == -1)
         {
             slotIndex = FindSlotForUnit(unitData, isPlayer);
@@ -99,10 +98,16 @@ public class GridManager : MonoBehaviour
         GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
         Transform slotTransform = isPlayer ? playerGridSlots[slotIndex] : enemyGridSlots[slotIndex];
 
+        // ✅ CRITICAL: Clean up dead units before checking
+        slot.units.RemoveAll(u => u == null || !u.IsAlive());
+
+        // ✅ DEBUG: Log slot state
+        Debug.Log($"🎯 SpawnUnit: {unitData.toyName} in slot {slotIndex}. Current units: {slot.units.Count}, IsEmpty: {slot.IsEmpty}");
+
         // Check if slot can accept
         if (!slot.CanAddUnit(unitData))
         {
-            Debug.LogWarning($"❌ Slot {slotIndex} cannot accept {unitData.toyName}");
+            Debug.LogWarning($"❌ Slot {slotIndex} cannot accept {unitData.toyName}. Current: {slot.units.Count}/{unitData.maxStackPerSlot}, UnitType: {slot.unitType?.toyName}");
             return false;
         }
 
@@ -116,39 +121,6 @@ public class GridManager : MonoBehaviour
         return SpawnSingleUnit(unitData, isPlayer, slotIndex);
     }
 
-    // ===== SPAWN SINGLE UNIT =====
-
-    private Vector3 CalculateArrangementPosition(int slotIndex, bool isPlayer, int unitIndexInSlot)
-    {
-        GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
-        Transform slotTransform = isPlayer ? playerGridSlots[slotIndex] : enemyGridSlots[slotIndex];
-
-        if (slot.unitType == null)
-        {
-            // First unit in slot, spawn at center
-            return slotTransform.position;
-        }
-
-        // Calculate where this unit will be after arrangement
-        int totalUnits = slot.units.Count + 1; // +1 for the unit being spawned
-        int gridSize = Mathf.CeilToInt(Mathf.Sqrt(totalUnits));
-        float spacing = slot.unitType.unitSpacing;
-        float centerOffset = -((gridSize - 1) * spacing) / 2f;
-
-        // Calculate position for this unit
-        int row = unitIndexInSlot / gridSize;
-        int col = unitIndexInSlot % gridSize;
-
-        float xPos = centerOffset + (col * spacing);
-        float zPos = centerOffset + (row * spacing);
-
-        Vector3 localPos = new Vector3(xPos, 0, zPos);
-        return slotTransform.TransformPoint(localPos);
-    }
-
-    // ============================================================================
-    // UPDATE SpawnSingleUnit() - spawn at arrangement position
-    // ============================================================================
 
     private bool SpawnSingleUnit(ToyUnitData unitData, bool isPlayer, int slotIndex)
     {
@@ -156,20 +128,68 @@ public class GridManager : MonoBehaviour
         Transform slotTransform = isPlayer ? playerGridSlots[slotIndex] : enemyGridSlots[slotIndex];
 
         GameObject unitPrefab = LoadUnitPrefab(unitData);
-        unitPrefab.SetActive(false);
         if (unitPrefab == null)
         {
             Debug.LogError($"❌ Unit prefab not found for: {unitData.toyName}");
             return false;
         }
 
-        ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
-        // ✅ Calculate spawn position (where it will be after arrangement)
-        int unitIndex = slot.units.Count; // Current count = index for new unit
-        Vector3 spawnPos = CalculateArrangementPosition(slotIndex, isPlayer, unitIndex);
+        // ✅ Current unit count (before adding new one)
+        int currentUnitCount = slot.units.Count;
+        int futureUnitCount = currentUnitCount + 1; // After adding new one
 
-        // Instantiate at calculated position
+        // ✅ STEP 1: Re-arrange existing units if any exist
+        if (currentUnitCount > 0)
+        {
+            Debug.Log($"📐 Re-arranging {currentUnitCount} existing units for future total: {futureUnitCount}");
+
+            // Calculate new grid size based on future count
+            int futureGridSize = Mathf.CeilToInt(Mathf.Sqrt(futureUnitCount));
+            float spacing = slot.unitType.unitSpacing;
+            float centerOffset = -((futureGridSize - 1) * spacing) / 2f;
+
+            // Move existing units to their new positions
+            for (int i = 0; i < slot.units.Count; i++)
+            {
+                RuntimeUnit existingUnit = slot.units[i];
+                if (existingUnit == null || !existingUnit.IsAlive()) continue;
+
+                int row = i / futureGridSize;
+                int col = i % futureGridSize;
+
+                float xPos = centerOffset + (col * spacing);
+                float zPos = centerOffset + (row * spacing);
+
+                Vector3 localPos = new Vector3(xPos, 0, zPos);
+                Vector3 targetWorldPos = slotTransform.TransformPoint(localPos);
+
+                // Smooth movement
+                existingUnit.transform.DOMove(targetWorldPos, 0.3f).SetEase(Ease.OutQuad);
+
+                Debug.Log($"   → Moving existing unit #{i} to [{row},{col}] at {targetWorldPos}");
+            }
+        }
+
+        // ✅ STEP 2: Calculate spawn position for NEW unit
+        int newUnitIndex = currentUnitCount; // This is the index where new unit will be
+        int futureGridSize2 = Mathf.CeilToInt(Mathf.Sqrt(futureUnitCount));
+        float spacing2 = (slot.unitType != null) ? slot.unitType.unitSpacing : unitData.unitSpacing;
+        float centerOffset2 = -((futureGridSize2 - 1) * spacing2) / 2f;
+
+        int newRow = newUnitIndex / futureGridSize2;
+        int newCol = newUnitIndex % futureGridSize2;
+
+        float newXPos = centerOffset2 + (newCol * spacing2);
+        float newZPos = centerOffset2 + (newRow * spacing2);
+
+        Vector3 newLocalPos = new Vector3(newXPos, 0, newZPos);
+        Vector3 spawnPos = slotTransform.TransformPoint(newLocalPos);
+
+        Debug.Log($"✅ New unit will spawn at index {newUnitIndex} → [{newRow},{newCol}] at {spawnPos}");
+
+        // ✅ STEP 3: Instantiate new unit at correct position
         GameObject unitObj = Instantiate(unitPrefab, spawnPos, Quaternion.identity, slotTransform);
+        unitObj.SetActive(false);
         RuntimeUnit runtimeUnit = unitObj.GetComponent<RuntimeUnit>();
 
         if (runtimeUnit == null)
@@ -191,8 +211,14 @@ public class GridManager : MonoBehaviour
             unitObj.transform.rotation = Quaternion.Euler(0, 0, 0);
         }
 
+        // ✅ STEP 4: Add to slot AFTER positioning
         slot.units.Add(runtimeUnit);
-        slot.unitType = unitData;
+
+        // Set unit type if first unit
+        if (slot.unitType == null)
+        {
+            slot.unitType = unitData;
+        }
 
         container.InjectGameObject(unitObj);
 
@@ -203,26 +229,18 @@ public class GridManager : MonoBehaviour
             if (animator != null)
             {
                 unitObj.SetActive(false); // Hide first
-                animator.SpawnUnitInSlot(runtimeUnit, () =>
-                {
-                    // No need to arrange - already at correct position!
-                    ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
-                });
+                animator.SpawnUnitInSlot(runtimeUnit, null);
             }
-        }
-        else
-        {
-            // Battle transition - units already at correct positions
-            ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
         }
 
         UpdatePermanentState(slotIndex, isPlayer);
         EventManager.OnUnitSpawn(runtimeUnit);
 
-        Debug.Log($"✅ Spawned single unit: {unitData.toyName} at slot {slotIndex} position {spawnPos}");
+        Debug.Log($"✅ Spawned: {unitData.toyName} at slot {slotIndex}, grid position [{newRow},{newCol}]");
 
         return true;
     }
+
     private bool SpawnMultipleUnits(ToyUnitData unitData, bool isPlayer, int slotIndex)
     {
         GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
@@ -234,24 +252,69 @@ public class GridManager : MonoBehaviour
         Debug.Log($"🎯 Spawning {unitsToSpawn} units for {unitData.toyName}");
 
         GameObject unitPrefab = LoadUnitPrefab(unitData);
-        unitPrefab.SetActive(false);
-
         if (unitPrefab == null)
         {
             Debug.LogError($"❌ Unit prefab not found for: {unitData.toyName}");
             return false;
         }
-        ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
 
-        // Spawn each unit at its calculated arrangement position
+        // ✅ Current and future counts
+        int currentUnitCount = slot.units.Count;
+        int futureUnitCount = currentUnitCount + unitsToSpawn;
+
+        // ✅ STEP 1: Re-arrange existing units if any exist
+        if (currentUnitCount > 0)
+        {
+            Debug.Log($"📐 Re-arranging {currentUnitCount} existing units for future total: {futureUnitCount}");
+
+            int futureGridSize = Mathf.CeilToInt(Mathf.Sqrt(futureUnitCount));
+            float spacing = slot.unitType.unitSpacing;
+            float centerOffset = -((futureGridSize - 1) * spacing) / 2f;
+
+            // Move existing units
+            for (int i = 0; i < slot.units.Count; i++)
+            {
+                RuntimeUnit existingUnit = slot.units[i];
+                if (existingUnit == null || !existingUnit.IsAlive()) continue;
+
+                int row = i / futureGridSize;
+                int col = i % futureGridSize;
+
+                float xPos = centerOffset + (col * spacing);
+                float zPos = centerOffset + (row * spacing);
+
+                Vector3 localPos = new Vector3(xPos, 0, zPos);
+                Vector3 targetWorldPos = slotTransform.TransformPoint(localPos);
+
+                existingUnit.transform.DOMove(targetWorldPos, 0.3f).SetEase(Ease.OutQuad);
+
+                Debug.Log($"   → Moving existing unit #{i} to [{row},{col}]");
+            }
+        }
+
+        // ✅ STEP 2: Spawn new units at their correct positions
+        int futureGridSize2 = Mathf.CeilToInt(Mathf.Sqrt(futureUnitCount));
+        float spacing2 = (slot.unitType != null) ? slot.unitType.unitSpacing : unitData.unitSpacing;
+        float centerOffset2 = -((futureGridSize2 - 1) * spacing2) / 2f;
+
         for (int i = 0; i < unitsToSpawn; i++)
         {
-            // ✅ Calculate spawn position for this unit
-            int unitIndex = slot.units.Count + i; // Current count + offset
-            Vector3 spawnPos = CalculateArrangementPosition(slotIndex, isPlayer, unitIndex);
+            // Calculate position for this new unit
+            int newUnitIndex = currentUnitCount + i; // Current count + loop offset
+            int row = newUnitIndex / futureGridSize2;
+            int col = newUnitIndex % futureGridSize2;
 
-            // Instantiate at calculated position
+            float xPos = centerOffset2 + (col * spacing2);
+            float zPos = centerOffset2 + (row * spacing2);
+
+            Vector3 localPos = new Vector3(xPos, 0, zPos);
+            Vector3 spawnPos = slotTransform.TransformPoint(localPos);
+
+            Debug.Log($"✅ Spawning unit #{i} at index {newUnitIndex} → [{row},{col}] at {spawnPos}");
+
+            // Instantiate
             GameObject unitObj = Instantiate(unitPrefab, spawnPos, Quaternion.identity, slotTransform);
+            unitObj.SetActive(false);
             RuntimeUnit unit = unitObj.GetComponent<RuntimeUnit>();
 
             if (unit == null)
@@ -281,7 +344,7 @@ public class GridManager : MonoBehaviour
             EventManager.OnUnitSpawn(unit);
         }
 
-        // Set unit type
+        // Set unit type if first spawn
         if (slot.unitType == null)
         {
             slot.unitType = unitData;
@@ -301,18 +364,14 @@ public class GridManager : MonoBehaviour
             {
                 StartCoroutine(AnimateMultipleUnits(spawnedUnits, slotIndex, isPlayer, animator));
             }
-            // No need to arrange - already at correct positions!
         }
-        // else: Battle transition - units already at correct positions
 
         UpdatePermanentState(slotIndex, isPlayer);
 
         Debug.Log($"✅ Spawned {spawnedUnits.Count} units for {unitData.toyName} at slot {slotIndex}");
 
         return spawnedUnits.Count > 0;
-    }
-
-    // ✅ UPDATE AnimateMultipleUnits - no arrangement needed
+    }    // ✅ UPDATE AnimateMultipleUnits - no arrangement needed
     private IEnumerator AnimateMultipleUnits(List<RuntimeUnit> units, int slotIndex, bool isPlayer, DraftCardSpawnAnimation animator)
     {
         // Hide all units first
@@ -329,7 +388,7 @@ public class GridManager : MonoBehaviour
         }
 
         // No need to arrange after animation - already at correct positions!
-        ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
+        //ArrangeUnitsInSlot(slotIndex, isPlayer); // ❌ REMOVE THIS
     }
     // ===== LINK TWIN UNITS =====
 
@@ -371,73 +430,61 @@ public class GridManager : MonoBehaviour
         Debug.Log($"👊 Linked {units.Count} twin units");
     }
 
-    // ===== FIND SLOT FOR UNIT =====
-
     private int FindSlotForUnit(ToyUnitData unitData, bool isPlayer)
     {
         GridSlot[] targetGrid = isPlayer ? playerGrid : enemyGrid;
+        string team = isPlayer ? "PLAYER" : "ENEMY";
 
-        // Try to find existing slot with same unit type
+        Debug.Log($"🔍 FindSlotForUnit: Looking for slot for {unitData.toyName} ({team})");
+
+        // ✅ STEP 1: Force refresh ALL slots
+        for (int i = 0; i < targetGrid.Length; i++)
+        {
+            targetGrid[i].RefreshState(); // This will cleanup dead units
+        }
+
+        // ✅ STEP 2: Try to find existing slot with same unit type
         for (int i = 0; i < targetGrid.Length; i++)
         {
             if (!targetGrid[i].IsEmpty)
             {
-                if (targetGrid[i].unitType.unitID == unitData.unitID &&
+                // Check if same unit type and has space
+                if (targetGrid[i].unitType != null &&
+                    targetGrid[i].unitType.unitID == unitData.unitID &&
                     targetGrid[i].units.Count < unitData.maxStackPerSlot)
                 {
+                    Debug.Log($"   ✅ Found MATCHING slot {i} for {unitData.toyName} (has {targetGrid[i].units.Count}/{unitData.maxStackPerSlot})");
                     return i;
                 }
             }
         }
 
-        // Find empty slot
+        // ✅ STEP 3: Find empty slot
         for (int i = 0; i < targetGrid.Length; i++)
         {
             if (targetGrid[i].IsEmpty)
             {
+                Debug.Log($"   ✅ Found EMPTY slot {i} for {unitData.toyName}");
                 return i;
+            }
+        }
+
+        // ❌ No slot found
+        Debug.LogWarning($"❌ NO SLOT FOUND for {unitData.toyName} ({team})! Grid state:");
+        for (int i = 0; i < targetGrid.Length; i++)
+        {
+            if (!targetGrid[i].IsEmpty)
+            {
+                Debug.LogWarning($"   Slot {i}: {targetGrid[i].units.Count} units of {targetGrid[i].unitType?.toyName}");
+            }
+            else
+            {
+                Debug.Log($"   Slot {i}: EMPTY");
             }
         }
 
         return -1;
     }
-
-    // ===== ARRANGE IN SLOT (DRAFT) =====
-
-    private void ArrangeUnitsInSlot(int slotIndex, bool isPlayer)
-    {
-        GridSlot slot = isPlayer ? playerGrid[slotIndex] : enemyGrid[slotIndex];
-        int unitCount = slot.units.Count;
-
-        if (unitCount == 0) return;
-
-        // Grid spacing system
-        int gridSize = Mathf.CeilToInt(Mathf.Sqrt(unitCount));
-        float spacing = slot.unitType.unitSpacing;
-        float centerOffset = -((gridSize - 1) * spacing) / 2f;
-
-        int index = 0;
-        for (int row = 0; row < gridSize && index < unitCount; row++)
-        {
-            for (int col = 0; col < gridSize && index < unitCount; col++)
-            {
-                RuntimeUnit unit = slot.units[index];
-                float xPos = centerOffset + (col * spacing);
-                float zPos = centerOffset + (row * spacing);
-                Vector3 targetLocalPos = new Vector3(xPos, 0, zPos);
-
-                // ✅ Smooth DOTween movement instead of instant
-                unit.transform.DOLocalMove(targetLocalPos, 0.3f)
-                    .SetEase(Ease.OutQuad);
-
-                index++;
-            }
-        }
-
-        Debug.Log($"📐 Arranged {unitCount} units in slot {slotIndex} with smooth animation");
-    }
-    // ===== ARRANGE FORMATION (BATTLE START) =====
-
     public IEnumerator ArrangeUnitsInFormationCoroutine(bool isPlayer)
     {
         Debug.Log($"🎯 Arranging formation for {(isPlayer ? "PLAYER" : "ENEMY")}");
@@ -775,18 +822,30 @@ public class GridManager : MonoBehaviour
             }
         }
     }
-    // ============================================================================
-    // FIXED: GetPreviousUnits - doesn't spawn, just returns what needs spawning
-    // ============================================================================
-
     public List<RuntimeUnit> GetPreviousUnits()
     {
         List<RuntimeUnit> unitsToAnimate = new List<RuntimeUnit>();
 
-        // ✅ Don't spawn here! Just spawn and collect references
+        Debug.Log("🔄 GetPreviousUnits: Starting respawn process");
+
+        // ✅ CRITICAL: Clear ALL slots properly FIRST
+        for (int i = 0; i < playerGrid.Length; i++)
+        {
+            playerGrid[i].Clear(); // This clears units AND unitType
+        }
+
+        for (int i = 0; i < enemyGrid.Length; i++)
+        {
+            enemyGrid[i].Clear();
+        }
+
+        Debug.Log("🧹 Cleared all grid slots completely (units + unitTypes)");
+
         // Make snapshot to avoid modification during enumeration
         var playerStateSnapshot = playerGridState.ToList();
         var enemyStateSnapshot = enemyGridState.ToList();
+
+        Debug.Log($"📊 State snapshot: {playerStateSnapshot.Count} player slots, {enemyStateSnapshot.Count} enemy slots");
 
         // Spawn player units
         foreach (var kvp in playerStateSnapshot)
@@ -794,11 +853,13 @@ public class GridManager : MonoBehaviour
             GridSlotData slotData = kvp.Value;
             if (slotData.isFilled && slotData.unitData != null)
             {
+                int slotIndex = kvp.Key;
+                GridSlot slot = playerGrid[slotIndex];
+
+                Debug.Log($"🔄 Respawning {slotData.unitCount}x {slotData.unitData.toyName} in PLAYER slot {slotIndex}");
+
                 for (int i = 0; i < slotData.unitCount; i++)
                 {
-                    // Spawn and get units
-                    int slotIndex = kvp.Key;
-                    GridSlot slot = playerGrid[slotIndex];
                     int beforeCount = slot.units.Count;
 
                     if (SpawnUnit(slotData.unitData, true, slotIndex))
@@ -809,7 +870,14 @@ public class GridManager : MonoBehaviour
                             unitsToAnimate.Add(slot.units[j]);
                         }
                     }
+                    else
+                    {
+                        Debug.LogError($"❌ Failed to respawn player unit #{i} in slot {slotIndex}!");
+                    }
                 }
+
+                // ✅ Verify slot state after spawn
+                Debug.Log($"   ✅ Player slot {slotIndex} → {slot.units.Count} units, unitType={slot.unitType?.toyName}, isEmpty={slot.IsEmpty}");
             }
         }
 
@@ -819,10 +887,13 @@ public class GridManager : MonoBehaviour
             GridSlotData slotData = kvp.Value;
             if (slotData.isFilled && slotData.unitData != null)
             {
+                int slotIndex = kvp.Key;
+                GridSlot slot = enemyGrid[slotIndex];
+
+                Debug.Log($"🔄 Respawning {slotData.unitCount}x {slotData.unitData.toyName} in ENEMY slot {slotIndex}");
+
                 for (int i = 0; i < slotData.unitCount; i++)
                 {
-                    int slotIndex = kvp.Key;
-                    GridSlot slot = enemyGrid[slotIndex];
                     int beforeCount = slot.units.Count;
 
                     if (SpawnUnit(slotData.unitData, false, slotIndex))
@@ -832,12 +903,59 @@ public class GridManager : MonoBehaviour
                             unitsToAnimate.Add(slot.units[j]);
                         }
                     }
+                    else
+                    {
+                        Debug.LogError($"❌ Failed to respawn enemy unit #{i} in slot {slotIndex}!");
+                    }
                 }
+
+                // ✅ Verify slot state after spawn
+                Debug.Log($"   ✅ Enemy slot {slotIndex} → {slot.units.Count} units, unitType={slot.unitType?.toyName}, isEmpty={slot.IsEmpty}");
             }
         }
 
-        Debug.Log($"📋 GetPreviousUnits: {unitsToAnimate.Count} units spawned for animation");
+        Debug.Log($"✅ GetPreviousUnits complete: {unitsToAnimate.Count} units ready for animation");
+
+        // ✅ Final grid state check
+        PrintGridState();
+
         return unitsToAnimate;
+    }
+
+    // ✅ NEW: Debug helper
+    private void PrintGridState()
+    {
+        Debug.Log("📊 === FINAL GRID STATE ===");
+
+        Debug.Log("🔵 PLAYER GRID:");
+        for (int i = 0; i < playerGrid.Length; i++)
+        {
+            if (!playerGrid[i].IsEmpty)
+            {
+                Debug.Log($"   Slot {i}: {playerGrid[i].units.Count} units of {playerGrid[i].unitType?.toyName}");
+            }
+        }
+
+        Debug.Log("🔴 ENEMY GRID:");
+        for (int i = 0; i < enemyGrid.Length; i++)
+        {
+            if (!enemyGrid[i].IsEmpty)
+            {
+                Debug.Log($"   Slot {i}: {enemyGrid[i].units.Count} units of {enemyGrid[i].unitType?.toyName}");
+            }
+        }
+
+        Debug.Log("========================");
+    }
+    // ✅ Helper: Count filled slots
+    private int CountFilledSlots(GridSlot[] grid)
+    {
+        int count = 0;
+        foreach (var slot in grid)
+        {
+            if (!slot.IsEmpty) count++;
+        }
+        return count;
     }
     public void ResetGridState()
     {

@@ -96,10 +96,10 @@ public class BattleToDraftTransition : MonoBehaviour
 
     private void SpawnUnitWithAnimation(RuntimeUnit unit)
     {
-        Vector3 spawnPosition = unit.transform.position;
+        //Vector3 spawnPosition = unit.transform.position;
 
         // Play spawn VFX
-        PlaySpawnVFX(spawnPosition);
+        PlaySpawnVFX(unit.transform.position);
 
         // Play spawn SFX
         PlaySpawnSFX();
@@ -116,12 +116,12 @@ public class BattleToDraftTransition : MonoBehaviour
                 Debug.Log($"✅ {unit.data.toyName} spawned");
             });
         // Bounce effect
-        Vector3 startPos = spawnPosition;
+      /*  Vector3 startPos = spawnPosition;
         startPos.y -= 0.5f;
         unit.transform.position = startPos;
 
         unit.transform.DOMoveY(spawnPosition.y, spawnAnimationDuration)
-            .SetEase(Ease.OutBounce);
+            .SetEase(Ease.OutBounce);*/
     }
 
     // ===== VFX/SFX =====

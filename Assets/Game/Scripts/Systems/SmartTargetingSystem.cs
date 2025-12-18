@@ -129,6 +129,10 @@ public class SmartTargetingSystem : MonoBehaviour
         Back    // Further from enemy (only target if front dead)
     }
 
+    // ============================================================================
+    // FIXED: GetUnitRow - Correct Z-axis logic
+    // ============================================================================
+
     private FormationRow GetUnitRow(RuntimeUnit unit, bool isPlayerUnit)
     {
         float zPos = unit.transform.position.z;
@@ -140,6 +144,7 @@ public class SmartTargetingSystem : MonoBehaviour
             battleManager.GetPlayerUnits() :
             battleManager.GetEnemyUnits();
 
+        // Calculate average Z
         float avgZ = 0f;
         int count = 0;
         foreach (var u in allUnits)
@@ -154,19 +159,19 @@ public class SmartTargetingSystem : MonoBehaviour
         if (count == 0) return FormationRow.Front;
         avgZ /= count;
 
-        // Player moves Z+, Enemy moves Z-
         if (isPlayerUnit)
         {
-            // Player: Front = higher Z (moving toward enemy)
+            // ✅ Player: Front row = HIGHER Z (moving toward enemy/north)
+            // If unit's Z > average Z → it's in front
             return zPos > avgZ + frontRowZThreshold ? FormationRow.Front : FormationRow.Back;
         }
         else
         {
-            // Enemy: Front = lower Z (moving toward player)
+            // ✅ Enemy: Front row = LOWER Z (moving toward player/south)
+            // If unit's Z < average Z → it's in front
             return zPos < avgZ - frontRowZThreshold ? FormationRow.Front : FormationRow.Back;
         }
     }
-
     private bool IsAssassin(RuntimeUnit unit)
     {
         if (unit == null || unit.data == null) return false;
@@ -184,68 +189,30 @@ public class SmartTargetingSystem : MonoBehaviour
 
     // ===== SMART TARGET (First 15 seconds) =====
 
+    // SmartTargetingSystem.cs - SelectSmartTarget() metodunu basitleştir
+
     private RuntimeUnit SelectSmartTarget(RuntimeUnit attacker, List<RuntimeUnit> possibleTargets)
     {
-        // Check cooldown
-        if (lastSwitchTime.ContainsKey(attacker))
-        {
-            float timeSinceSwitch = Time.time - lastSwitchTime[attacker];
-            if (timeSinceSwitch < targetSwitchCooldown)
-            {
-                return null;
-            }
-        }
+        if (possibleTargets.Count == 0) return null;
 
+        // ✅ STEP 1: Front row filtering
+        List<RuntimeUnit> frontRowTargets = GetFrontRowTargets(possibleTargets);
+
+        // ✅ Use front row if available (unless assassin)
         bool isAssassin = IsAssassin(attacker);
+        List<RuntimeUnit> targetPool = (frontRowTargets.Count > 0 && !isAssassin) ?
+            frontRowTargets : possibleTargets;
 
-        // ✅ STEP 1: Filter to front row only (unless assassin or no front row exists)
-        List<RuntimeUnit> frontRowTargets = new List<RuntimeUnit>();
-        List<RuntimeUnit> backRowTargets = new List<RuntimeUnit>();
+        if (targetPool.Count == 0) return null;
 
-        foreach (var target in possibleTargets)
-        {
-            if (target == null || !target.IsAlive()) continue;
-
-            FormationRow targetRow = GetUnitRow(target, target.isPlayerUnit);
-            if (targetRow == FormationRow.Front)
-            {
-                frontRowTargets.Add(target);
-            }
-            else
-            {
-                backRowTargets.Add(target);
-            }
-        }
-
-        // Choose which pool to target
-        List<RuntimeUnit> targetPool;
-        if (frontRowTargets.Count > 0 && !isAssassin)
-        {
-            // Normal units: MUST attack front row if exists
-            targetPool = frontRowTargets;
-            Debug.Log($"🎯 {attacker.data.toyName}: {frontRowTargets.Count} front row targets available");
-        }
-        else if (backRowTargets.Count > 0 && (isAssassin || frontRowTargets.Count == 0))
-        {
-            // Assassin can choose back row, OR no front row left
-            targetPool = backRowTargets;
-            if (isAssassin)
-                Debug.Log($"🗡️ {attacker.data.toyName} (Assassin): Can target {backRowTargets.Count} back row enemies");
-            else
-                Debug.Log($"🎯 {attacker.data.toyName}: No front row left, targeting {backRowTargets.Count} back row enemies");
-        }
-        else
-        {
-            // No valid targets
-            return null;
-        }
-
-        // ✅ STEP 2: Find nearest target (baseline)
+        // ✅ STEP 2: Find nearest target
         RuntimeUnit nearestTarget = null;
         float nearestDistance = float.MaxValue;
 
         foreach (var target in targetPool)
         {
+            if (target == null || !target.IsAlive()) continue;
+
             float distance = Vector3.Distance(attacker.transform.position, target.transform.position);
             if (distance < nearestDistance)
             {
@@ -256,100 +223,119 @@ public class SmartTargetingSystem : MonoBehaviour
 
         if (nearestTarget == null) return null;
 
-        // ✅ STEP 3: Check if there are other targets CLOSE on X axis (horizontal proximity)
-        List<RuntimeUnit> proximateTargets = new List<RuntimeUnit> { nearestTarget };
+        // ✅ STEP 3: Simple load balancing
+        // Count how many units already attacking this target
+        int attackersOnNearest = GetAttackerCount(nearestTarget);
 
-        foreach (var target in targetPool)
+        // ✅ If target is overloaded, try to find alternative
+        if (attackersOnNearest >= maxAttackersPerTarget && targetPool.Count > 1)
         {
-            if (target == nearestTarget) continue;
+            // Find least targeted enemy
+            RuntimeUnit alternativeTarget = null;
+            int minAttackers = int.MaxValue;
 
-            // ✅ Check HORIZONTAL distance (X axis only!)
-            float xDistance = Mathf.Abs(target.transform.position.x - nearestTarget.transform.position.x);
-
-            if (xDistance <= horizontalProximityThreshold)
+            foreach (var target in targetPool)
             {
-                proximateTargets.Add(target);
-                if (debugProximityChecks)
+                if (target == nearestTarget) continue; // Skip current nearest
+                if (target == null || !target.IsAlive()) continue;
+
+                int attackerCount = GetAttackerCount(target);
+                if (attackerCount < minAttackers)
                 {
-                    Debug.Log($"📏 {target.data.toyName} is close to {nearestTarget.data.toyName} (X distance: {xDistance:F1}m ≤ {horizontalProximityThreshold}m)");
+                    minAttackers = attackerCount;
+                    alternativeTarget = target;
                 }
             }
-            else
+
+            // Use alternative if found and less loaded
+            if (alternativeTarget != null && minAttackers < attackersOnNearest)
             {
-                if (debugProximityChecks)
-                {
-                    Debug.Log($"📏 {target.data.toyName} is FAR from {nearestTarget.data.toyName} (X distance: {xDistance:F1}m > {horizontalProximityThreshold}m) - SKIP DISTRIBUTION");
-                }
+                nearestTarget = alternativeTarget;
+                Debug.Log($"🎯 {attacker.data.toyName}: Switching to less targeted enemy (attackers: {minAttackers} vs {attackersOnNearest})");
             }
         }
 
-        // ✅ STEP 4: Decide distribution strategy
-        RuntimeUnit finalTarget;
+        // ✅ Register attacker
+        RegisterAttacker(attacker, nearestTarget);
 
-        if (proximateTargets.Count == 1)
+        Debug.Log($"🎯 {attacker.data.toyName} → {nearestTarget.data.toyName} (Distance: {nearestDistance:F1}m, Attackers: {GetAttackerCount(nearestTarget)})");
+
+        return nearestTarget;
+    }
+
+    // ✅ Helper: Get front row targets only
+    // ============================================================================
+    // FIXED: GetFrontRowTargets - Correct Z-axis logic
+    // ============================================================================
+
+    private List<RuntimeUnit> GetFrontRowTargets(List<RuntimeUnit> allTargets)
+    {
+        if (allTargets.Count == 0) return new List<RuntimeUnit>();
+
+        // ✅ Determine which team we're targeting
+        bool targetingPlayers = allTargets[0].isPlayerUnit;
+
+        if (targetingPlayers)
         {
-            // Only one target nearby, everyone attacks it!
-            finalTarget = nearestTarget;
-            Debug.Log($"🎯 {attacker.data.toyName}: Only 1 target available → {finalTarget.data.toyName}");
+            // ✅ Targeting PLAYER units → front row has HIGHEST Z
+            float maxZ = float.MinValue;
+
+            foreach (var target in allTargets)
+            {
+                if (target != null && target.IsAlive())
+                {
+                    float z = target.transform.position.z;
+                    if (z > maxZ) maxZ = z;
+                }
+            }
+
+            // Get all units within threshold of maxZ
+            List<RuntimeUnit> frontRow = new List<RuntimeUnit>();
+            foreach (var target in allTargets)
+            {
+                if (target == null || !target.IsAlive()) continue;
+
+                float z = target.transform.position.z;
+                if (z >= maxZ - frontRowZThreshold) // Close to maxZ
+                {
+                    frontRow.Add(target);
+                }
+            }
+
+            Debug.Log($"🎯 Player front row: maxZ={maxZ:F1}, {frontRow.Count} units in range [{maxZ - frontRowZThreshold:F1}, {maxZ:F1}]");
+            return frontRow;
         }
         else
         {
-            // Multiple targets close on X axis, distribute attacks!
-            Debug.Log($"🎯 {attacker.data.toyName}: {proximateTargets.Count} targets close on X axis, distributing...");
+            // ✅ Targeting ENEMY units → front row has LOWEST Z
+            float minZ = float.MaxValue;
 
-            // Build scores for proximate targets only
-            List<TargetScore> targetScores = new List<TargetScore>();
-
-            foreach (var target in proximateTargets)
+            foreach (var target in allTargets)
             {
-                float distance = Vector3.Distance(attacker.transform.position, target.transform.position);
-                int attackerCount = GetAttackerCount(target);
-
-                // Score: Prioritize fewer attackers, then closer distance
-                float score = (attackerCount * 100f) + distance;
-
-                targetScores.Add(new TargetScore
+                if (target != null && target.IsAlive())
                 {
-                    target = target,
-                    distance = distance,
-                    attackerCount = attackerCount,
-                    score = score
-                });
-            }
-
-            // Sort by score
-            targetScores.Sort((a, b) => a.score.CompareTo(b.score));
-
-            // Pick best target (fewest attackers)
-            finalTarget = null;
-            foreach (var targetScore in targetScores)
-            {
-                if (targetScore.attackerCount < maxAttackersPerTarget)
-                {
-                    finalTarget = targetScore.target;
-                    Debug.Log($"✅ Selected {finalTarget.data.toyName} (attackers: {targetScore.attackerCount}, score: {targetScore.score:F1})");
-                    break;
+                    float z = target.transform.position.z;
+                    if (z < minZ) minZ = z;
                 }
             }
 
-            // If all saturated, pick best score anyway
-            if (finalTarget == null)
+            // Get all units within threshold of minZ
+            List<RuntimeUnit> frontRow = new List<RuntimeUnit>();
+            foreach (var target in allTargets)
             {
-                finalTarget = targetScores[0].target;
-                Debug.Log($"⚠️ All targets saturated, picking best: {finalTarget.data.toyName}");
+                if (target == null || !target.IsAlive()) continue;
+
+                float z = target.transform.position.z;
+                if (z <= minZ + frontRowZThreshold) // Close to minZ
+                {
+                    frontRow.Add(target);
+                }
             }
+
+            Debug.Log($"🎯 Enemy front row: minZ={minZ:F1}, {frontRow.Count} units in range [{minZ:F1}, {minZ + frontRowZThreshold:F1}]");
+            return frontRow;
         }
-
-        // ✅ STEP 5: Register attacker and update
-        RegisterAttacker(attacker, finalTarget);
-        lastSwitchTime[attacker] = Time.time;
-
-        Debug.Log($"🎯 FINAL: {attacker.data.toyName} → {finalTarget.data.toyName} (Distance: {Vector3.Distance(attacker.transform.position, finalTarget.transform.position):F1}m, Attackers: {GetAttackerCount(finalTarget)})");
-
-        return finalTarget;
-    }
-
-    // ===== NORMAL TARGET (After 15 seconds) =====
+    }    // ===== NORMAL TARGET (After 15 seconds) =====
 
     private RuntimeUnit SelectNearestTarget(RuntimeUnit attacker, List<RuntimeUnit> possibleTargets)
     {
@@ -408,32 +394,70 @@ public class SmartTargetingSystem : MonoBehaviour
     {
         if (!Application.isPlaying || !isBattleActive) return;
 
-        bool useSmartTargeting = (Time.time - battleStartTime) < smartTargetingDuration;
-
         BattleManager battleManager = FindObjectOfType<BattleManager>();
         if (battleManager == null) return;
 
-        // Draw player formation
+        // ✅ Draw player front row line (highest Z)
         var playerUnits = battleManager.GetPlayerUnits();
-        DrawFormationGizmos(playerUnits, true);
+        if (playerUnits.Count > 0)
+        {
+            float maxZ = float.MinValue;
+            foreach (var unit in playerUnits)
+            {
+                if (unit != null && unit.IsAlive())
+                {
+                    float z = unit.transform.position.z;
+                    if (z > maxZ) maxZ = z;
+                }
+            }
 
-        // Draw enemy formation
+            // Draw green line at front
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(new Vector3(-10, 0.5f, maxZ), new Vector3(10, 0.5f, maxZ));
+
+            // Draw yellow line at threshold
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawLine(new Vector3(-10, 0.5f, maxZ - frontRowZThreshold),
+                           new Vector3(10, 0.5f, maxZ - frontRowZThreshold));
+        }
+
+        // ✅ Draw enemy front row line (lowest Z)
         var enemyUnits = battleManager.GetEnemyUnits();
-        DrawFormationGizmos(enemyUnits, false);
+        if (enemyUnits.Count > 0)
+        {
+            float minZ = float.MaxValue;
+            foreach (var unit in enemyUnits)
+            {
+                if (unit != null && unit.IsAlive())
+                {
+                    float z = unit.transform.position.z;
+                    if (z < minZ) minZ = z;
+                }
+            }
 
-        // Draw proximity zones (X axis)
-        DrawProximityZones(enemyUnits);
+            // Draw red line at front
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(new Vector3(-10, 0.5f, minZ), new Vector3(10, 0.5f, minZ));
 
+            // Draw orange line at threshold
+            Gizmos.color = new Color(1f, 0.5f, 0f);
+            Gizmos.DrawLine(new Vector3(-10, 0.5f, minZ + frontRowZThreshold),
+                           new Vector3(10, 0.5f, minZ + frontRowZThreshold));
+        }
+
+        // Draw labels
 #if UNITY_EDITOR
-        Vector3 labelPos = new Vector3(0, 12, 0);
-        string label = useSmartTargeting ?
-            $"🎯 PROXIMITY TARGETING ({smartTargetingDuration - (Time.time - battleStartTime):F1}s) | X Threshold: {horizontalProximityThreshold}m" :
-            "🎯 Normal Targeting";
+        var playerFront = playerUnits.Count > 0 ?
+            playerUnits.Max(u => u?.transform.position.z ?? float.MinValue) : 0;
+        var enemyFront = enemyUnits.Count > 0 ?
+            enemyUnits.Min(u => u?.transform.position.z ?? float.MaxValue) : 0;
 
-        UnityEditor.Handles.Label(labelPos, label);
+        UnityEditor.Handles.Label(new Vector3(0, 2, playerFront),
+            $"PLAYER FRONT (Z={playerFront:F1})");
+        UnityEditor.Handles.Label(new Vector3(0, 2, enemyFront),
+            $"ENEMY FRONT (Z={enemyFront:F1})");
 #endif
     }
-
     private void DrawFormationGizmos(List<RuntimeUnit> units, bool isPlayerUnits)
     {
         if (units == null || units.Count == 0) return;

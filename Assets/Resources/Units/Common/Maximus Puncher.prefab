@@ -963,6 +963,7 @@ MonoBehaviour:
   hitScaleFactor: 1.1
   hitDuration: 0.3
   isExecutingAttack: 0
+  enemyMaterial: {fileID: 2100000, guid: c123dea2e593a01439a9cc24ace6014d, type: 2}
 --- !u!114 &7726830454947928049
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,7 +1,8 @@
 ﻿// ============================================================================
-// SLAM BROS - FIXED TARGET DEATH HANDLING
-// ✅ Checks target alive during entire jump
-// ✅ Lands at last valid position if target dies
+// SLAM BROS - FIXED Y POSITION & NAVMESH BUG
+// ✅ Y position always reset to NavMesh height
+// ✅ Agent properly disabled/enabled
+// ✅ Safe NavMesh validation
 // ============================================================================
 
 using UnityEngine;
@@ -19,16 +20,15 @@ public class SlamBrosUnit : RuntimeUnit
     [SerializeField] float knockbackForce = 0.5f;
     [SerializeField] float knockbackDuration = 0.3f;
 
-    private RuntimeUnit jumpTarget; // ✅ Stored jump target
+    private RuntimeUnit jumpTarget;
     private bool isJumping = false;
     private Coroutine trackingCoroutine;
-    private Vector3 lastValidTargetPosition; // ✅ Store last valid position
+    private Vector3 lastValidTargetPosition;
 
     protected override void ExecuteAttack(RuntimeUnit target)
     {
         if (isJumping) return;
 
-        // ✅ Store target at attack start
         jumpTarget = target;
         lastValidTargetPosition = target.transform.position;
 
@@ -42,6 +42,7 @@ public class SlamBrosUnit : RuntimeUnit
         isJumping = true;
         LockAttack();
 
+        // ✅ CRITICAL: Disable NavMeshAgent before jump
         if (agent != null && agent.enabled)
         {
             agent.enabled = false;
@@ -55,7 +56,6 @@ public class SlamBrosUnit : RuntimeUnit
 
     public void JumpEvent()
     {
-        // ✅ Check if target still valid
         if (jumpTarget == null || !jumpTarget.IsAlive())
         {
             Debug.Log($"💀 Slam Bros: Jump target died before jump started, canceling");
@@ -72,6 +72,15 @@ public class SlamBrosUnit : RuntimeUnit
     private IEnumerator JumpWithTracking(float duration)
     {
         Vector3 startPos = transform.position;
+
+        // ✅ Force start Y to NavMesh height
+        UnityEngine.AI.NavMeshHit navHit;
+        if (UnityEngine.AI.NavMesh.SamplePosition(startPos, out navHit, 5f, UnityEngine.AI.NavMesh.AllAreas))
+        {
+            startPos.y = navHit.position.y;
+            transform.position = startPos;
+        }
+
         float elapsedTime = 0f;
         bool targetDiedDuringJump = false;
 
@@ -80,49 +89,56 @@ public class SlamBrosUnit : RuntimeUnit
             elapsedTime += Time.deltaTime;
             float progress = elapsedTime / duration;
 
-            // ✅ Check if target still alive
+            // Check if target still alive
             if (jumpTarget == null || !jumpTarget.IsAlive())
             {
                 if (!targetDiedDuringJump)
                 {
                     Debug.Log($"💀 Slam Bros: Target died during jump, landing at last position");
                     targetDiedDuringJump = true;
-                    // Continue to last valid position instead of stopping
                 }
             }
             else
             {
-                // Update last valid position
                 lastValidTargetPosition = jumpTarget.transform.position;
             }
 
-            // Use last valid position (either current or stored)
+            // ✅ Use last valid position and ensure NavMesh height
             Vector3 targetPos = lastValidTargetPosition;
 
-            // Validate NavMesh
-            UnityEngine.AI.NavMeshHit hit;
-            if (!UnityEngine.AI.NavMesh.SamplePosition(targetPos, out hit, 3f, UnityEngine.AI.NavMesh.AllAreas))
+            // ✅ CRITICAL: Sample NavMesh to get valid Y position
+            if (UnityEngine.AI.NavMesh.SamplePosition(targetPos, out navHit, 5f, UnityEngine.AI.NavMesh.AllAreas))
             {
-                targetPos = transform.position + (targetPos - transform.position).normalized * 2f;
+                targetPos = navHit.position; // Use NavMesh Y
             }
             else
             {
-                targetPos = hit.position;
+                // Fallback: project forward from start
+                targetPos = startPos + (targetPos - startPos).normalized * 2f;
+                targetPos.y = startPos.y; // Keep original Y
             }
 
             // Calculate position with arc
             Vector3 horizontalPos = Vector3.Lerp(startPos, targetPos, progress);
+
+            // ✅ CRITICAL: Base Y always from NavMesh
+            float baseY = horizontalPos.y;
+
+            // Add jump arc
             float heightProgress = 1 - Mathf.Pow(2 * progress - 1, 2);
             float currentHeight = jumpHeight * heightProgress;
 
+            // ✅ Final position with controlled Y
             transform.position = new Vector3(
                 horizontalPos.x,
-                horizontalPos.y + currentHeight,
+                baseY + currentHeight, // NavMesh Y + arc height
                 horizontalPos.z
             );
 
-            // Look at target position
+            // Look at target
             Vector3 lookDirection = (targetPos - transform.position).normalized;
+            lookDirection.y = 0; // ✅ Keep horizontal rotation only
+
             if (lookDirection != Vector3.zero)
             {
                 transform.rotation = Quaternion.LookRotation(lookDirection);
@@ -131,21 +147,36 @@ public class SlamBrosUnit : RuntimeUnit
             yield return null;
         }
 
-        // Jump complete
         OnJumpComplete();
     }
 
     private void OnJumpComplete()
     {
+        // ✅ CRITICAL: Force position to NavMesh before re-enabling agent
+        Vector3 currentPos = transform.position;
+        UnityEngine.AI.NavMeshHit navHit;
+
+        if (UnityEngine.AI.NavMesh.SamplePosition(currentPos, out navHit, 5f, UnityEngine.AI.NavMesh.AllAreas))
+        {
+            transform.position = navHit.position;
+            Debug.Log($"✅ Slam Bros: Corrected landing position to NavMesh Y={navHit.position.y:F2}");
+        }
+        else
+        {
+            // Emergency fallback: snap to ground
+            currentPos.y = 0;
+            transform.position = currentPos;
+            Debug.LogWarning($"⚠️ Slam Bros: NavMesh not found, forced Y to 0");
+        }
+
         if (animator != null)
         {
             animator.SetTrigger("Attack");
         }
 
+        // Deal damage if target still valid
         Vector3 finalLandingPos = transform.position;
-        finalLandingPos.y = 0;
 
-        // ✅ Only deal damage if original target still alive and in range
         if (jumpTarget != null && jumpTarget.IsAlive())
         {
             float distance = Vector3.Distance(finalLandingPos, jumpTarget.transform.position);
@@ -172,9 +203,24 @@ public class SlamBrosUnit : RuntimeUnit
 
         Taptic.Heavy();
 
-        if (agent != null && !agent.enabled)
+        // ✅ CRITICAL: Re-enable agent AFTER position is fixed
+        if (agent != null)
         {
-            agent.enabled = true;
+            // Warp agent to current position
+            if (!agent.enabled)
+            {
+                agent.enabled = true;
+            }
+
+            // ✅ Warp prevents "not on NavMesh" error
+            if (agent.isOnNavMesh)
+            {
+                agent.Warp(transform.position);
+            }
+            else
+            {
+                Debug.LogWarning($"⚠️ Slam Bros: Agent not on NavMesh after landing!");
+            }
         }
 
         Invoke(nameof(UnlockJump), attackAnimationDuration);
@@ -190,6 +236,22 @@ public class SlamBrosUnit : RuntimeUnit
         {
             StopCoroutine(trackingCoroutine);
             trackingCoroutine = null;
+        }
+
+        // ✅ Final safety check: ensure agent is on NavMesh
+        if (agent != null && agent.enabled)
+        {
+            if (!agent.isOnNavMesh)
+            {
+                Vector3 pos = transform.position;
+                UnityEngine.AI.NavMeshHit hit;
+                if (UnityEngine.AI.NavMesh.SamplePosition(pos, out hit, 10f, UnityEngine.AI.NavMesh.AllAreas))
+                {
+                    transform.position = hit.position;
+                    agent.Warp(hit.position);
+                    Debug.Log($"✅ Slam Bros: Fixed NavMesh position in UnlockJump");
+                }
+            }
         }
     }
 
@@ -209,8 +271,11 @@ public class SlamBrosUnit : RuntimeUnit
     private void ApplyLandingKnockback(RuntimeUnit target, Vector3 impactPosition)
     {
         Vector3 knockbackDirection = (target.transform.position - impactPosition).normalized;
+        knockbackDirection.y = 0; // ✅ Horizontal only
+
         Vector3 knockbackTarget = target.transform.position + knockbackDirection * knockbackForce;
 
+        // ✅ Ensure knockback target is on NavMesh
         UnityEngine.AI.NavMeshHit hit;
         if (UnityEngine.AI.NavMesh.SamplePosition(knockbackTarget, out hit, knockbackForce + 1f, UnityEngine.AI.NavMesh.AllAreas))
         {
@@ -235,15 +300,27 @@ public class SlamBrosUnit : RuntimeUnit
             .SetEase(Ease.OutQuad)
             .OnComplete(() =>
             {
-                if (targetAgent != null && wasAgentEnabled && !targetAgent.enabled)
+                if (targetAgent != null && wasAgentEnabled)
                 {
-                    targetAgent.enabled = true;
+                    // ✅ Warp agent to final position
+                    if (!targetAgent.enabled)
+                    {
+                        targetAgent.enabled = true;
+                    }
+
+                    if (targetAgent.isOnNavMesh)
+                    {
+                        targetAgent.Warp(target.transform.position);
+                    }
                 }
             });
     }
 
     private void PlayLandingVFX(Vector3 position)
     {
+        // ✅ VFX at ground level
+        position.y = 0.1f;
+
         if (poolingSystem != null)
         {
             GameObject vfx = poolingSystem.InstantiateAPS("slam_bros_land_vfx", position);
@@ -261,6 +338,18 @@ public class SlamBrosUnit : RuntimeUnit
         {
             DealInstantDamage(jumpTarget);
         }
+    }
+
+    // ✅ Override Update to prevent movement during jump
+    protected override void Update()
+    {
+        if (isJumping)
+        {
+            // Skip normal update during jump
+            return;
+        }
+
+        base.Update();
     }
 
     private void OnDestroy()
