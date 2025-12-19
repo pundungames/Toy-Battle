@@ -14,9 +14,9 @@ using Zenject;
 
 public class BattleManager : MonoBehaviour
 {
-    [Inject] DraftCardManager draftManager;
     [Inject] GridManager gridManager;
     [Inject] UIManager uiManager;
+    [Inject] DraftCardManager draftCardManager;
 
     [Header("Battle State")]
     [SerializeField] bool isBattleActive = false;
@@ -80,9 +80,6 @@ public class BattleManager : MonoBehaviour
     private IEnumerator BattleFormationSequence()
     {
         Debug.Log("🎯 Starting formation sequence...");
-
-        // ✅ Reset Bone Mage static targets for new battle
-        BoneMageUnit.ResetBoneMageTargets();
 
         playerUnits = gridManager.GetPlayerUnits();
         enemyUnits = gridManager.GetEnemyUnits();
@@ -302,9 +299,7 @@ public class BattleManager : MonoBehaviour
 
         // 8. Notify game manager
         EventManager.OnBattleComplete(playerWon);
-
-        // ✅ 9. Reset stamina for next draft
-        draftManager.ResetStamina();
+        draftCardManager.ResetStamina();
 
         Debug.Log("✅ Victory sequence complete!");
     }

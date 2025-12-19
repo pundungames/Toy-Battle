@@ -36,6 +36,7 @@ public class BoneMageUnit : RuntimeUnit
 
     public override void StartBattle()
     {
+        ResetBoneMageTargets();
         base.StartBattle();
 
         // Apply HP buff when battle starts

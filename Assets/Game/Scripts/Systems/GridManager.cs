@@ -826,8 +826,39 @@ public class GridManager : MonoBehaviour
     {
         List<RuntimeUnit> unitsToAnimate = new List<RuntimeUnit>();
 
-        // ✅ Don't spawn here! Just spawn and collect references
-        // Make snapshot to avoid modification during enumeration
+        Debug.Log("🔄 GetPreviousUnits: Starting respawn process");
+
+        // ✅ CRITICAL: DESTROY old units and CLEAR slots FIRST!
+        for (int i = 0; i < playerGrid.Length; i++)
+        {
+            // Destroy GameObjects
+            foreach (var unit in playerGrid[i].units)
+            {
+                if (unit != null && unit.gameObject != null)
+                {
+                    Debug.Log($"🗑️ Destroying old player unit: {unit.data.toyName}");
+                    Destroy(unit.gameObject);
+                }
+            }
+            playerGrid[i].Clear(); // Clear list AND unitType
+        }
+
+        for (int i = 0; i < enemyGrid.Length; i++)
+        {
+            foreach (var unit in enemyGrid[i].units)
+            {
+                if (unit != null && unit.gameObject != null)
+                {
+                    Debug.Log($"🗑️ Destroying old enemy unit: {unit.data.toyName}");
+                    Destroy(unit.gameObject);
+                }
+            }
+            enemyGrid[i].Clear();
+        }
+
+        Debug.Log("🧹 ALL old units destroyed and slots cleared");
+
+        // NOW spawn fresh units
         var playerStateSnapshot = playerGridState.ToList();
         var enemyStateSnapshot = enemyGridState.ToList();
 
@@ -882,145 +913,7 @@ public class GridManager : MonoBehaviour
         Debug.Log($"📋 GetPreviousUnits: {unitsToAnimate.Count} units spawned for animation");
         return unitsToAnimate;
     }
-   /* public List<RuntimeUnit> GetPreviousUnits()
-    {
-        List<RuntimeUnit> unitsToAnimate = new List<RuntimeUnit>();
-
-        Debug.Log("🔄 GetPreviousUnits: Starting respawn process");
-
-        // ✅ CRITICAL: DESTROY old GameObjects physically first!
-        for (int i = 0; i < playerGrid.Length; i++)
-        {
-            // Destroy actual GameObjects
-            foreach (var unit in playerGrid[i].units)
-            {
-                if (unit != null && unit.gameObject != null)
-                {
-                    Debug.Log($"🗑️ Destroying old player unit: {unit.data.toyName}");
-                    Destroy(unit.gameObject);
-                }
-            }
-            playerGrid[i].Clear(); // Then clear the list
-        }
-
-        for (int i = 0; i < enemyGrid.Length; i++)
-        {
-            // Destroy actual GameObjects
-            foreach (var unit in enemyGrid[i].units)
-            {
-                if (unit != null && unit.gameObject != null)
-                {
-                    Debug.Log($"🗑️ Destroying old enemy unit: {unit.data.toyName}");
-                    Destroy(unit.gameObject);
-                }
-            }
-            enemyGrid[i].Clear();
-        }
-
-        Debug.Log("🧹 Destroyed and cleared all old units");
-
-        // Make snapshot to avoid modification during enumeration
-        var playerStateSnapshot = playerGridState.ToList();
-        var enemyStateSnapshot = enemyGridState.ToList();
-
-        Debug.Log($"📊 State snapshot: {playerStateSnapshot.Count} player slots, {enemyStateSnapshot.Count} enemy slots");
-
-        // Spawn player units
-        foreach (var kvp in playerStateSnapshot)
-        {
-            GridSlotData slotData = kvp.Value;
-            if (slotData.isFilled && slotData.unitData != null)
-            {
-                int slotIndex = kvp.Key;
-                GridSlot slot = playerGrid[slotIndex];
-
-                Debug.Log($"🔄 Respawning {slotData.unitCount}x {slotData.unitData.toyName} in PLAYER slot {slotIndex}");
-
-                for (int i = 0; i < slotData.unitCount; i++)
-                {
-                    int beforeCount = slot.units.Count;
-
-                    if (SpawnUnit(slotData.unitData, true, slotIndex))
-                    {
-                        // Add newly spawned units
-                        for (int j = beforeCount; j < slot.units.Count; j++)
-                        {
-                            unitsToAnimate.Add(slot.units[j]);
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogError($"❌ Failed to respawn player unit #{i} in slot {slotIndex}!");
-                    }
-                }
-
-                Debug.Log($"   ✅ Player slot {slotIndex} → {slot.units.Count} units, unitType={slot.unitType?.toyName}");
-            }
-        }
-
-        // Spawn enemy units
-        foreach (var kvp in enemyStateSnapshot)
-        {
-            GridSlotData slotData = kvp.Value;
-            if (slotData.isFilled && slotData.unitData != null)
-            {
-                int slotIndex = kvp.Key;
-                GridSlot slot = enemyGrid[slotIndex];
-
-                Debug.Log($"🔄 Respawning {slotData.unitCount}x {slotData.unitData.toyName} in ENEMY slot {slotIndex}");
-
-                for (int i = 0; i < slotData.unitCount; i++)
-                {
-                    int beforeCount = slot.units.Count;
-
-                    if (SpawnUnit(slotData.unitData, false, slotIndex))
-                    {
-                        for (int j = beforeCount; j < slot.units.Count; j++)
-                        {
-                            unitsToAnimate.Add(slot.units[j]);
-                        }
-                    }
-                    else
-                    {
-                        Debug.LogError($"❌ Failed to respawn enemy unit #{i} in slot {slotIndex}!");
-                    }
-                }
-
-                Debug.Log($"   ✅ Enemy slot {slotIndex} → {slot.units.Count} units, unitType={slot.unitType?.toyName}");
-            }
-        }
-
-        Debug.Log($"✅ GetPreviousUnits complete: {unitsToAnimate.Count} units ready for animation");
-
-        PrintGridState();
-
-        return unitsToAnimate;
-    }
-   */
-    private void PrintGridState()
-    {
-        Debug.Log("📊 === FINAL GRID STATE ===");
-
-        Debug.Log("🔵 PLAYER GRID:");
-        for (int i = 0; i < playerGrid.Length; i++)
-        {
-            if (!playerGrid[i].IsEmpty)
-            {
-                Debug.Log($"   Slot {i}: {playerGrid[i].units.Count} units of {playerGrid[i].unitType?.toyName}");
-            }
-        }
-
-        Debug.Log("🔴 ENEMY GRID:");
-        for (int i = 0; i < enemyGrid.Length; i++)
-        {
-            if (!enemyGrid[i].IsEmpty)
-            {
-                Debug.Log($"   Slot {i}: {enemyGrid[i].units.Count} units of {enemyGrid[i].unitType?.toyName}");
-            }
-        }
-
-        Debug.Log("========================");
-    }
+   
     // ✅ Helper: Count filled slots
     private int CountFilledSlots(GridSlot[] grid)
     {
