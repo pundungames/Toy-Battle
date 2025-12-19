@@ -36,8 +36,22 @@ public class BoneMageUnit : RuntimeUnit
 
     public override void StartBattle()
     {
-        ResetBoneMageTargets();
+
         base.StartBattle();
+        if (isPlayerUnit && !playerSlotSelected)
+        {
+            // First player Bone Mage - reset
+            playerTargetSlot = -1;
+            playerSlotSelected = false;
+            Debug.Log("🔄 Player Bone Mage targets reset");
+        }
+        else if (!isPlayerUnit && !enemySlotSelected)
+        {
+            // First enemy Bone Mage - reset
+            enemyTargetSlot = -1;
+            enemySlotSelected = false;
+            Debug.Log("🔄 Enemy Bone Mage targets reset");
+        }
 
         // Apply HP buff when battle starts
         if (enableHPBuff && !hasAppliedBuff)
