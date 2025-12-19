@@ -302,7 +302,6 @@ public class SmartTargetingSystem : MonoBehaviour
                 }
             }
 
-            Debug.Log($"🎯 Player front row: maxZ={maxZ:F1}, {frontRow.Count} units in range [{maxZ - frontRowZThreshold:F1}, {maxZ:F1}]");
             return frontRow;
         }
         else
@@ -332,7 +331,6 @@ public class SmartTargetingSystem : MonoBehaviour
                 }
             }
 
-            Debug.Log($"🎯 Enemy front row: minZ={minZ:F1}, {frontRow.Count} units in range [{minZ:F1}, {minZ + frontRowZThreshold:F1}]");
             return frontRow;
         }
     }    // ===== NORMAL TARGET (After 15 seconds) =====

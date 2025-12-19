@@ -38,7 +38,7 @@ MonoBehaviour:
   maxUnitsPerRow: 8
   unitSpacing: 0.788
   maxStackPerSlot: 12
-  toyStamina: 0
+  toyStamina: 3
   isMultiUnit: 0
   unitsPerSlot: 1
   isTwinSystem: 0

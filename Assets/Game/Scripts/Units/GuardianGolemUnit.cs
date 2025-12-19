@@ -1,13 +1,15 @@
 ﻿// ============================================================================
-// GUARDIAN GOLEM - FIXED TARGET DEATH HANDLING
-// ✅ Checks target alive before AND during dash
-// ✅ Cancels dash if target dies mid-animation
+// GUARDIAN GOLEM - WITH SPLIT ON DEATH ABILITY
+// ✅ Dash attack with target death handling
+// ✅ Splits into mini golems on death (Level 1: 2 pieces, Level 2-3: 4 pieces)
+// ✅ Mini golems inherit 10% HP/Damage
 // ============================================================================
 
 using UnityEngine;
 using DG.Tweening;
 using Zenject;
 using UnityEngine.AI;
+using System.Collections.Generic;
 
 public class GuardianGolemUnit : RuntimeUnit
 {
@@ -21,15 +23,26 @@ public class GuardianGolemUnit : RuntimeUnit
     [Header("Animation Events")]
     [SerializeField] string dashEventName = "DashToTarget";
 
+    [Header("Split on Death Settings")]
+    [SerializeField] bool enableSplit = true;
+    [SerializeField] GameObject miniGolemPrefab; // Optional: Use different prefab
+    [SerializeField] float miniGolemScale = 0.5f; // Scale if using same prefab
+    [SerializeField] float miniGolemHPPercent = 0.1f; // 10% of base HP
+    [SerializeField] float miniGolemDamagePercent = 0.1f; // 10% of base damage
+    [SerializeField] float spawnRadius = 1.5f;
+    [SerializeField] float spawnDelay = 0.2f; // Delay between spawns
+
     private bool isDashing = false;
-    private RuntimeUnit dashTarget; // ✅ Store dash target separately
-    private Tween currentDashTween; // ✅ Track dash tween
+    private RuntimeUnit dashTarget;
+    private Tween currentDashTween;
+    private bool hasSplit = false; // Prevent multiple splits
+
+    // ===== DASH ATTACK =====
 
     protected override void ExecuteAttack(RuntimeUnit target)
     {
         if (isDashing) return;
 
-        // ✅ Store target at attack start
         dashTarget = target;
 
         if (animator != null)
@@ -56,7 +69,6 @@ public class GuardianGolemUnit : RuntimeUnit
 
     public void DashToTarget()
     {
-        // ✅ Check if stored dash target is still valid
         if (dashTarget == null || !dashTarget.IsAlive())
         {
             Debug.Log($"💀 Guardian Golem: Dash target died, canceling dash");
@@ -74,23 +86,19 @@ public class GuardianGolemUnit : RuntimeUnit
             agent.enabled = false;
         }
 
-        // ✅ Store tween reference
         currentDashTween = transform.DOMove(dashTargetPos, dashDuration)
             .SetEase(Ease.OutQuad)
             .OnUpdate(() =>
             {
-                // ✅ Check every frame if target died during dash
                 if (dashTarget == null || !dashTarget.IsAlive())
                 {
                     Debug.Log($"💀 Guardian Golem: Target died during dash, stopping");
 
-                    // Stop dash immediately
                     if (currentDashTween != null)
                     {
                         currentDashTween.Kill();
                     }
 
-                    // Re-enable agent
                     if (agent != null && !agent.enabled)
                     {
                         agent.enabled = true;
@@ -101,7 +109,6 @@ public class GuardianGolemUnit : RuntimeUnit
             })
             .OnComplete(() =>
             {
-                // ✅ Final check before damage
                 if (dashTarget != null && dashTarget.IsAlive())
                 {
                     DealDashDamage(dashTarget);
@@ -117,7 +124,7 @@ public class GuardianGolemUnit : RuntimeUnit
                 }
 
                 isDashing = false;
-                dashTarget = null; // ✅ Clear reference
+                dashTarget = null;
             });
 
         PlayDashVFX();
@@ -184,6 +191,8 @@ public class GuardianGolemUnit : RuntimeUnit
             });
     }
 
+    // ===== VFX/SFX =====
+
     private void PlayDashVFX()
     {
         if (poolingSystem != null)
@@ -205,10 +214,170 @@ public class GuardianGolemUnit : RuntimeUnit
         }
     }
 
-    // ✅ Clean up on death
+    // ===== SPLIT ON DEATH =====
+
+    protected override void OnUnitDeath()
+    {
+        // Call base death logic first
+        base.OnUnitDeath();
+
+        // Then split if enabled and not already split
+        if (enableSplit && !hasSplit)
+        {
+            hasSplit = true;
+            SplitIntoMiniGolems();
+        }
+    }
+
+    private void SplitIntoMiniGolems()
+    {
+        if (data == null)
+        {
+            Debug.LogWarning("⚠️ Golem data is null, cannot split!");
+            return;
+        }
+
+        // Determine split count based on level
+        int splitCount = data.level == 1 ? 2 : 4;
+
+        Vector3 deathPosition = transform.position;
+        deathPosition.y = 0; // Ground level
+
+        Debug.Log($"🗿 Guardian Golem splitting into {splitCount} mini golems!");
+
+        // Spawn mini golems
+        for (int i = 0; i < splitCount; i++)
+        {
+            SpawnMiniGolem(deathPosition, i, splitCount);
+        }
+
+        // Play split VFX
+        if (poolingSystem != null)
+        {
+            GameObject splitVfx = poolingSystem.InstantiateAPS("golem_split_vfx", deathPosition + Vector3.up * 0.5f);
+            if (splitVfx != null)
+            {
+                container.InjectGameObject(splitVfx);
+                poolingSystem.DestroyAPS(splitVfx, 2f);
+            }
+        }
+
+        // Play split sound
+        if (audioManager != null)
+        {
+            audioManager.Play("golem_split");
+        }
+
+        Taptic.Light();
+    }
+
+    private void SpawnMiniGolem(Vector3 centerPos, int index, int totalCount)
+    {
+        // Calculate spawn position in circle around death point
+        float angle = (360f / totalCount) * index;
+        float angleRad = angle * Mathf.Deg2Rad;
+
+        Vector3 spawnOffset = new Vector3(
+            Mathf.Cos(angleRad) * spawnRadius,
+            0,
+            Mathf.Sin(angleRad) * spawnRadius
+        );
+
+        Vector3 spawnPos = centerPos + spawnOffset;
+
+        // Validate NavMesh position
+        NavMeshHit navHit;
+        if (!NavMesh.SamplePosition(spawnPos, out navHit, 3f, NavMesh.AllAreas))
+        {
+            Debug.LogWarning($"⚠️ Mini golem spawn position not on NavMesh, using center");
+            spawnPos = centerPos;
+
+            // Try center
+            if (!NavMesh.SamplePosition(spawnPos, out navHit, 5f, NavMesh.AllAreas))
+            {
+                Debug.LogError($"❌ Cannot find valid NavMesh position for mini golem!");
+                return;
+            }
+        }
+
+        spawnPos = navHit.position;
+
+        // Determine which prefab to use
+        GameObject prefabToUse = miniGolemPrefab != null ? miniGolemPrefab : gameObject;
+
+        // Instantiate mini golem
+        GameObject miniGolemObj = Instantiate(prefabToUse, spawnPos, Quaternion.identity);
+
+        // Scale down if using same prefab
+        if (miniGolemPrefab == null)
+        {
+            miniGolemObj.transform.localScale = originalScale * miniGolemScale;
+        }
+
+        // Setup RuntimeUnit
+        RuntimeUnit miniGolem = miniGolemObj.GetComponent<RuntimeUnit>();
+
+        if (miniGolem == null)
+        {
+            Debug.LogError($"❌ Mini golem prefab missing RuntimeUnit component!");
+            Destroy(miniGolemObj);
+            return;
+        }
+
+        // Initialize with reduced stats
+        miniGolem.Initialize(data, gridSlot, isPlayerUnit);
+
+        // Override HP and Damage
+        float miniHP = data.GetScaledHP() * miniGolemHPPercent;
+        float miniDamage = data.GetScaledDamage() * miniGolemDamagePercent;
+
+        miniGolem.SetCustomStats(miniHP, Mathf.RoundToInt(miniDamage));
+
+        // Inject dependencies
+        container.InjectGameObject(miniGolemObj);
+
+        // Disable split on mini golems (prevent infinite splits)
+        GuardianGolemUnit miniGolemScript = miniGolemObj.GetComponent<GuardianGolemUnit>();
+        if (miniGolemScript != null)
+        {
+            miniGolemScript.enableSplit = false;
+        }
+
+        // Spawn animation
+        miniGolemObj.transform.localScale = Vector3.zero;
+        miniGolemObj.transform.DOScale(miniGolemPrefab == null ? originalScale * miniGolemScale : Vector3.one, 0.3f)
+            .SetEase(Ease.OutBack)
+            .SetDelay(spawnDelay * index);
+
+        // ✅ Add to BattleManager lists (CRITICAL!)
+        BattleManager battleManager = FindObjectOfType<BattleManager>();
+        if (battleManager != null)
+        {
+            // Add to appropriate team list using new methods
+            if (isPlayerUnit)
+            {
+                battleManager.AddPlayerUnit(miniGolem);
+            }
+            else
+            {
+                battleManager.AddEnemyUnit(miniGolem);
+            }
+
+            // Start battle behavior
+            miniGolem.StartBattle();
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ BattleManager not found, mini golem won't be targetable!");
+        }
+
+        Debug.Log($"✅ Mini golem {index + 1}/{totalCount} spawned with {miniHP} HP and {miniDamage} damage");
+    }
+
+    // ===== CLEANUP =====
+
     private void OnDestroy()
     {
-        // Kill dash tween
         if (currentDashTween != null)
         {
             currentDashTween.Kill();

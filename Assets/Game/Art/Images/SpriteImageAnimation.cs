@@ -38,7 +38,7 @@ public class SpriteImageAnimation : MonoBehaviour
         // GameObject aktif deðilse baþlatma
         if (!gameObject.activeInHierarchy)
         {
-            Debug.LogWarning("Cannot start animation - GameObject is not active!");
+            //Debug.LogWarning("Cannot start animation - GameObject is not active!");
             return;
         }
 

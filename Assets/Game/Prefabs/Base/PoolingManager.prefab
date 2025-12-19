@@ -63,6 +63,18 @@ MonoBehaviour:
       AllowGrow: 1
       AutoDestroy: 0
       clones: []
+    - ID: bone_mage_buff_vfx
+      SourcePrefab: {fileID: 106386, guid: 831c85159903ac84399ac3c3e1d5c5ad, type: 3}
+      MinNumberOfObject: 10
+      AllowGrow: 1
+      AutoDestroy: 0
+      clones: []
+    - ID: bone_mage_buff_vfx_enemy
+      SourcePrefab: {fileID: 189378, guid: 6419d3d589b2c4249a00a738ba8a870f, type: 3}
+      MinNumberOfObject: 10
+      AllowGrow: 1
+      AutoDestroy: 0
+      clones: []
   - categoryName: BlastRacer
     sourceObjects:
     - ID: blast_racer_explosion

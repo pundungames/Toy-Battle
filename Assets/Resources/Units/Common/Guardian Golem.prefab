@@ -1827,7 +1827,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4382146095821283494
 Transform:
   m_ObjectHideFlags: 0
@@ -1951,6 +1951,13 @@ MonoBehaviour:
   knockbackDuration: 0.2
   attackAnimationDuration: 0.7
   dashEventName: DashToTarget
+  enableSplit: 1
+  miniGolemPrefab: {fileID: 0}
+  miniGolemScale: 0.5
+  miniGolemHPPercent: 0.1
+  miniGolemDamagePercent: 0.1
+  spawnRadius: 1.5
+  spawnDelay: 0.2
 --- !u!1 &4272375630393591022
 GameObject:
   m_ObjectHideFlags: 0

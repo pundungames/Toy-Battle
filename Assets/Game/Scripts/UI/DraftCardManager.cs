@@ -49,6 +49,13 @@ public class DraftCardManager : MonoBehaviour
     private bool hasCardBeenChosen = false;
     private List<object> currentDraftPool = new List<object>(); // ToyUnitData veya BonusCardData
 
+    [Header("Stamina System")]
+    [SerializeField] int maxStamina = 10;
+    [SerializeField] int currentStamina = 10;
+
+    // Event for UI updates
+    public static event System.Action<int, int> OnStaminaChanged; // (current, max)
+
     private void OnEnable()
     {
         EventManager.onCardSelected += OnCardConfirmed;
@@ -249,10 +256,25 @@ public class DraftCardManager : MonoBehaviour
 
         if (cardData is ToyUnitData unitData)
         {
+            // ✅ Check stamina BEFORE spawning
+            if (!HasEnoughStamina(unitData.toyStamina))
+            {
+                Debug.LogWarning($"⚠️ Not enough stamina for {unitData.toyName}!");
+                CancelSelection();
+                return;
+            }
+
             bool spawned = gridManager.SpawnUnit(unitData, true);
 
             if (spawned)
             {
+                // ✅ Spend stamina AFTER successful spawn
+                if (!TrySpendStamina(unitData.toyStamina))
+                {
+                    Debug.LogError($"❌ Failed to spend stamina for {unitData.toyName}!");
+                    // Note: Unit already spawned, might need refund logic
+                }
+
                 EventManager.OnCardSelected(unitData);
                 CompleteSelection();
             }
@@ -264,6 +286,7 @@ public class DraftCardManager : MonoBehaviour
         }
         else if (cardData is BonusCardData bonusData)
         {
+            // Bonus cards use pips, not stamina
             if (currentPips >= bonusData.pipCost)
             {
                 bonusSystem.ApplyBonus(bonusData);
@@ -278,7 +301,6 @@ public class DraftCardManager : MonoBehaviour
             }
         }
     }
-
     private void CompleteSelection()
     {
         selectedCard.Placed();
@@ -363,5 +385,44 @@ public class DraftCardManager : MonoBehaviour
     private void OnCardConfirmed(ToyUnitData unitData)
     {
         // Additional logic if needed
+    }
+    // ===== STAMINA SYSTEM =====
+
+    public int CurrentStamina => currentStamina;
+    public int MaxStamina => maxStamina;
+
+    public bool HasEnoughStamina(int cost)
+    {
+        return currentStamina >= cost;
+    }
+
+    public bool TrySpendStamina(int cost)
+    {
+        if (!HasEnoughStamina(cost))
+        {
+            Debug.LogWarning($"⚠️ Not enough stamina! Need {cost}, have {currentStamina}");
+            return false;
+        }
+
+        currentStamina -= cost;
+        Debug.Log($"💰 Spent {cost} stamina. Remaining: {currentStamina}/{maxStamina}");
+
+        OnStaminaChanged?.Invoke(currentStamina, maxStamina);
+
+        return true;
+    }
+
+    public void ResetStamina()
+    {
+        currentStamina = maxStamina;
+        Debug.Log($"🔄 Stamina reset to {maxStamina}");
+        OnStaminaChanged?.Invoke(currentStamina, maxStamina);
+    }
+
+    public void AddStamina(int amount)
+    {
+        currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
+        Debug.Log($"➕ Added {amount} stamina. Current: {currentStamina}/{maxStamina}");
+        OnStaminaChanged?.Invoke(currentStamina, maxStamina);
     }
 }

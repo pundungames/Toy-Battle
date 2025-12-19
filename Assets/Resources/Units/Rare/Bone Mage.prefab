@@ -2620,7 +2620,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &4976023732542856850
 Transform:
   m_ObjectHideFlags: 0
@@ -2740,8 +2740,10 @@ MonoBehaviour:
   enemyMaterial: {fileID: 2100000, guid: c123dea2e593a01439a9cc24ace6014d, type: 2}
   projectilePrefabID: bone_mage_skull
   projectilePrefab: {fileID: 0}
-  hasShieldAbility: 0
-  shieldCooldown: 10
+  enableHPBuff: 1
+  level1BuffPercent: 0.025
+  level2BuffPercent: 0.05
+  level3BuffPercent: 0.075
 --- !u!1 &5654291043005561418
 GameObject:
   m_ObjectHideFlags: 0

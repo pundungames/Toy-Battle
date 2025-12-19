@@ -600,6 +600,8 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         isInBattle = false;
         Debug.Log($"💀 {data.toyName} is dying...");
 
+        OnUnitDeath();
+
         // ✅ Stop all coroutines and tweens FIRST
         StopAllCoroutines();
         transform.DOKill();
@@ -645,6 +647,43 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
         Destroy(gameObject, 0.1f);
 
         Debug.Log($"💀 {data.toyName} deactivated and scheduled for destruction");
+    }
+    /// <summary>
+    /// Virtual method that can be overridden for special death behaviors (e.g., Golem split)
+    /// Called BEFORE the unit is destroyed
+    /// </summary>
+    protected virtual void OnUnitDeath()
+    {
+        // Base implementation does nothing
+        // Override in child classes for special death abilities
+    }
+    /// <summary>
+    /// Set custom HP and Damage (used for mini golems with reduced stats)
+    /// </summary>
+    public void SetCustomStats(float hp, int damage)
+    {
+        maxHealth = hp;
+        currentHealthValue = hp;
+        currentDamage = damage;
+
+        OnHealthChanged?.Invoke(currentHealthValue, maxHealth);
+
+        Debug.Log($"✅ {data.toyName} custom stats: HP={hp}, Damage={damage}");
+    }
+
+    // ===== HP BUFF SUPPORT (for Bone Mage) =====
+
+    /// <summary>
+    /// Increase max HP and heal by the same amount (for buff abilities)
+    /// </summary>
+    public void IncreaseMaxHP(float amount)
+    {
+        maxHealth += amount;
+        currentHealthValue += amount; // Also heal by buff amount
+
+        OnHealthChanged?.Invoke(currentHealthValue, maxHealth);
+
+        Debug.Log($"✅ {data.toyName} HP increased by {amount:F0}. New max: {maxHealth:F0}, Current: {currentHealthValue:F0}");
     }
     public void ResetBattleBuffs()
     {

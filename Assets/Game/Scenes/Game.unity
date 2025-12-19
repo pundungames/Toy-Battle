@@ -4224,6 +4224,16 @@ PrefabInstance:
       propertyPath: battleCam
       value: 
       objectReference: {fileID: 743103209}
+    - target: {fileID: 7005053380458324303, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
+      propertyPath: maxStamina
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7005053380458324303, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
+      propertyPath: currentStamina
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 7118601102579217979, guid: 7524e83b4dc038346b2fe5440e798448,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -4244,11 +4254,6 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7303513688550672928, guid: 7524e83b4dc038346b2fe5440e798448,
-        type: 3}
-      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
-      value: 
-      objectReference: {fileID: 2059529281}
     - target: {fileID: 7418154363950903909, guid: 7524e83b4dc038346b2fe5440e798448,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -14765,6 +14770,7 @@ MonoBehaviour:
   formationWaitTime: 1
   victoryCelebrationDuration: 0.5
   battleResultUIDuration: 0.7
+  battleEndCheckDelay: 0.3
 --- !u!4 &540931620
 Transform:
   m_ObjectHideFlags: 0

@@ -1,17 +1,20 @@
 // ============================================================================
-// BATTLE MANAGER - WITH VICTORY CELEBRATION
+// BATTLE MANAGER - WITH SPLIT ABILITY SUPPORT
 // ✅ Winner celebrates before units are cleared
 // ✅ Battle result UI shown
 // ✅ Smooth transition to draft
+// ✅ FIXED: Delayed battle end check for split abilities (Golem split)
 // ============================================================================
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Zenject;
 
 public class BattleManager : MonoBehaviour
 {
+    [Inject] DraftCardManager draftManager;
     [Inject] GridManager gridManager;
     [Inject] UIManager uiManager;
 
@@ -24,8 +27,13 @@ public class BattleManager : MonoBehaviour
     [SerializeField] float formationWaitTime = 1.0f;
 
     [Header("Victory Settings")]
-    [SerializeField] float victoryCelebrationDuration = .7f; // ✅ Winners celebrate for 2s
-    [SerializeField] float battleResultUIDuration = .7f; // ✅ Show result UI for 2s
+    [SerializeField] float victoryCelebrationDuration = .7f;
+    [SerializeField] float battleResultUIDuration = .7f;
+
+    [Header("Battle End Delay (for Split Abilities)")]
+    [SerializeField] float battleEndCheckDelay = 0.3f; // ✅ Delay before checking battle end
+    private float lastDeathTime = -999f; // Track when last unit died
+    private bool isPendingBattleEndCheck = false; // Flag for delayed check
 
     private List<RuntimeUnit> playerUnits = new List<RuntimeUnit>();
     private List<RuntimeUnit> enemyUnits = new List<RuntimeUnit>();
@@ -34,6 +42,32 @@ public class BattleManager : MonoBehaviour
 
     public List<RuntimeUnit> GetPlayerUnits() => playerUnits;
     public List<RuntimeUnit> GetEnemyUnits() => enemyUnits;
+
+    // ===== ADD UNITS DYNAMICALLY (for split abilities) =====
+
+    /// <summary>
+    /// Add a unit to the battle mid-fight (e.g., mini golems from split)
+    /// </summary>
+    public void AddPlayerUnit(RuntimeUnit unit)
+    {
+        if (unit != null && !playerUnits.Contains(unit))
+        {
+            playerUnits.Add(unit);
+            Debug.Log($"➕ Added {unit.data.toyName} to player units (now {playerUnits.Count} units)");
+        }
+    }
+
+    /// <summary>
+    /// Add a unit to the battle mid-fight (e.g., mini golems from split)
+    /// </summary>
+    public void AddEnemyUnit(RuntimeUnit unit)
+    {
+        if (unit != null && !enemyUnits.Contains(unit))
+        {
+            enemyUnits.Add(unit);
+            Debug.Log($"➕ Added {unit.data.toyName} to enemy units (now {enemyUnits.Count} units)");
+        }
+    }
 
     // ===== START BATTLE =====
 
@@ -46,6 +80,9 @@ public class BattleManager : MonoBehaviour
     private IEnumerator BattleFormationSequence()
     {
         Debug.Log("🎯 Starting formation sequence...");
+
+        // ✅ Reset Bone Mage static targets for new battle
+        BoneMageUnit.ResetBoneMageTargets();
 
         playerUnits = gridManager.GetPlayerUnits();
         enemyUnits = gridManager.GetEnemyUnits();
@@ -117,7 +154,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    // ===== UPDATE - POISON & END CHECK =====
+    // ===== UPDATE - POISON & END CHECK WITH SPLIT SUPPORT =====
 
     private void Update()
     {
@@ -131,13 +168,51 @@ public class BattleManager : MonoBehaviour
             ApplyPoisonDamage();
         }
 
+        // ✅ Get counts BEFORE cleanup (to detect deaths)
+        int playerCountBefore = playerUnits.Count(u => u != null && u.IsAlive());
+        int enemyCountBefore = enemyUnits.Count(u => u != null && u.IsAlive());
+
         // Remove dead units
         playerUnits.RemoveAll(u => u == null || !u.IsAlive());
         enemyUnits.RemoveAll(u => u == null || !u.IsAlive());
 
-        // Check battle end
-        if (IsBattleOver())
+        // ✅ Get counts AFTER cleanup
+        int playerCountAfter = playerUnits.Count;
+        int enemyCountAfter = enemyUnits.Count;
+
+        // ✅ Check if units DIED this frame (DECREASED, not just changed)
+        bool unitsActuallyDied = (playerCountAfter < playerCountBefore) || (enemyCountAfter < enemyCountBefore);
+
+        if (unitsActuallyDied)
         {
+            // Units died, mark time and set pending flag
+            lastDeathTime = Time.time;
+            isPendingBattleEndCheck = true;
+
+            Debug.Log($"💀 Unit death detected. Waiting {battleEndCheckDelay}s for split abilities... " +
+                     $"(P: {playerCountBefore}→{playerCountAfter}, E: {enemyCountBefore}→{enemyCountAfter})");
+        }
+
+        // ✅ Delayed battle end check (gives time for split/spawn abilities)
+        if (isPendingBattleEndCheck && Time.time >= lastDeathTime + battleEndCheckDelay)
+        {
+            isPendingBattleEndCheck = false;
+
+            // NOW check battle end after delay
+            if (IsBattleOver())
+            {
+                Debug.Log("⚔️ Battle end confirmed after split delay");
+                EndBattle();
+            }
+            else
+            {
+                Debug.Log($"✅ Battle continues (new units spawned from split) - P:{playerUnits.Count}, E:{enemyUnits.Count}");
+            }
+        }
+        // ✅ ALSO check immediately if no pending check (normal battle flow)
+        else if (!isPendingBattleEndCheck && IsBattleOver())
+        {
+            Debug.Log("⚔️ Battle end detected (normal check)");
             EndBattle();
         }
     }
@@ -177,17 +252,17 @@ public class BattleManager : MonoBehaviour
 
         Debug.Log($"⚔️ Battle ended! Winner: {(playerWon ? "PLAYER" : "ENEMY")}");
 
-        // ✅ NEW: Start victory sequence instead of immediate cleanup
+        // Start victory sequence
         StartCoroutine(VictorySequence(playerWon));
     }
 
-    // ===== NEW: VICTORY SEQUENCE =====
+    // ===== VICTORY SEQUENCE =====
 
     private IEnumerator VictorySequence(bool playerWon)
     {
         Debug.Log("🎉 Starting victory sequence...");
 
-        // 1. Stop all units (but keep them alive for celebration)
+        // 1. Stop all units
         List<RuntimeUnit> winners = playerWon ? playerUnits : enemyUnits;
         List<RuntimeUnit> losers = playerWon ? enemyUnits : playerUnits;
 
@@ -201,12 +276,12 @@ public class BattleManager : MonoBehaviour
             if (unit != null) unit.StopBattle();
         }
 
-        // 2. Play victory animations on winners
+        // 2. Play victory animations
         foreach (var winner in winners)
         {
             if (winner != null && winner.animator != null)
             {
-                winner.animator.SetTrigger("Victory"); // If you have victory animation
+                winner.animator.SetTrigger("Victory");
             }
         }
 
@@ -222,11 +297,14 @@ public class BattleManager : MonoBehaviour
         // 6. Wait a bit more for UI
         yield return new WaitForSeconds(battleResultUIDuration);
 
-        // 7. NOW clear the scene
+        // 7. Clear the scene
         gridManager.ClearSceneObjects();
 
         // 8. Notify game manager
         EventManager.OnBattleComplete(playerWon);
+
+        // ✅ 9. Reset stamina for next draft
+        draftManager.ResetStamina();
 
         Debug.Log("✅ Victory sequence complete!");
     }

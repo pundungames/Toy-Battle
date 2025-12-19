@@ -1,6 +1,6 @@
-// ============================================================================
-// DRAFT CARD CONTENT - Tek bir draft kart˝n˝ temsil eder
-// Hem Unit hem Bonus kartlar˝ iÁin kullan˝l˝r
+Ôªø// ============================================================================
+// DRAFT CARD CONTENT - Tek bir draft kartƒ±nƒ± temsil eder
+// Hem Unit hem Bonus kartlarƒ± i√ßin kullanƒ±lƒ±r
 // ============================================================================
 
 using UnityEngine;
@@ -36,6 +36,8 @@ public class DraftCardContent : MonoBehaviour
     private DraftCardManager manager;
     private bool isUnit = true;
     bool selected;
+    private ToyUnitData currentUnitData; // Store current unit
+    private DraftCardManager draftManager; // Store reference
     private void Awake()
     {
         initialLocalPosition = transform.localPosition;
@@ -46,6 +48,8 @@ public class DraftCardContent : MonoBehaviour
     public void SetUnitContent(ToyUnitData unitData, DraftCardManager cardManager, bool isShop)
     {
         manager = cardManager;
+        draftManager = cardManager; // ‚úÖ Store reference
+        currentUnitData = unitData; // ‚úÖ Store unit data
         isUnit = true;
         selected = false;
 
@@ -57,9 +61,11 @@ public class DraftCardContent : MonoBehaviour
 
         staminaText.text = unitData.toyStamina.ToString();
 
-
         // Rarity visual
         ApplyRarityVisual(unitData.toyRarityType);
+
+        // ‚úÖ Check affordability
+        UpdateAffordability();
 
         ResetCardVisuals();
     }
@@ -75,7 +81,7 @@ public class DraftCardContent : MonoBehaviour
         cardInfo.text = bonusData.description;
         cardImage.image.sprite = bonusData.cardSprite;
 
-        // Price (bonus iÁin yok)
+        // Price (bonus i√ßin yok)
         staminaText.transform.parent.gameObject.SetActive(false);
 
         staminaText.text = bonusData.pipCost.ToString();
@@ -83,7 +89,7 @@ public class DraftCardContent : MonoBehaviour
         // Check if affordable
         button.interactable = availablePips >= bonusData.pipCost;
 
-        // Rarity (bonus kartlar rare say˝labilir)
+        // Rarity (bonus kartlar rare sayƒ±labilir)
         ApplyRarityVisual(RarityType.Rare);
 
         ResetCardVisuals();
@@ -111,11 +117,67 @@ public class DraftCardContent : MonoBehaviour
         }
     }
 
-    // ===== SELECTION =====
+    // ===== STAMINA AFFORDABILITY =====
+
+    private void OnEnable()
+    {
+        DraftCardManager.OnStaminaChanged += OnStaminaChanged;
+    }
+
+    private void OnDisable()
+    {
+        DraftCardManager.OnStaminaChanged -= OnStaminaChanged;
+    }
+
+    private void OnStaminaChanged(int current, int max)
+    {
+        UpdateAffordability();
+    }
+
+    private void UpdateAffordability()
+    {
+        if (draftManager == null || currentUnitData == null || !isUnit) return;
+
+        bool canAfford = draftManager.HasEnoughStamina(currentUnitData.toyStamina);
+
+        // Visual feedback
+        button.interactable = canAfford;
+
+        // Dim card if can't afford
+        CanvasGroup canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        }
+
+        canvasGroup.alpha = canAfford ? 1f : 0.5f;
+
+        // Change stamina text color
+        if (staminaText != null)
+        {
+            staminaText.color = canAfford ? Color.white : Color.red;
+        }
+    }
+
+    // ===== STAMINA CHECK ON SELECT =====
 
     public void SelectCard()
     {
         if (selected) return;
+
+        // ‚úÖ Check stamina BEFORE selection
+        if (isUnit && currentUnitData != null)
+        {
+            if (!draftManager.HasEnoughStamina(currentUnitData.toyStamina))
+            {
+                Debug.LogWarning($"‚ö†Ô∏è Not enough stamina for {currentUnitData.toyName}!");
+
+                // Shake animation to show error
+                transform.DOShakePosition(0.3f, 10f, 20, 90, false, true).SetUpdate(true);
+                return;
+            }
+        }
+
         selected = true;
         transform.DOKill(true);
 

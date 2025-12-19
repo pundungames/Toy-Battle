@@ -922,6 +922,7 @@ MonoBehaviour:
   hitScaleFactor: 1.1
   hitDuration: 0.3
   isExecutingAttack: 0
+  enemyMaterial: {fileID: 0}
 --- !u!195 &383487460166765357
 NavMeshAgent:
   m_ObjectHideFlags: 0
