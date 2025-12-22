@@ -97,6 +97,7 @@ public class BallisticProjectile : ProjectileBase
 
     private void OnImpact()
     {
+        transform.DOScale(Vector3.zero, .2f).SetDelay(.4f);
         if (hasExploded) return;
         hasExploded = true;
 
@@ -187,7 +188,7 @@ public class BallisticProjectile : ProjectileBase
     private void DestroyProjectile()
     {
         Debug.Log("DestroyProjectile");
-        if (!gameObject.activeSelf) return;
+      ///  if (!gameObject.activeSelf) return;
 
         hasExploded = true;
 

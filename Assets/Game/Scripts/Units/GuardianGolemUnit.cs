@@ -37,8 +37,18 @@ public class GuardianGolemUnit : RuntimeUnit
     private Tween currentDashTween;
     private bool hasSplit = false; // Prevent multiple splits
 
-    // ===== DASH ATTACK =====
-
+    private void OnEnable()
+    {
+        EventManager.onBattleComplete += BattleEnd;
+    }
+    private void OnDisable()
+    {
+        EventManager.onBattleComplete -= BattleEnd;
+    }
+    void BattleEnd(bool won)
+    {
+        if (!enableSplit) OnDeath();
+    }
     protected override void ExecuteAttack(RuntimeUnit target)
     {
         if (isDashing) return;
