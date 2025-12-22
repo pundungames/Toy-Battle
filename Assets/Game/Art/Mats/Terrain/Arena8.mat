@@ -73,7 +73,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Texture2D:
-        m_Texture: {fileID: 2800000, guid: d76db17683953a24ab39b10a68b8a6ce, type: 3}
+        m_Texture: {fileID: 2800000, guid: f5a494933261f2949be5fe36143b0a22, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -115,6 +115,8 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
+    - _Rotation: 0
+    - _RotationWind: 276
     - _Simplenoise: 100
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
@@ -131,13 +133,16 @@ Material:
     - _Color: {r: 0.1782218, g: 0.8396226, b: 0.2079174, a: 1}
     - _Color2: {r: 0.27612138, g: 0.6886792, b: 0.33014682, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _GrassColor: {r: 0.454902, g: 0.4039216, b: 0.47058827, a: 1}
+    - _GrassColor: {r: 0.49416795, g: 0.44455323, b: 0.509434, a: 1}
     - _GrassColor2: {r: 0.58431375, g: 0.54901963, b: 0.57254905, a: 1}
     - _MaskTilling: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _Vector2: {r: 3, g: 1.9, b: 0, a: 0}
+    - _TillingGrass: {r: 3, g: 1, b: 0, a: 0}
+    - _TillingWind: {r: 0, g: 0, b: 0, a: 0}
+    - _Vector2: {r: 2.96, g: 1.13, b: 0, a: 0}
     - _WindColor: {r: 1, g: 1, b: 1, a: 1}
     - _WindColor2: {r: 0.6981132, g: 0.6981132, b: 0.6981132, a: 0}
+    - _offset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &7326243343357381969
 MonoBehaviour:

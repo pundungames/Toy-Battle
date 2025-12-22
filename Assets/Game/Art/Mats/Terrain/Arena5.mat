@@ -115,6 +115,8 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
+    - _Rotation: 90
+    - _RotationWind: 270
     - _Simplenoise: 200
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
@@ -135,9 +137,12 @@ Material:
     - _GrassColor2: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 1}
     - _MaskTilling: {r: 1, g: 1, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _Vector2: {r: 20, g: 18, b: 0, a: 0}
+    - _TillingGrass: {r: 5, g: 2, b: 0, a: 0}
+    - _TillingWind: {r: 2, g: 0.5, b: 0, a: 0}
+    - _Vector2: {r: 6, g: 13, b: 0, a: 0}
     - _WindColor: {r: 0.990566, g: 0.9624171, b: 0.80833924, a: 0}
     - _WindColor2: {r: 0.6886792, g: 0.6886792, b: 0.6886792, a: 0}
+    - _offset: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &7326243343357381969
 MonoBehaviour:
