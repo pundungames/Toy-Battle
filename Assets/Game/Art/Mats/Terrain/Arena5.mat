@@ -108,7 +108,7 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _H_z: 0.001
+    - _H_z: 0
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.005
@@ -126,7 +126,7 @@ Material:
     - _Surface: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
-    - _wind: 0.08
+    - _wind: 0
     - _windscale: 25
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}

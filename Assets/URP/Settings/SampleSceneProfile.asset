@@ -93,7 +93,7 @@ MonoBehaviour:
     m_Value: {x: 1, y: 1, z: 1, w: -0.10518406}
   midtones:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 1, z: 1, w: 0.015026297}
+    m_Value: {x: 1, y: 1, z: 1, w: -0.0150262965}
   highlights:
     m_OverrideState: 0
     m_Value: {x: 1, y: 1, z: 1, w: 0.015026298}
@@ -181,11 +181,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   active: 1
   lift:
-    m_OverrideState: 0
-    m_Value: {x: 1, y: 1, z: 1, w: -0.015026296}
+    m_OverrideState: 1
+    m_Value: {x: 1, y: 1, z: 1, w: -0.030052591}
   gamma:
     m_OverrideState: 1
     m_Value: {x: 1, y: 1, z: 1, w: -0.052591924}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 1, z: 1, w: 0.036576435}
+    m_Value: {x: 1, y: 1, z: 1, w: 0.06662903}

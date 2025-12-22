@@ -153,7 +153,7 @@ Material:
     - _SecondaryFoamColor: {r: 0.17370345, g: 1.1849058, b: 0.6515868, a: 0.011764706}
     - _ShallowColor: {r: 0.047481313, g: 0.39052686, b: 0.9150943, a: 1}
     - _SpecularColor: {r: 1, g: 1, b: 1, a: 0.2627451}
-    - _SurfaceFoamColor: {r: 0.21495599, g: 1.2830188, b: 0.7506971, a: 0.0627451}
+    - _SurfaceFoamColor: {r: 0.91302437, g: 1.7129308, b: 1.3154931, a: 0.14901961}
     - _TopColor: {r: 0, g: 0.17848217, b: 0.5622641, a: 0.44705883}
     - _UV: {r: 0, g: 0, b: 0, a: 0}
     - _UVRipples: {r: 0, g: 0, b: 0, a: 0}
