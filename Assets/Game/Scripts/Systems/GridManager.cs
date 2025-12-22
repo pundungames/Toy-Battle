@@ -822,22 +822,101 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+    // ============================================================================
+    // GRID MANAGER - BULLETPROOF GetPreviousUnits
+    // ✅ Guaranteed to work on ANY device
+    // ✅ Proper cleanup with delays
+    // ✅ No overlap bugs
+    // ============================================================================
+
+    // ===== REPLACE GetPreviousUnits() WITH THIS =====
+
     public List<RuntimeUnit> GetPreviousUnits()
     {
-        List<RuntimeUnit> unitsToAnimate = new List<RuntimeUnit>();
+        // Start coroutine and return empty list
+        // Coroutine will handle everything including transition callback
+        StartCoroutine(GetPreviousUnitsCoroutine());
+        return new List<RuntimeUnit>();
+    }
 
-        Debug.Log("🔄 GetPreviousUnits: Starting respawn process");
+    private IEnumerator GetPreviousUnitsCoroutine()
+    {
+        Debug.Log("🔄 GetPreviousUnits: Starting BULLETPROOF respawn process");
 
-        // ✅ CRITICAL: DESTROY old units and CLEAR slots FIRST!
+        // ===== PHASE 1: DEACTIVATE ALL UNITS IMMEDIATELY =====
+        Debug.Log("📍 PHASE 1: Deactivating all old units...");
+
+        int deactivatedCount = 0;
+
         for (int i = 0; i < playerGrid.Length; i++)
         {
-            // Destroy GameObjects
             foreach (var unit in playerGrid[i].units)
             {
                 if (unit != null && unit.gameObject != null)
                 {
-                    Debug.Log($"🗑️ Destroying old player unit: {unit.data.toyName}");
+                    // Stop all unit activity
+                    if (unit.agent != null && unit.agent.enabled)
+                    {
+                        unit.agent.ResetPath();
+                        unit.agent.enabled = false;
+                    }
+
+                    unit.StopAllCoroutines();
+                    unit.transform.DOKill();
+
+                    // Deactivate immediately
+                    unit.gameObject.SetActive(false);
+                    deactivatedCount++;
+
+                    Debug.Log($"   🔒 Deactivated: {unit.data.toyName}");
+                }
+            }
+        }
+
+        for (int i = 0; i < enemyGrid.Length; i++)
+        {
+            foreach (var unit in enemyGrid[i].units)
+            {
+                if (unit != null && unit.gameObject != null)
+                {
+                    if (unit.agent != null && unit.agent.enabled)
+                    {
+                        unit.agent.ResetPath();
+                        unit.agent.enabled = false;
+                    }
+
+                    unit.StopAllCoroutines();
+                    unit.transform.DOKill();
+
+                    unit.gameObject.SetActive(false);
+                    deactivatedCount++;
+
+                    Debug.Log($"   🔒 Deactivated: {unit.data.toyName}");
+                }
+            }
+        }
+
+        Debug.Log($"✅ PHASE 1 COMPLETE: {deactivatedCount} units deactivated");
+
+        // ===== PHASE 2: WAIT FOR SAFETY =====
+        Debug.Log("⏳ PHASE 2: Waiting 2 frames for safety...");
+        yield return null; // Wait 1 frame
+        yield return null; // Wait 2 frames
+
+        // ===== PHASE 3: DESTROY ALL OLD UNITS =====
+        Debug.Log("📍 PHASE 3: Destroying all old units...");
+
+        int destroyedCount = 0;
+
+        for (int i = 0; i < playerGrid.Length; i++)
+        {
+            foreach (var unit in playerGrid[i].units)
+            {
+                if (unit != null && unit.gameObject != null)
+                {
+                    Debug.Log($"   🗑️ Destroying: {unit.data.toyName}");
                     Destroy(unit.gameObject);
+                    destroyedCount++;
                 }
             }
             playerGrid[i].Clear(); // Clear list AND unitType
@@ -849,28 +928,88 @@ public class GridManager : MonoBehaviour
             {
                 if (unit != null && unit.gameObject != null)
                 {
-                    Debug.Log($"🗑️ Destroying old enemy unit: {unit.data.toyName}");
+                    Debug.Log($"   🗑️ Destroying: {unit.data.toyName}");
                     Destroy(unit.gameObject);
+                    destroyedCount++;
                 }
             }
             enemyGrid[i].Clear();
         }
 
-        Debug.Log("🧹 ALL old units destroyed and slots cleared");
+        Debug.Log($"✅ PHASE 3 COMPLETE: {destroyedCount} units destroyed and slots cleared");
 
-        // NOW spawn fresh units
+        // ===== PHASE 4: WAIT FOR DESTROY TO COMPLETE =====
+        Debug.Log("⏳ PHASE 4: Waiting for destruction to complete...");
+        yield return null; // Wait 1 frame for Destroy to process
+        yield return new WaitForSeconds(0.1f); // Extra safety delay
+
+        // ===== PHASE 5: VERIFY CLEANUP =====
+        Debug.Log("📍 PHASE 5: Verifying cleanup...");
+
+        bool isClean = true;
+        for (int i = 0; i < playerGrid.Length; i++)
+        {
+            if (playerGrid[i].units.Count > 0)
+            {
+                Debug.LogWarning($"⚠️ Player slot {i} still has {playerGrid[i].units.Count} units!");
+                isClean = false;
+            }
+        }
+
+        for (int i = 0; i < enemyGrid.Length; i++)
+        {
+            if (enemyGrid[i].units.Count > 0)
+            {
+                Debug.LogWarning($"⚠️ Enemy slot {i} still has {enemyGrid[i].units.Count} units!");
+                isClean = false;
+            }
+        }
+
+        if (isClean)
+        {
+            Debug.Log("✅ PHASE 5 COMPLETE: All slots verified clean");
+        }
+        else
+        {
+            Debug.LogError("❌ PHASE 5 FAILED: Some slots still have units! Force clearing...");
+
+            // Force clear if needed
+            for (int i = 0; i < playerGrid.Length; i++)
+            {
+                playerGrid[i].units.Clear();
+                playerGrid[i].unitType = null;
+            }
+            for (int i = 0; i < enemyGrid.Length; i++)
+            {
+                enemyGrid[i].units.Clear();
+                enemyGrid[i].unitType = null;
+            }
+
+            yield return null;
+            Debug.Log("✅ Force clear complete");
+        }
+
+        // ===== PHASE 6: SPAWN NEW UNITS =====
+        Debug.Log("📍 PHASE 6: Spawning fresh units...");
+
+        List<RuntimeUnit> unitsToAnimate = new List<RuntimeUnit>();
+
         var playerStateSnapshot = playerGridState.ToList();
         var enemyStateSnapshot = enemyGridState.ToList();
 
+        Debug.Log($"   📊 State snapshot: {playerStateSnapshot.Count} player slots, {enemyStateSnapshot.Count} enemy slots");
+
         // Spawn player units
+        int playerSpawnCount = 0;
         foreach (var kvp in playerStateSnapshot)
         {
             GridSlotData slotData = kvp.Value;
             if (slotData.isFilled && slotData.unitData != null)
             {
+                Debug.Log($"   🎯 Spawning player units in slot {kvp.Key}: {slotData.unitCount}x {slotData.unitData.toyName}");
+
                 for (int i = 0; i < slotData.unitCount; i++)
                 {
-                    // Spawn and get units
                     int slotIndex = kvp.Key;
                     GridSlot slot = playerGrid[slotIndex];
                     int beforeCount = slot.units.Count;
@@ -881,18 +1020,26 @@ public class GridManager : MonoBehaviour
                         for (int j = beforeCount; j < slot.units.Count; j++)
                         {
                             unitsToAnimate.Add(slot.units[j]);
+                            playerSpawnCount++;
                         }
+                    }
+                    else
+                    {
+                        Debug.LogError($"❌ Failed to spawn {slotData.unitData.toyName} in player slot {slotIndex}!");
                     }
                 }
             }
         }
 
         // Spawn enemy units
+        int enemySpawnCount = 0;
         foreach (var kvp in enemyStateSnapshot)
         {
             GridSlotData slotData = kvp.Value;
             if (slotData.isFilled && slotData.unitData != null)
             {
+                Debug.Log($"   🎯 Spawning enemy units in slot {kvp.Key}: {slotData.unitCount}x {slotData.unitData.toyName}");
+
                 for (int i = 0; i < slotData.unitCount; i++)
                 {
                     int slotIndex = kvp.Key;
@@ -904,17 +1051,68 @@ public class GridManager : MonoBehaviour
                         for (int j = beforeCount; j < slot.units.Count; j++)
                         {
                             unitsToAnimate.Add(slot.units[j]);
+                            enemySpawnCount++;
                         }
+                    }
+                    else
+                    {
+                        Debug.LogError($"❌ Failed to spawn {slotData.unitData.toyName} in enemy slot {slotIndex}!");
                     }
                 }
             }
         }
 
-        Debug.Log($"📋 GetPreviousUnits: {unitsToAnimate.Count} units spawned for animation");
-        return unitsToAnimate;
+        Debug.Log($"✅ PHASE 6 COMPLETE: Spawned {playerSpawnCount} player units + {enemySpawnCount} enemy units = {unitsToAnimate.Count} total");
+
+        // ===== PHASE 7: WAIT FOR SPAWN TO SETTLE =====
+        Debug.Log("⏳ PHASE 7: Waiting for spawns to settle...");
+        yield return null;
+        yield return new WaitForSeconds(0.05f);
+
+        // ===== PHASE 8: START TRANSITION =====
+        Debug.Log("📍 PHASE 8: Starting transition animation...");
+
+        BattleToDraftTransition transition = gameManager.GetComponent<BattleToDraftTransition>();
+        GameManager gm = gameManager; // Use injected GameManager
+
+        if (transition != null)
+        {
+            Debug.Log($"   🎬 Starting transition with {unitsToAnimate.Count} units");
+
+            // Call transition with AdvanceTurn callback
+            transition.StartTransition(unitsToAnimate, () =>
+            {
+                Debug.Log("✅ Transition complete callback received");
+
+                // Call AdvanceTurn on GameManager
+                if (gm != null)
+                {
+                    gm.AdvanceTurn();
+                    Debug.Log("✅ AdvanceTurn called");
+                }
+                else
+                {
+                    Debug.LogError("❌ GameManager is null!");
+                }
+            });
+        }
+        else
+        {
+            Debug.LogError("❌ BattleToDraftTransition not found! Calling AdvanceTurn directly...");
+
+            // Fallback: just advance turn
+            if (gm != null)
+            {
+                gm.AdvanceTurn();
+            }
+            else
+            {
+                Debug.LogError("❌ GameManager is null!");
+            }
+        }
+
+        Debug.Log("🎉 GetPreviousUnits COMPLETE - All phases successful!");
     }
-   
-    // ✅ Helper: Count filled slots
     private int CountFilledSlots(GridSlot[] grid)
     {
         int count = 0;

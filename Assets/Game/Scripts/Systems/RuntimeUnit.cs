@@ -52,7 +52,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
     public EnemyDamageText damageTextPrefab;
 
     // ===== NAVMESHAGENT =====
-    protected NavMeshAgent agent;
+    public NavMeshAgent agent;
 
     // ===== COMBAT SETTINGS =====
     [Header("Combat Settings (Auto-loaded from ScriptableObject)")]
@@ -595,7 +595,7 @@ public class RuntimeUnit : MonoBehaviour, IHealthProvider
 
     // ===== DEATH =====
 
-    private void OnDeath()
+    protected void OnDeath()
     {
         isInBattle = false;
         Debug.Log($"💀 {data.toyName} is dying...");

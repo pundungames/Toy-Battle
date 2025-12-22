@@ -290,7 +290,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void AdvanceTurn()
+    public void AdvanceTurn()
     {
         currentTurn++;
         EventManager.OnTurnChange(currentTurn);
@@ -337,6 +337,7 @@ public class GameManager : MonoBehaviour
         {
             currencyManager.UpdateCashAndSave(GameConstants.LOSE_GOLD);
         }
+
         Invoke(nameof(ContinueAfterBattle), postBattleDelay);
     }
 
@@ -353,29 +354,19 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // ✅ Set flag before spawning units
+        // ✅ Set flag before respawning
         isComingFromBattle = true;
 
-        // ✅ Get units to spawn
-        List<RuntimeUnit> unitsToSpawn = gridManager.GetPreviousUnits();
+        // ✅ Call GetPreviousUnits - it now handles EVERYTHING via coroutine
+        // The coroutine will:
+        // 1. Clean old units (with delays)
+        // 2. Spawn new units (with delays)  
+        // 3. Start transition automatically
+        // 4. Call AdvanceTurn() when complete
+        gridManager.GetPreviousUnits();
 
-        // ✅ Start transition with units
-        if (battleToDraftTransition != null)
-        {
-            battleToDraftTransition.StartTransition(unitsToSpawn, () =>
-            {
-                AdvanceTurn();
-            });
-        }
-        else
-        {
-            // Fallback: Old instant respawn
-            gridManager.RespawnPreviousUnits();
-            AdvanceTurn();
-            ChangeState(GameState.Draft);
-        }
+        Debug.Log("✅ GetPreviousUnits called - coroutine will handle transition and AdvanceTurn");
     }
-
     public void OnRewardContinue()
     {
         if (Random.value < GameConstants.CHEST_DROP_CHANCE)
