@@ -12,37 +12,39 @@ public class CounterMatrix
     private static Dictionary<string, List<string>> counterRelationships = new Dictionary<string, List<string>>()
     {
         // ToySoldier counters MaximusPuncher
-        { "ToySoldier", new List<string> { "MaximusPuncher" } },
-        
-        // ShellNinja counters MaximusPuncher, ToySoldier, KaboomTanklet, RoboCoreMk1, BoneMage
-        { "ShellNinja", new List<string> { "MaximusPuncher", "ToySoldier", "KaboomTanklet", "RoboCoreMk1", "BoneMage" } },
-        
-        // MiniBoys counters ToySoldier, ShellNinja
-        { "MiniBoys", new List<string> { "ToySoldier", "ShellNinja" } },
-        
-        // SlamBros counters ToySoldier, ShellNinja
-        { "SlamBros", new List<string> { "ToySoldier", "ShellNinja" } },
-        
-        // KaboomTanklet counters SlamBros, PunchyBots, MiniBoys
-        { "KaboomTanklet", new List<string> { "SlamBros", "PunchyBots", "MiniBoys" } },
-        
-        // GuardianGolem counters SlamBros, BlastRacer
-        { "GuardianGolem", new List<string> { "SlamBros", "BlastRacer" } },
-        
-        // BlastRacer counters KaboomTanklet, RoboCoreMk1, PunchyBots
-        { "BlastRacer", new List<string> { "KaboomTanklet", "RoboCoreMk1", "PunchyBots" } },
-        
-        // MaximusPuncher counters BlastRacer
-        { "MaximusPuncher", new List<string> { "BlastRacer" } },
-        
-        // BoneMage counters GuardianGolem
-        { "BoneMage", new List<string> { "GuardianGolem" } },
-        
-        // PunchyBots (no counters - gets countered only)
-        { "PunchyBots", new List<string>() },
-        
-        // RoboCoreMk1 (no counters - gets countered only)
-        { "RoboCoreMk1", new List<string>() }
+    { "ToySoldier", new List<string> { "MaximusPuncher" } },
+
+    // ShellNinja counters MaximusPuncher, ToySoldier, KaboomTanklet, RoboCoreMk1, BoneMage
+    { "ShellNinja", new List<string> { "MaximusPuncher", "ToySoldier", "KaboomTanklet", "RoboCoreMk1", "BoneMage" } },
+
+    // MiniBoys counters ToySoldier, ShellNinja
+    { "MiniBoys", new List<string> { "ToySoldier", "ShellNinja" } },
+
+    // SlamBros counters ToySoldier, ShellNinja
+    { "SlamBros", new List<string> { "ToySoldier", "ShellNinja" } },
+
+    // KaboomTanklet counters SlamBros, PunchyBots, MiniBoys
+    { "KaboomTanklet", new List<string> { "SlamBros", "PunchyBots", "MiniBoys" } },
+
+    // GuardianGolem counters SlamBros, BlastRacer
+    { "GuardianGolem", new List<string> { "SlamBros", "BlastRacer" } },
+
+    // BlastRacer counters KaboomTanklet, RoboCoreMk1, PunchyBots
+    { "BlastRacer", new List<string> { "KaboomTanklet", "RoboCoreMk1", "PunchyBots" } },
+
+    // MaximusPuncher counters BlastRacer
+    { "MaximusPuncher", new List<string> { "BlastRacer" } },
+
+    // BoneMage counters GuardianGolem
+    { "BoneMage", new List<string> { "GuardianGolem" } },
+
+    // PunchyBots counters nobody (counters-outgoing empty)
+    { "PunchyBots", new List<string>() },
+
+    // RoboCoreMk1 counters nobody (counters-outgoing empty)
+    { "RoboCoreMk1", new List<string>() },
+
+    // KaboomTanklet / RoboCore are Epic in your current roster, but counter logic is independent of rarity.
     };
 
     public static bool Counters(string attackerUnitID, string defenderUnitID)
