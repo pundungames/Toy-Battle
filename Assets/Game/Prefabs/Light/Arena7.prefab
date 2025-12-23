@@ -31,27 +31,27 @@ PrefabInstance:
     - target: {fileID: 4368638982739606608, guid: a59bb68a2cdecad4895753c2f830ed54,
         type: 3}
       propertyPath: m_Color.b
-      value: 0.5767177
+      value: 0.7971698
       objectReference: {fileID: 0}
     - target: {fileID: 4368638982739606608, guid: a59bb68a2cdecad4895753c2f830ed54,
         type: 3}
       propertyPath: m_Color.g
-      value: 0.6934393
+      value: 0.8696092
       objectReference: {fileID: 0}
     - target: {fileID: 4368638982739606608, guid: a59bb68a2cdecad4895753c2f830ed54,
         type: 3}
       propertyPath: m_Color.r
-      value: 0.9056604
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4368638982739606608, guid: a59bb68a2cdecad4895753c2f830ed54,
         type: 3}
       propertyPath: m_Intensity
-      value: 0.6
+      value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 5297000192961302320, guid: a59bb68a2cdecad4895753c2f830ed54,
         type: 3}
       propertyPath: m_Name
-      value: "L\u0131ght Variant"
+      value: Arena7
       objectReference: {fileID: 0}
     - target: {fileID: 5326796546055471927, guid: a59bb68a2cdecad4895753c2f830ed54,
         type: 3}
