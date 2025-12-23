@@ -35,8 +35,8 @@ public class BattleManager : MonoBehaviour
     private float lastDeathTime = -999f; // Track when last unit died
     private bool isPendingBattleEndCheck = false; // Flag for delayed check
 
-    private List<RuntimeUnit> playerUnits = new List<RuntimeUnit>();
-    private List<RuntimeUnit> enemyUnits = new List<RuntimeUnit>();
+    [SerializeField] List<RuntimeUnit> playerUnits = new List<RuntimeUnit>();
+    [SerializeField] List<RuntimeUnit> enemyUnits = new List<RuntimeUnit>();
 
     // ===== PUBLIC GETTERS =====
 

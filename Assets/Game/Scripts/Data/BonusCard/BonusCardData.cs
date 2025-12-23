@@ -1,6 +1,7 @@
 // ============================================================================
-// BONUS CARD DATA - ScriptableObject
-// Bonus kartların verilerini tutar (+20% damage, poison, vb.)
+// BONUS CARD DATA - WITH DRAFT SYSTEM METADATA
+// ✅ Added bonusCategory, battleOnly flag
+// ✅ Maintains compatibility with existing system
 // ============================================================================
 
 using UnityEngine;
@@ -12,15 +13,34 @@ public class BonusCardData : ScriptableObject
     public string bonusID;
     public string bonusName;
     [TextArea] public string description;
-    
+
     [Header("Cost")]
-    public int pipCost; // 1 or 2
-    
+    [Tooltip("Stamina cost (was pipCost)")]
+    public int staminaCost = 1;
+
     [Header("Effect")]
     public BonusEffectType effectType;
-    public float effectValue; // Örn: 0.2f = %20
-    public UnitType targetUnitType; // GroupBuff için
-    
+    public float effectValue;
+    public UnitType targetUnitType;
+
+    [Header("Draft System Metadata")]
+    [Tooltip("Category for offer diversity")]
+    public BonusCategory bonusCategory = BonusCategory.Power;
+
+    [Tooltip("If true, effects only last for current battle")]
+    public bool battleOnly = true;
+
+    [Tooltip("Rarity tier for weighting")]
+    public BonusRarityTier rarityTier = BonusRarityTier.Common;
+
     [Header("Visual")]
     public Sprite cardSprite;
+
+    // Backward compatibility
+    [System.Obsolete("Use staminaCost instead")]
+    public int pipCost
+    {
+        get => staminaCost;
+        set => staminaCost = value;
+    }
 }

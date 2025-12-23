@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e177cd00459aa7349bf77b320956d6f7, type: 3}
   m_Name: Blast Racer
   m_EditorClassIdentifier: 
-  unitID: blast_racer
+  unitID: BlastRacer
   toyName: Blast Racer
   toyInfo: Kamikaze unit that explodes on death (150% ATK explosion damage)
   level: 1
@@ -39,6 +39,12 @@ MonoBehaviour:
   unitSpacing: 1.35
   maxStackPerSlot: 4
   toyStamina: 2
+  unitRole: 5
+  archetype: 0
+  gamePhase: 1
+  utilityCards:
+  - {fileID: 11400000, guid: adf60e6cfcc3e0a44afd6ae317bf90a1, type: 2}
+  - {fileID: 11400000, guid: 4176197a8989653418657f8606c445f0, type: 2}
   isMultiUnit: 0
   unitsPerSlot: 1
   isTwinSystem: 0

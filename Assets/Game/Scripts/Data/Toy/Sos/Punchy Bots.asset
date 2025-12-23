@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e177cd00459aa7349bf77b320956d6f7, type: 3}
   m_Name: Punchy Bots
   m_EditorClassIdentifier: 
-  unitID: punchy_bots
+  unitID: PunchyBots
   toyName: Punchy Bots
   toyInfo: Spawns 2 fighters on deploy - double the value!
   level: 1
@@ -36,6 +36,9 @@ MonoBehaviour:
   maxUnitsPerRow: 4
   unitSpacing: 1.072
   maxStackPerSlot: 4
+  unitRole: 7
+  archetype: 0
+  gamePhase: 1
   toyStamina: 3
   isMultiUnit: 1
   unitsPerSlot: 2

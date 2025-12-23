@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e177cd00459aa7349bf77b320956d6f7, type: 3}
   m_Name: Bone Mage
   m_EditorClassIdentifier: 
-  unitID: bone_mage
+  unitID: BoneMage
   toyName: Bone Mage
   toyInfo: "Support unit that provides shields to allies (Level \xD7 25 shield)"
   level: 1
@@ -41,6 +41,9 @@ MonoBehaviour:
   maxUnitsPerRow: 12
   unitSpacing: 1.006
   maxStackPerSlot: 9
+  unitRole: 5
+  archetype: 1
+  gamePhase: 1
   toyStamina: 2
   isMultiUnit: 0
   unitsPerSlot: 1

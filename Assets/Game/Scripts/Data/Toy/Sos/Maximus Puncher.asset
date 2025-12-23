@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e177cd00459aa7349bf77b320956d6f7, type: 3}
   m_Name: Maximus Puncher
   m_EditorClassIdentifier: 
-  unitID: maximus_puncher
+  unitID: MaximusPuncher
   toyName: Maximus Puncher
   toyInfo: Balanced bruiser with high HP and steady damage
   level: 1
@@ -37,6 +37,9 @@ MonoBehaviour:
   maxUnitsPerRow: 9
   unitSpacing: 0.972
   maxStackPerSlot: 12
+  unitRole: 0
+  archetype: 0
+  gamePhase: 0
   toyStamina: 1
   isMultiUnit: 0
   unitsPerSlot: 1

@@ -1,7 +1,7 @@
 ﻿// ============================================================================
-// DRAFT CARD MANAGER - Kart seçim sistemini yönetir
-// ✅ TEST MODE: Inspector'dan istediğin karakterleri test edebilirsin!
-// ✅ FIX: Aynı kart birden fazla gelmez (no duplicates)
+// DRAFT CARD MANAGER - WITH OFFER GENERATOR INTEGRATION
+// ✅ Stamina system preserved
+// ✅ New offer system added
 // ============================================================================
 
 using DG.Tweening;
@@ -21,12 +21,16 @@ public class DraftCardManager : MonoBehaviour
     [Inject] UnlockSystem unlockSystem;
 
     [Header("⚡ TEST MODE")]
-    [SerializeField] bool testMode = false; // ✅ Enable to test specific characters
-    [SerializeField] List<ToyUnitData> testCharacters = new List<ToyUnitData>(); // ✅ Drag characters here to test
+    [SerializeField] bool testMode = false;
+    [SerializeField] List<ToyUnitData> testCharacters = new List<ToyUnitData>();
+
+    [Header("🎯 NEW OFFER SYSTEM")]
+    [SerializeField] bool useNewOfferSystem = true;
 
     [Header("Card Pool")]
     [SerializeField] List<ToyUnitData> allToyUnits;
     [SerializeField] List<BonusCardData> allBonusCards;
+    // NOTE: Utility cards now come from ToyUnitData.utilityCards
 
     [Header("Active Cards")]
     [SerializeField] List<DraftCardContent> activeCards = new List<DraftCardContent>();
@@ -45,16 +49,17 @@ public class DraftCardManager : MonoBehaviour
     [SerializeField] int rareWeight = 27;
     [SerializeField] int epicWeight = 3;
 
-    private DraftCardContent selectedCard = null;
-    private bool hasCardBeenChosen = false;
-    private List<object> currentDraftPool = new List<object>(); // ToyUnitData veya BonusCardData
-
     [Header("Stamina System")]
     [SerializeField] int maxStamina = 10;
     [SerializeField] int currentStamina = 10;
 
-    // Event for UI updates
-    public static event System.Action<int, int> OnStaminaChanged; // (current, max)
+    public static event System.Action<int, int> OnStaminaChanged;
+
+    private DraftCardContent selectedCard = null;
+    private bool hasCardBeenChosen = false;
+    private List<object> currentDraftPool = new List<object>();
+
+    private OfferGenerator offerGenerator;
 
     private void OnEnable()
     {
@@ -64,6 +69,12 @@ public class DraftCardManager : MonoBehaviour
     private void OnDisable()
     {
         EventManager.onCardSelected -= OnCardConfirmed;
+    }
+
+    private void Start()
+    {
+        offerGenerator = new OfferGenerator(allToyUnits, allBonusCards);
+        Debug.Log("✅ OfferGenerator initialized");
     }
 
     public void Open(bool shopMode)
@@ -104,18 +115,13 @@ public class DraftCardManager : MonoBehaviour
         CheckCurrency();
     }
 
-    // ===== CARD GENERATION =====
-
     private void GenerateDraftCards()
     {
         currentDraftPool.Clear();
 
-        // ✅ TEST MODE: Use test characters if enabled
         if (testMode && testCharacters.Count > 0)
         {
             Debug.Log("🧪 TEST MODE ACTIVE - Using test characters");
-
-            // Add up to 3 test characters
             int count = Mathf.Min(testCharacters.Count, 3);
             for (int i = 0; i < count; i++)
             {
@@ -124,19 +130,43 @@ public class DraftCardManager : MonoBehaviour
                     currentDraftPool.Add(testCharacters[i]);
                 }
             }
-
-            return; // ✅ Skip normal generation
+            return;
         }
 
-        // ✅ NORMAL MODE: Random generation
+        if (useNewOfferSystem && offerGenerator != null)
+        {
+            Debug.Log("🎯 Using NEW Offer Generator system");
+
+            int roundIndex = 1;
+            int loopIndex = 1;
+            int remainingStamina = currentStamina;
+
+            List<ToyUnitData> ownedUnits = gridManager.GetPlayerUnits()
+                .Where(u => u != null && u.data != null)
+                .Select(u => u.data)
+                .Distinct()
+                .ToList();
+
+            List<object> unitOffer = offerGenerator.GenerateUnitOffer(
+                isPlayer: true,
+                roundIndex: roundIndex,
+                loopIndex: loopIndex,
+                remainingStamina: remainingStamina,
+                ownedUnits: ownedUnits
+            );
+
+            currentDraftPool.AddRange(unitOffer);
+            Debug.Log($"✅ Generated offer: {unitOffer.Count} cards");
+            return;
+        }
+
+        // OLD SYSTEM
         List<ToyUnitData> unlockedUnits = unlockSystem.GetUnlockedUnits(allToyUnits);
         List<ToyUnitData> availableUnits = new List<ToyUnitData>(unlockedUnits);
 
-        // Add 2 unique toy units
         for (int i = 0; i < 2; i++)
         {
             if (availableUnits.Count == 0) break;
-
             ToyUnitData randomUnit = GetWeightedRandomUnit(availableUnits);
             if (randomUnit != null)
             {
@@ -145,7 +175,6 @@ public class DraftCardManager : MonoBehaviour
             }
         }
 
-        // 15% chance for bonus card, otherwise add third unique unit
         if (Random.value < 0.15f && allBonusCards.Count > 0)
         {
             BonusCardData randomBonus = allBonusCards[Random.Range(0, allBonusCards.Count)];
@@ -197,8 +226,6 @@ public class DraftCardManager : MonoBehaviour
         return units[0];
     }
 
-    // ===== DISPLAY =====
-
     private void DisplayCards()
     {
         for (int i = 0; i < activeCards.Count; i++)
@@ -215,6 +242,10 @@ public class DraftCardManager : MonoBehaviour
                 {
                     activeCards[i].SetBonusContent(bonusData, this, currentPips);
                 }
+                else if (cardData is UtilityCardData utilityData)
+                {
+                    activeCards[i].SetUtilityContent(utilityData, this);
+                }
 
                 activeCards[i].gameObject.SetActive(true);
             }
@@ -228,8 +259,6 @@ public class DraftCardManager : MonoBehaviour
         hasCardBeenChosen = false;
         SetAllCardsInteractable(true);
     }
-
-    // ===== SELECTION =====
 
     public bool CanSelectCard() => !hasCardBeenChosen;
 
@@ -256,7 +285,6 @@ public class DraftCardManager : MonoBehaviour
 
         if (cardData is ToyUnitData unitData)
         {
-            // ✅ Check stamina BEFORE spawning
             if (!HasEnoughStamina(unitData.toyStamina))
             {
                 Debug.LogWarning($"⚠️ Not enough stamina for {unitData.toyName}!");
@@ -268,11 +296,9 @@ public class DraftCardManager : MonoBehaviour
 
             if (spawned)
             {
-                // ✅ Spend stamina AFTER successful spawn
                 if (!TrySpendStamina(unitData.toyStamina))
                 {
                     Debug.LogError($"❌ Failed to spend stamina for {unitData.toyName}!");
-                    // Note: Unit already spawned, might need refund logic
                 }
 
                 EventManager.OnCardSelected(unitData);
@@ -286,7 +312,6 @@ public class DraftCardManager : MonoBehaviour
         }
         else if (cardData is BonusCardData bonusData)
         {
-            // Bonus cards use pips, not stamina
             if (currentPips >= bonusData.pipCost)
             {
                 bonusSystem.ApplyBonus(bonusData);
@@ -300,13 +325,40 @@ public class DraftCardManager : MonoBehaviour
                 CancelSelection();
             }
         }
+        else if (cardData is UtilityCardData utilityData)
+        {
+            if (!HasEnoughStamina(utilityData.staminaCost))
+            {
+                Debug.LogWarning($"⚠️ Not enough stamina for {utilityData.cardName}!");
+                CancelSelection();
+                return;
+            }
+
+            // Apply utility card effect
+            bool success = ApplyUtilityCard(utilityData);
+
+            if (success)
+            {
+                if (!TrySpendStamina(utilityData.staminaCost))
+                {
+                    Debug.LogError($"❌ Failed to spend stamina for {utilityData.cardName}!");
+                }
+
+                CompleteSelection();
+            }
+            else
+            {
+                Debug.LogWarning($"Failed to apply utility card: {utilityData.cardName}");
+                CancelSelection();
+            }
+        }
     }
+
     private void CompleteSelection()
     {
         selectedCard.Placed();
         Taptic.Light();
         FinishDraft();
-        //Invoke(nameof(FinishDraft), 0.1f);
     }
 
     private void FinishDraft()
@@ -349,8 +401,6 @@ public class DraftCardManager : MonoBehaviour
         }
     }
 
-    // ===== REROLL =====
-
     private void OnRerollClick()
     {
         Taptic.Light();
@@ -384,10 +434,9 @@ public class DraftCardManager : MonoBehaviour
 
     private void OnCardConfirmed(ToyUnitData unitData)
     {
-        // Additional logic if needed
     }
-    // ===== STAMINA SYSTEM =====
 
+    // STAMINA SYSTEM
     public int CurrentStamina => currentStamina;
     public int MaxStamina => maxStamina;
 
@@ -424,5 +473,168 @@ public class DraftCardManager : MonoBehaviour
         currentStamina = Mathf.Min(currentStamina + amount, maxStamina);
         Debug.Log($"➕ Added {amount} stamina. Current: {currentStamina}/{maxStamina}");
         OnStaminaChanged?.Invoke(currentStamina, maxStamina);
+    }
+
+    // ===== UTILITY CARD APPLICATION =====
+
+    private bool ApplyUtilityCard(UtilityCardData utilityData)
+    {
+        Debug.Log($"🛠️ Applying utility card: {utilityData.cardName}");
+
+        switch (utilityData.utilityType)
+        {
+            case UtilityType.LevelUp:
+                return ApplyLevelUp(utilityData);
+
+            case UtilityType.CountAdd:
+                return ApplyCountAdd(utilityData);
+
+            case UtilityType.Multiplier:
+                return ApplyMultiplier(utilityData);
+
+            default:
+                Debug.LogError($"Unknown utility type: {utilityData.utilityType}");
+                return false;
+        }
+    }
+
+    private bool ApplyLevelUp(UtilityCardData utilityData)
+    {
+        if (utilityData.targetUnit == null)
+        {
+            Debug.LogError("❌ LevelUp card has no target unit!");
+            return false;
+        }
+
+        ToyUnitData targetUnitData = utilityData.targetUnit;
+        int levelIncrease = utilityData.effectValue; // How much to increase (+1, +2, etc)
+
+        Debug.Log($"⬆️ Leveling up ALL {targetUnitData.toyName} by +{levelIncrease}");
+
+        // Get all units of this type on grid
+        List<RuntimeUnit> playerUnits = gridManager.GetPlayerUnits();
+        int upgradeCount = 0;
+
+        foreach (var unit in playerUnits)
+        {
+            if (unit != null && unit.data != null && unit.data.unitID == targetUnitData.unitID)
+            {
+                // Increment level
+                int oldLevel = unit.data.level;
+                unit.data.level += levelIncrease;
+                upgradeCount++;
+
+                Debug.Log($"   ✅ Upgraded {unit.data.toyName}: Level {oldLevel} → Level {unit.data.level}");
+            }
+        }
+
+        if (upgradeCount > 0)
+        {
+            Debug.Log($"✅ Level Up complete: {upgradeCount} units upgraded by +{levelIncrease}");
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"⚠️ No {targetUnitData.toyName} found on grid to upgrade!");
+            return false;
+        }
+    }
+
+    private bool ApplyCountAdd(UtilityCardData utilityData)
+    {
+        if (utilityData.targetUnit == null)
+        {
+            Debug.LogError("❌ CountAdd card has no target unit!");
+            return false;
+        }
+
+        ToyUnitData targetUnitData = utilityData.targetUnit;
+        int addCount = utilityData.effectValue;
+
+        Debug.Log($"➕ Adding {addCount}x {targetUnitData.toyName} to grid");
+
+        // Spawn units using normal spawn logic
+        int successCount = 0;
+        for (int i = 0; i < addCount; i++)
+        {
+            bool spawned = gridManager.SpawnUnit(targetUnitData, true);
+            if (spawned)
+            {
+                successCount++;
+            }
+            else
+            {
+                Debug.LogWarning($"⚠️ Could only spawn {successCount}/{addCount} units (grid full or max reached)");
+                break;
+            }
+        }
+
+        if (successCount > 0)
+        {
+            Debug.Log($"✅ Added {successCount}x {targetUnitData.toyName}");
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"❌ Failed to add any units!");
+            return false;
+        }
+    }
+
+    private bool ApplyMultiplier(UtilityCardData utilityData)
+    {
+        if (utilityData.targetUnit == null)
+        {
+            Debug.LogError("❌ Multiplier card has no target unit!");
+            return false;
+        }
+
+        ToyUnitData targetUnitData = utilityData.targetUnit;
+        int multiplier = utilityData.effectValue;
+
+        Debug.Log($"✖️ Multiplying {targetUnitData.toyName} by {multiplier}");
+
+        // Get current count of this unit
+        List<RuntimeUnit> playerUnits = gridManager.GetPlayerUnits();
+        int currentCount = playerUnits.Count(u => u != null && u.data != null && u.data.unitID == targetUnitData.unitID);
+
+        if (currentCount == 0)
+        {
+            Debug.LogWarning($"⚠️ No {targetUnitData.toyName} on grid to multiply!");
+            return false;
+        }
+
+        // Spawn (multiplier - 1) * currentCount new units
+        // e.g. X2: spawn 1x current count (doubles it)
+        int toSpawn = (multiplier - 1) * currentCount;
+
+        Debug.Log($"   Current: {currentCount}, Multiplier: {multiplier}, Will spawn: {toSpawn}");
+
+        int successCount = 0;
+        for (int i = 0; i < toSpawn; i++)
+        {
+            bool spawned = gridManager.SpawnUnit(targetUnitData, true);
+            if (spawned)
+            {
+                successCount++;
+            }
+            else
+            {
+                Debug.LogWarning($"⚠️ Could only spawn {successCount}/{toSpawn} units (max reached)");
+                break;
+            }
+        }
+
+        if (successCount > 0)
+        {
+            int finalCount = currentCount + successCount;
+            Debug.Log($"✅ Multiplied {targetUnitData.toyName}: {currentCount} → {finalCount}");
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"❌ Failed to multiply units!");
+            return false;
+        }
     }
 }

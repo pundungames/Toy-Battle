@@ -45,14 +45,32 @@ public enum UnitType
     Explosive,
     Support
 }
-
+public enum UnitRole
+{
+    Frontline, Backline, Assassin, AOE, Burst, Support, Scaling, Swarm
+}
+public enum UnitArchetype
+{
+    Melee, Ranged
+}
+public enum GamePhase
+{
+    Early, Mid, Epic
+}
 public enum RarityType
 {
     Common,
     Rare,
     Epic
 }
-
+public enum BonusCategory
+{
+    Tempo, Power, Tech, Defense
+}
+public enum BonusRarityTier
+{
+    Common, Rare, Epic
+}
 public enum BotDifficulty
 {
     Tutorial,

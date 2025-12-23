@@ -1,10 +1,10 @@
 ﻿// ============================================================================
-// TOY UNIT DATA - WITH FORMATION SYSTEM
-// ✅ arrangementIndex: Position priority (0-100, higher = back)
-// ✅ maxUnitsPerRow: Row capacity for overflow handling
-// ✅ unitSpacing: Already exists (inter-unit spacing)
+// TOY UNIT DATA - WITH DRAFT SYSTEM METADATA
+// ✅ Draft role, archetype, phase metadata added
+// ✅ Formation system maintained
 // ============================================================================
 
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "ToyUnit", menuName = "CardGame/Toy Unit Data")]
@@ -54,18 +54,26 @@ public class ToyUnitData : ScriptableObject
     [Tooltip("Spacing between units of this type")]
     public float unitSpacing = 1f;
 
-    // Recommended formation values by type:
-    // TANK (Guardian Golem): arrangementIndex: 100, maxUnitsPerRow: 4, spacing: 1.5f
-    // FIGHTER (Maximus): arrangementIndex: 60, maxUnitsPerRow: 4, spacing: 1.0f
-    // RANGED (Toy Soldier): arrangementIndex: 50, maxUnitsPerRow: 6, spacing: 0.8f
-    // ASSASSIN (Shell Ninja): arrangementIndex: 10, maxUnitsPerRow: 3, spacing: 1.0f
-
     [Header("Stack Settings (Legacy - Draft Only)")]
     [Tooltip("Max number of this unit per slot (used during draft)")]
     public int maxStackPerSlot = 9;
 
     [Header("Economy")]
     public int toyStamina;
+
+    [Header("Draft System Metadata")]
+    [Tooltip("Unit role for offer template")]
+    public UnitRole unitRole = UnitRole.Frontline;
+
+    [Tooltip("Combat archetype (Melee or Ranged)")]
+    public UnitArchetype archetype = UnitArchetype.Melee;
+
+    [Tooltip("Availability phase (Early, Mid, Epic)")]
+    public GamePhase gamePhase = GamePhase.Early;
+
+    [Header("Utility Cards")]
+    [Tooltip("This unit's specific utility cards (LevelUp, Plus, X2)")]
+    public List<UtilityCardData> utilityCards = new List<UtilityCardData>();
 
     [Header("Multi-Unit System")]
     [Tooltip("If true, spawns multiple units per slot (Punchy Bots, Slam Bros, MiniBoy)")]
@@ -81,6 +89,7 @@ public class ToyUnitData : ScriptableObject
 
     [Header("UI")]
     public Sprite typeSprite;
+
     // Level scaling
     public int GetScaledHP()
     {

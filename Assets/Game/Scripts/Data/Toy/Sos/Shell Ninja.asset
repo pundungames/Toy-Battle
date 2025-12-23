@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e177cd00459aa7349bf77b320956d6f7, type: 3}
   m_Name: Shell Ninja
   m_EditorClassIdentifier: 
-  unitID: shell_ninja
+  unitID: ShellNinja
   toyName: Shell Ninja
   toyInfo: Teleporting assassin that jumps to enemy backline
   level: 1
@@ -38,6 +38,12 @@ MonoBehaviour:
   unitSpacing: 0.862
   maxStackPerSlot: 9
   toyStamina: 1
+  unitRole: 2
+  archetype: 0
+  gamePhase: 1
+  utilityCards:
+  - {fileID: 11400000, guid: 16cbdf3f735a77a48bc00323eb772d4e, type: 2}
+  - {fileID: 11400000, guid: b80297d2c273dd0439ffb30d2017abc8, type: 2}
   isMultiUnit: 0
   unitsPerSlot: 1
   isTwinSystem: 0

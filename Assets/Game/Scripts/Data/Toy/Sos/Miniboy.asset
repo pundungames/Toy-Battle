@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e177cd00459aa7349bf77b320956d6f7, type: 3}
   m_Name: Miniboy
   m_EditorClassIdentifier: 
-  unitID: miniboy
+  unitID: MiniBoys
   toyName: Miniboy
   toyInfo: Balanced bruiser with high HP and steady damage
   level: 1
@@ -38,6 +38,12 @@ MonoBehaviour:
   unitSpacing: 0.658
   maxStackPerSlot: 20
   toyStamina: 3
+  unitRole: 7
+  archetype: 0
+  gamePhase: 0
+  utilityCards:
+  - {fileID: 11400000, guid: 7f5f2dec70565a24c80efcd42437a0af, type: 2}
+  - {fileID: 11400000, guid: 22c0a7e3a09956642a5383a08505eb7c, type: 2}
   isMultiUnit: 1
   unitsPerSlot: 3
   isTwinSystem: 0

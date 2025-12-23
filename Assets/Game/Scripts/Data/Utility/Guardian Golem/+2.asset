@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60c06b7d27121de44bfd997de93f5e2c, type: 3}
+  m_Name: +2
+  m_EditorClassIdentifier: 
+  cardID: +2GuardianGolem
+  cardName: +2 Guardian Golem
+  cardDescription: +2 Guardian Golem
+  utilityType: 1
+  effectValue: 2
+  targetUnit: {fileID: 11400000, guid: 5621260314d2dcf45a4b4d58af4689e8, type: 2}
+  gamePhase: 0
+  staminaCost: 1
+  minUnitsOwned: 0
+  cardSprite: {fileID: 21300000, guid: 59f119ef261fbd949996184317e8c201, type: 3}
+  rarity: 0

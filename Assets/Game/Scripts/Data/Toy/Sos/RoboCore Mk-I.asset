@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e177cd00459aa7349bf77b320956d6f7, type: 3}
   m_Name: RoboCore Mk-I
   m_EditorClassIdentifier: 
-  unitID: robocore_mk1
+  unitID: RoboCoreMk1
   toyName: RoboCore Mk-I
   toyInfo: Scaling robot that grows stronger each wave (+25% per wave)
   level: 1
@@ -39,6 +39,12 @@ MonoBehaviour:
   unitSpacing: 0.788
   maxStackPerSlot: 12
   toyStamina: 3
+  unitRole: 6
+  archetype: 1
+  gamePhase: 2
+  utilityCards:
+  - {fileID: 11400000, guid: 7491a3f114cea0344867903771a3ff2f, type: 2}
+  - {fileID: 11400000, guid: 3cffcbb7240cb9c40b022885c7ea93db, type: 2}
   isMultiUnit: 0
   unitsPerSlot: 1
   isTwinSystem: 0

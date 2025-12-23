@@ -10,13 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c3aefee68ae751e47850f2d448644899, type: 3}
-  m_Name: Shield
+  m_Name: Damage20_All
   m_EditorClassIdentifier: 
-  bonusID: shield
-  bonusName: +20% Shield
-  description: All units gain 20% HP shield
-  pipCost: 1
-  effectType: 1
-  effectValue: 0.2
+  bonusID: Damage20_All
+  bonusName: Damage20_All
+  description: Damage20_All
+  pipCost: 0
+  effectType: 0
+  effectValue: 0
   targetUnitType: 0
   cardSprite: {fileID: 0}
+  bonusCategory: 1
+  battleOnly: 1
+  rarityTier: 0

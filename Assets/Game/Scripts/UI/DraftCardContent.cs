@@ -1,6 +1,6 @@
 ﻿// ============================================================================
 // DRAFT CARD CONTENT - Tek bir draft kartını temsil eder
-// Hem Unit hem Bonus kartları için kullanılır
+// Hem Unit hem Bonus hem Utility kartları için kullanılır
 // ============================================================================
 
 using UnityEngine;
@@ -36,8 +36,10 @@ public class DraftCardContent : MonoBehaviour
     private DraftCardManager manager;
     private bool isUnit = true;
     bool selected;
-    private ToyUnitData currentUnitData; // Store current unit
-    private DraftCardManager draftManager; // Store reference
+    private ToyUnitData currentUnitData;
+    private DraftCardManager draftManager;
+    private int currentStaminaCost = 0; // For utility cards
+
     private void Awake()
     {
         initialLocalPosition = transform.localPosition;
@@ -48,8 +50,9 @@ public class DraftCardContent : MonoBehaviour
     public void SetUnitContent(ToyUnitData unitData, DraftCardManager cardManager, bool isShop)
     {
         manager = cardManager;
-        draftManager = cardManager; // ✅ Store reference
-        currentUnitData = unitData; // ✅ Store unit data
+        draftManager = cardManager;
+        currentUnitData = unitData;
+        currentStaminaCost = unitData.toyStamina;
         isUnit = true;
         selected = false;
 
@@ -61,10 +64,8 @@ public class DraftCardContent : MonoBehaviour
 
         staminaText.text = unitData.toyStamina.ToString();
 
-        // Rarity visual
         ApplyRarityVisual(unitData.toyRarityType);
 
-        // ✅ Check affordability
         UpdateAffordability();
 
         ResetCardVisuals();
@@ -81,16 +82,63 @@ public class DraftCardContent : MonoBehaviour
         cardInfo.text = bonusData.description;
         cardImage.image.sprite = bonusData.cardSprite;
 
-        // Price (bonus için yok)
         staminaText.transform.parent.gameObject.SetActive(false);
 
         staminaText.text = bonusData.pipCost.ToString();
 
-        // Check if affordable
         button.interactable = availablePips >= bonusData.pipCost;
 
-        // Rarity (bonus kartlar rare sayılabilir)
         ApplyRarityVisual(RarityType.Rare);
+
+        ResetCardVisuals();
+    }
+
+    // ===== UTILITY CARD SETUP =====
+
+    public void SetUtilityContent(UtilityCardData utilityData, DraftCardManager cardManager)
+    {
+        manager = cardManager;
+        draftManager = cardManager;
+        currentUnitData = utilityData.targetUnit;
+        currentStaminaCost = utilityData.staminaCost;
+        isUnit = true; // Treat as unit for stamina check
+        selected = false;
+
+        cardName.text = utilityData.cardName;
+        cardInfo.text = utilityData.cardDescription;
+
+        // ✅ Use target unit's animation frames!
+        if (utilityData.targetUnit != null && utilityData.targetUnit.animationFrames != null)
+        {
+            cardImage.sprites = utilityData.targetUnit.animationFrames.ToList();
+            cardImage.StartAnim();
+        }
+        else if (utilityData.cardSprite != null)
+        {
+            cardImage.image.sprite = utilityData.cardSprite;
+        }
+
+        // ✅ Use target unit's type icon
+        if (utilityData.targetUnit != null && utilityData.targetUnit.typeSprite != null)
+        {
+            typeIcon.sprite = utilityData.targetUnit.typeSprite;
+        }
+
+        staminaText.transform.parent.gameObject.SetActive(true);
+        staminaText.text = utilityData.staminaCost.ToString();
+
+        // Rarity visual
+        RarityType displayRarity = utilityData.rarity switch
+        {
+            UtilityCardRarity.Common => RarityType.Common,
+            UtilityCardRarity.Rare => RarityType.Rare,
+            UtilityCardRarity.Epic => RarityType.Epic,
+            _ => RarityType.Common
+        };
+
+        ApplyRarityVisual(displayRarity);
+
+        UpdateAffordability();
 
         ResetCardVisuals();
     }
@@ -136,14 +184,12 @@ public class DraftCardContent : MonoBehaviour
 
     private void UpdateAffordability()
     {
-        if (draftManager == null || currentUnitData == null || !isUnit) return;
+        if (draftManager == null || !isUnit) return;
 
-        bool canAfford = draftManager.HasEnoughStamina(currentUnitData.toyStamina);
+        bool canAfford = draftManager.HasEnoughStamina(currentStaminaCost);
 
-        // Visual feedback
         button.interactable = canAfford;
 
-        // Dim card if can't afford
         CanvasGroup canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null)
         {
@@ -152,7 +198,6 @@ public class DraftCardContent : MonoBehaviour
 
         canvasGroup.alpha = canAfford ? 1f : 0.5f;
 
-        // Change stamina text color
         if (staminaText != null)
         {
             staminaText.color = canAfford ? Color.white : Color.red;
@@ -165,14 +210,11 @@ public class DraftCardContent : MonoBehaviour
     {
         if (selected) return;
 
-        // ✅ Check stamina BEFORE selection
-        if (isUnit && currentUnitData != null)
+        if (isUnit)
         {
-            if (!draftManager.HasEnoughStamina(currentUnitData.toyStamina))
+            if (!draftManager.HasEnoughStamina(currentStaminaCost))
             {
-                Debug.LogWarning($"⚠️ Not enough stamina for {currentUnitData.toyName}!");
-
-                // Shake animation to show error
+                Debug.LogWarning($"⚠️ Not enough stamina! Need {currentStaminaCost}, have {draftManager.CurrentStamina}");
                 transform.DOShakePosition(0.3f, 10f, 20, 90, false, true).SetUpdate(true);
                 return;
             }
@@ -205,7 +247,6 @@ public class DraftCardContent : MonoBehaviour
 
     public void CheckCurrency()
     {
-        // Currency check logic
     }
 }
 

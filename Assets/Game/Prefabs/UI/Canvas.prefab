@@ -4421,6 +4421,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 99fdd275c8734a34397b842d7d2a8904, type: 2}
   - {fileID: 11400000, guid: ccefa1c0fac08c44c880d739928e5c2a, type: 2}
   - {fileID: 11400000, guid: ff9f1923473606a4a8118309438740b2, type: 2}
+  useNewOfferSystem: 1
   allToyUnits:
   - {fileID: 11400000, guid: cd84ee7f3953e624e962e2d9a8aa66df, type: 2}
   - {fileID: 11400000, guid: 99fdd275c8734a34397b842d7d2a8904, type: 2}
@@ -4433,7 +4434,20 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2b4e179b74551084cb40288f31d6930e, type: 2}
   - {fileID: 11400000, guid: 79d1f3a522095d44e889a2fb066efa59, type: 2}
   - {fileID: 11400000, guid: ccefa1c0fac08c44c880d739928e5c2a, type: 2}
-  allBonusCards: []
+  allBonusCards:
+  - {fileID: 11400000, guid: 266645b29fc286540b3e6ffb8cdd333d, type: 2}
+  - {fileID: 11400000, guid: c25b32acd1e27fe458618ef8281c865e, type: 2}
+  - {fileID: 11400000, guid: 20bcd6174da52c84b90823e3600c8840, type: 2}
+  - {fileID: 11400000, guid: b223578750b09c243acc45749eee86a2, type: 2}
+  - {fileID: 11400000, guid: ba198db0a1c22e241a3244db43098e51, type: 2}
+  - {fileID: 11400000, guid: 64afe9dec4d6b4143ab37168ca0a9455, type: 2}
+  - {fileID: 11400000, guid: 764ea80dd6499d441bf3cdbe5a4b578e, type: 2}
+  - {fileID: 11400000, guid: 0db51d61c4110cd4fb8effdfb8e3fdbb, type: 2}
+  - {fileID: 11400000, guid: 7fae5d1090a774a4096d764e037d10c0, type: 2}
+  - {fileID: 11400000, guid: 3f7f9f1ccf45b094a97fdeca955cebe2, type: 2}
+  - {fileID: 11400000, guid: 8b79219f5d0cf1e418eef71d5a285935, type: 2}
+  - {fileID: 11400000, guid: 4a4ca69d43c1a2543a9b89b04b6f5242, type: 2}
+  - {fileID: 11400000, guid: ec318907e4ac64043abca6eca429e98f, type: 2}
   activeCards:
   - {fileID: 852915621323616415}
   - {fileID: 4629357679853794299}
@@ -4446,8 +4460,8 @@ MonoBehaviour:
   commonWeight: 70
   rareWeight: 27
   epicWeight: 3
-  maxStamina: 5
-  currentStamina: 5
+  maxStamina: 10
+  currentStamina: 10
 --- !u!1 &5701351975950165258
 GameObject:
   m_ObjectHideFlags: 0
