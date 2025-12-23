@@ -299,7 +299,7 @@ public class BattleManager : MonoBehaviour
 
         // 8. Notify game manager
         EventManager.OnBattleComplete(playerWon);
-        draftCardManager.ResetStamina();
+        draftCardManager.BattleEnd();
 
         Debug.Log("✅ Victory sequence complete!");
     }

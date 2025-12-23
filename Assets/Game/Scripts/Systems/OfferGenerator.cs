@@ -17,6 +17,7 @@ public class OfferGenerator
 
     private List<ToyUnitData> allUnits;
     private List<BonusCardData> allBonusCards;
+    private GridManager gridManager; // For accurate unit counting
 
     // NOTE: Utility cards are now pulled from ToyUnitData.utilityCards
     // No longer need separate allUtilityCards list
@@ -46,10 +47,11 @@ public class OfferGenerator
 
     // ===== CONSTRUCTOR =====
 
-    public OfferGenerator(List<ToyUnitData> units, List<BonusCardData> bonuses)
+    public OfferGenerator(List<ToyUnitData> units, List<BonusCardData> bonuses, GridManager grid)
     {
         allUnits = units;
         allBonusCards = bonuses;
+        gridManager = grid;
     }
 
     // ===== GENERATE UNIT OFFER (Rounds 1-3) =====
@@ -139,7 +141,7 @@ public class OfferGenerator
         // ===== GENERATE SLOT C (Unit or Utility) =====
 
         // Check if utility card should appear (ONLY FOR PLAYER)
-        float utilityChance = isPlayer ? GetUtilityAppearanceChance(roundIndex, ownedUnits.Count) : 0.0f;
+        float utilityChance = GetUtilityAppearanceChance(roundIndex, ownedUnits.Count); // Both player and AI
         bool shouldOfferUtility = Random.value < utilityChance;
 
         if (shouldOfferUtility)
@@ -265,7 +267,7 @@ public class OfferGenerator
         }
 
         // ===== STEP 4: Apply rarity odds =====
-        ToyUnitData selected = SelectByRarityOdds(antiSpamFiltered, roundIndex);
+        ToyUnitData selected = SelectByRarityOdds(antiSpamFiltered, roundIndex, loopIndex);
 
         // ===== STEP 5: Stamina filter (prefer affordable) =====
         if (selected != null && selected.toyStamina > remainingStamina)
@@ -286,31 +288,63 @@ public class OfferGenerator
         return selected;
     }
 
-    private ToyUnitData SelectByRarityOdds(List<ToyUnitData> candidates, int roundIndex)
+    private ToyUnitData SelectByRarityOdds(List<ToyUnitData> candidates, int roundIndex, int loopIndex)
     {
         if (candidates.Count == 0) return null;
 
-        // Get rarity odds for this round
+        // Get rarity odds based on BOTH round and loop
         float commonChance, rareChance, epicChance;
 
-        if (roundIndex == 1)
+        // Loop 0 (1st Battle Cycle)
+        if (loopIndex == 0)
         {
-            commonChance = 0.95f;
-            rareChance = 0.05f;
-            epicChance = 0.0f;
+            if (roundIndex == 1)
+            {
+                commonChance = 0.95f; rareChance = 0.05f; epicChance = 0.0f;
+            }
+            else if (roundIndex == 2)
+            {
+                commonChance = 0.80f; rareChance = 0.20f; epicChance = 0.0f;
+            }
+            else // Round 3-4
+            {
+                commonChance = 0.60f; rareChance = 0.35f; epicChance = 0.05f;
+            }
         }
-        else if (roundIndex == 2)
+        // Loop 1 (2nd Battle Cycle)
+        else if (loopIndex == 1)
         {
-            commonChance = 0.80f;
-            rareChance = 0.20f;
-            epicChance = 0.0f;
+            if (roundIndex == 1)
+            {
+                commonChance = 0.80f; rareChance = 0.20f; epicChance = 0.0f;
+            }
+            else if (roundIndex == 2)
+            {
+                commonChance = 0.60f; rareChance = 0.35f; epicChance = 0.05f;
+            }
+            else // Round 3-4
+            {
+                commonChance = 0.50f; rareChance = 0.40f; epicChance = 0.10f;
+            }
         }
-        else // Round 3
+        // Loop 2+ (3rd+ Battle Cycle)
+        else
         {
-            commonChance = 0.60f;
-            rareChance = 0.35f;
-            epicChance = 0.05f;
+            if (roundIndex == 1)
+            {
+                commonChance = 0.60f; rareChance = 0.35f; epicChance = 0.05f;
+            }
+            else if (roundIndex == 2)
+            {
+                commonChance = 0.50f; rareChance = 0.40f; epicChance = 0.10f;
+            }
+            else // Round 3-4
+            {
+                commonChance = 0.40f; rareChance = 0.45f; epicChance = 0.15f;
+            }
         }
+
+        Debug.Log($"🎲 Rarity Roll: Loop {loopIndex}, Round {roundIndex} → {commonChance * 100}% Common, {rareChance * 100}% Rare, {epicChance * 100}% Epic");
 
         // Roll for rarity
         float roll = Random.value;
@@ -323,19 +357,23 @@ public class OfferGenerator
         else
             targetRarity = RarityType.Common;
 
+        Debug.Log($"   Roll: {roll:F2} → Target: {targetRarity}");
+
         // Try to find unit of target rarity
         List<ToyUnitData> rarityMatch = candidates.Where(u => u.toyRarityType == targetRarity).ToList();
 
         if (rarityMatch.Count > 0)
         {
-            return rarityMatch[Random.Range(0, rarityMatch.Count)];
+            ToyUnitData selected = rarityMatch[Random.Range(0, rarityMatch.Count)];
+            Debug.Log($"   ✅ Selected: {selected.toyName} [{selected.toyRarityType}]");
+            return selected;
         }
 
         // Fallback: return random candidate
+        Debug.LogWarning($"   ⚠️ No {targetRarity} units available, picking random");
         return candidates[Random.Range(0, candidates.Count)];
     }
 
-    // ===== UTILITY SELECTION LOGIC =====
 
     private UtilityCardData SelectUtilityCard(int remainingStamina, OfferHistory history, List<ToyUnitData> ownedUnits, int roundIndex, int loopIndex)
     {
@@ -360,9 +398,12 @@ public class OfferGenerator
                 continue;
             }
 
-            // Get current count of this unit on grid
-            int currentUnitCount = ownedUnits.Count(u => u != null && u.unitID == ownedUnit.unitID);
+            // Get current ACTUAL count of this unit on grid (using RuntimeUnits)
+            List<RuntimeUnit> playerUnits = gridManager.GetPlayerUnits();
+            int currentUnitCount = playerUnits.Count(u => u != null && u.data != null && u.data.unitID == ownedUnit.unitID);
             int maxStackPerSlot = ownedUnit.maxStackPerSlot;
+
+            Debug.Log($"    Current {ownedUnit.toyName} count: {currentUnitCount}/{maxStackPerSlot}");
 
             foreach (var utility in ownedUnit.utilityCards)
             {
@@ -399,19 +440,19 @@ public class OfferGenerator
                 // ✅ CHECK MAX STACK
                 if (utility.utilityType == UtilityType.CountAdd)
                 {
-                    int addAmount = utility.effectValue;
-                    if (currentUnitCount + addAmount > maxStackPerSlot)
+                    int newTotal = utility.effectValue; // Total units that will be spawned
+                    if (newTotal > maxStackPerSlot)
                     {
-                        Debug.Log($"    ❌ Would exceed max stack: current {currentUnitCount} + {addAmount} > {maxStackPerSlot}");
+                        Debug.Log($"    ❌ Would exceed max stack: {newTotal} > {maxStackPerSlot}");
                         continue;
                     }
                 }
                 else if (utility.utilityType == UtilityType.Multiplier)
                 {
-                    int newCount = currentUnitCount * utility.effectValue;
-                    if (newCount > maxStackPerSlot)
+                    int newTotal = currentUnitCount * utility.effectValue; // Current × multiplier
+                    if (newTotal > maxStackPerSlot)
                     {
-                        Debug.Log($"    ❌ Would exceed max stack: {currentUnitCount} x {utility.effectValue} = {newCount} > {maxStackPerSlot}");
+                        Debug.Log($"    ❌ Would exceed max stack: {currentUnitCount} × {utility.effectValue} = {newTotal} > {maxStackPerSlot}");
                         continue;
                     }
                 }
@@ -524,18 +565,33 @@ public class OfferGenerator
             {
                 filtered.Add(unit); // Always available
             }
-            else if (unit.gamePhase == GamePhase.Mid && roundIndex >= 3)
+            else if (unit.gamePhase == GamePhase.Mid)
             {
-                filtered.Add(unit); // Available from Round 3+
+                // Mid units available:
+                // - From Loop 1+ (2nd battle cycle onwards)
+                // - OR Round 3+ in first cycle
+                if (loopIndex >= 1 || roundIndex >= 3)
+                {
+                    filtered.Add(unit);
+                }
             }
-            else if (unit.gamePhase == GamePhase.Epic && roundIndex == 3)
+            else if (unit.gamePhase == GamePhase.Epic)
             {
-                filtered.Add(unit); // Only in Round 3, very rare
+                // Epic units available:
+                // - From Loop 2+ (3rd battle cycle onwards)
+                // - OR Round 3-4 in earlier cycles
+                if (loopIndex >= 2 || roundIndex >= 3)
+                {
+                    filtered.Add(unit);
+                }
             }
         }
 
+        Debug.Log($"🔍 Phase Filter: Loop {loopIndex}, Round {roundIndex} → {filtered.Count}/{units.Count} units passed");
+
         return filtered;
     }
+
 
     private float GetUtilityAppearanceChance(int roundIndex, int ownedUnitCount)
     {

@@ -747,9 +747,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8b79219f5d0cf1e418eef71d5a285935, type: 2}
   - {fileID: 11400000, guid: 4a4ca69d43c1a2543a9b89b04b6f5242, type: 2}
   - {fileID: 11400000, guid: ec318907e4ac64043abca6eca429e98f, type: 2}
-  commonWeight: 70
-  rareWeight: 27
-  epicWeight: 3
+  difficulty: 1
 --- !u!4 &13093003
 Transform:
   m_ObjectHideFlags: 0
@@ -4427,6 +4425,21 @@ PrefabInstance:
       propertyPath: battleCam
       value: 
       objectReference: {fileID: 743103209}
+    - target: {fileID: 7005053380458324303, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
+      propertyPath: epicWeight
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 7005053380458324303, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
+      propertyPath: rareWeight
+      value: 25
+      objectReference: {fileID: 0}
+    - target: {fileID: 7005053380458324303, guid: 7524e83b4dc038346b2fe5440e798448,
+        type: 3}
+      propertyPath: commonWeight
+      value: 60
+      objectReference: {fileID: 0}
     - target: {fileID: 7118601102579217979, guid: 7524e83b4dc038346b2fe5440e798448,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -24250,7 +24263,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc3a5e4d301d9ed49929986ae5b99294, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  difficulty: 1
+  difficulty: 3
   decisionDelay: 1
 --- !u!4 &890379717
 Transform:
@@ -52349,6 +52362,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentState: 0
   currentTurn: 1
+  currentBattleTurn: 1
   playerWins: 0
   isTutorial: 0
   isPlayerTurnComplete: 0

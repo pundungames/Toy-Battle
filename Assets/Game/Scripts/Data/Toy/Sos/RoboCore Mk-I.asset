@@ -45,7 +45,7 @@ MonoBehaviour:
   utilityCards:
   - {fileID: 11400000, guid: 7491a3f114cea0344867903771a3ff2f, type: 2}
   - {fileID: 11400000, guid: 3cffcbb7240cb9c40b022885c7ea93db, type: 2}
-  isMultiUnit: 0
+  isMultiUnit: 1
   unitsPerSlot: 1
   isTwinSystem: 0
   typeSprite: {fileID: 21300000, guid: abf4d350c5102ed428f957fca4cab389, type: 3}

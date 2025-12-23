@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
     [Header("Game State")]
     [SerializeField] internal GameState currentState;
     [SerializeField] internal int currentTurn = 1;
+    [SerializeField] internal int currentBattleTurn = 1;
     [SerializeField] internal int playerWins = 0;
     [SerializeField] internal bool isTutorial = false;
 
@@ -253,7 +254,7 @@ public class GameManager : MonoBehaviour
         {
             if (draftCardManager != null)
             {
-                 draftCardManager.Open(false);
+                draftCardManager.Open(false);
             }
             else
             {
@@ -337,7 +338,7 @@ public class GameManager : MonoBehaviour
         {
             currencyManager.UpdateCashAndSave(GameConstants.LOSE_GOLD);
         }
-
+        currentBattleTurn++;
         Invoke(nameof(ContinueAfterBattle), postBattleDelay);
     }
 

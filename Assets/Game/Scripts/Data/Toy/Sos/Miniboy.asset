@@ -16,8 +16,8 @@ MonoBehaviour:
   toyName: Miniboy
   toyInfo: Balanced bruiser with high HP and steady damage
   level: 1
-  baseHP: 20
-  baseDamage: 9
+  baseHP: 12
+  baseDamage: 5
   unitType: 0
   toyRarityType: 0
   toySprite: {fileID: 21300000, guid: 96b7af48aa91f6e41a26dd02e6d9b84a, type: 3}
@@ -32,7 +32,7 @@ MonoBehaviour:
   hasSupport: 0
   attackRange: 1
   moveSpeed: 4.5
-  attackCooldown: 0.7
+  attackCooldown: 1
   arrangementIndex: 50
   maxUnitsPerRow: 15
   unitSpacing: 0.658

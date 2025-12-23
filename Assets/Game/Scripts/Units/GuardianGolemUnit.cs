@@ -55,6 +55,11 @@ public class GuardianGolemUnit : RuntimeUnit
 
         dashTarget = target;
 
+        // ✅ HEDEFE BAK (Anlık dönme için)
+        Vector3 lookPos = target.transform.position;
+        lookPos.y = transform.position.y; // Y ekseninde eğilmemesi için
+        transform.LookAt(lookPos);
+
         if (animator != null)
         {
             animator.SetTrigger("Attack");

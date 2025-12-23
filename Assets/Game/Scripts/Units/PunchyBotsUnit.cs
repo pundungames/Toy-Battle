@@ -154,18 +154,25 @@ public class PunchyBotsUnit : RuntimeUnit
     {
         base.Update();
 
-        // Sync target with twin (both attack same target)
+        // ✅ HEDEFE BAKMA MANTIĞI
+        if (currentTarget != null && currentTarget.IsAlive())
+        {
+            Vector3 direction = (currentTarget.transform.position - transform.position).normalized;
+            direction.y = 0; // Yukarı/Aşağı bakmasını engelle
+
+            if (direction != Vector3.zero)
+            {
+                Quaternion lookRotation = Quaternion.LookRotation(direction);
+                // Yumuşak bir dönüş için Lerp kullanıyoruz
+                transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 10f);
+            }
+        }
+
+        // Sync target with twin (Mevcut kodun...)
         if (twinBot != null && currentTarget != twinBot.currentTarget)
         {
-            // Primary bot decides the target
-            if (isPrimaryBot)
-            {
-                twinBot.currentTarget = currentTarget;
-            }
-            else
-            {
-                currentTarget = twinBot.currentTarget;
-            }
+            if (isPrimaryBot) twinBot.currentTarget = currentTarget;
+            else currentTarget = twinBot.currentTarget;
         }
     }
 

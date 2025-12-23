@@ -36,10 +36,13 @@ MonoBehaviour:
   maxUnitsPerRow: 4
   unitSpacing: 1.072
   maxStackPerSlot: 4
+  toyStamina: 3
   unitRole: 7
   archetype: 0
   gamePhase: 1
-  toyStamina: 3
+  utilityCards:
+  - {fileID: 11400000, guid: a3af78c480c21bc4f8d89b5fec96e123, type: 2}
+  - {fileID: 11400000, guid: 98c538bb86fd99449bc9efff7ca3f76a, type: 2}
   isMultiUnit: 1
   unitsPerSlot: 2
   isTwinSystem: 1

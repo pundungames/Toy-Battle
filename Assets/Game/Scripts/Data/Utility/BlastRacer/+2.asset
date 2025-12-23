@@ -22,4 +22,4 @@ MonoBehaviour:
   staminaCost: 1
   minUnitsOwned: 0
   cardSprite: {fileID: 21300000, guid: ec0ff8a1ec5b49542bd458d54106babc, type: 3}
-  rarity: 0
+  rarity: 1

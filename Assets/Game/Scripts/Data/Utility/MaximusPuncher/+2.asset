@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60c06b7d27121de44bfd997de93f5e2c, type: 3}
-  m_Name: x2
+  m_Name: +2
   m_EditorClassIdentifier: 
-  cardID: x2SlamBros
-  cardName: x2 Slam Bros
-  cardDescription: x2 Slam Bros
-  utilityType: 2
+  cardID: +2MaximusPuncher
+  cardName: +2 Maximus Puncher
+  cardDescription: +2 Maximus Puncher
+  utilityType: 1
   effectValue: 2
-  targetUnit: {fileID: 11400000, guid: 79d1f3a522095d44e889a2fb066efa59, type: 2}
-  gamePhase: 1
+  targetUnit: {fileID: 11400000, guid: 67137ce47852ee64d9dc256a84b79cc7, type: 2}
+  gamePhase: 0
   staminaCost: 1
   minUnitsOwned: 0
-  cardSprite: {fileID: 21300000, guid: 11acdd7256a23b243a00eb7a7858f6ff, type: 3}
-  rarity: 1
+  cardSprite: {fileID: 21300000, guid: 14c36c76f93c43c44a2e2c484387871e, type: 3}
+  rarity: 0

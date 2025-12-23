@@ -186,19 +186,27 @@ public class ShellNinjaUnit : RuntimeUnit
 
     protected override void Update()
     {
-        // ✅ Don't do anything if preparing to teleport
         if (isPreparingTeleport)
         {
-            // Stay still, disable agent
-            if (agent != null && agent.enabled)
-            {
-                agent.enabled = false;
-            }
+            if (agent != null && agent.enabled) agent.enabled = false;
             return;
         }
 
-        // Normal update after teleport
         base.Update();
+
+        // ✅ DÖVÜŞ SIRASINDA HEDEFE BAKMA
+        if (hasTeleported && currentTarget != null && currentTarget.IsAlive())
+        {
+            Vector3 direction = (currentTarget.transform.position - transform.position).normalized;
+            direction.y = 0; // Y eksenini kilitle
+
+            if (direction != Vector3.zero)
+            {
+                Quaternion lookRotation = Quaternion.LookRotation(direction);
+                // Ninja çevik olduğu için dönüş hızını yüksek (15f) tutuyoruz
+                transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 15f);
+            }
+        }
     }
 
     // ===== FORCE TARGET BACKLINE ENEMY =====

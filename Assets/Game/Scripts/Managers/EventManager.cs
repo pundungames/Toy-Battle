@@ -72,7 +72,7 @@ public static class EventManager
         onDraftStart?.Invoke();
     }
 
-    public static void OnCardSelected(ToyUnitData unitData)
+    public static void OnCardSelected(ToyUnitData unitData = null)
     {
         onCardSelected?.Invoke(unitData);
     }

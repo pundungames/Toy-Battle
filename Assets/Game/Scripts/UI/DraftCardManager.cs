@@ -19,6 +19,7 @@ public class DraftCardManager : MonoBehaviour
     [Inject] GridManager gridManager;
     [Inject] BonusSystem bonusSystem;
     [Inject] UnlockSystem unlockSystem;
+    [Inject] GameManager gameManager;
 
     [Header("⚡ TEST MODE")]
     [SerializeField] bool testMode = false;
@@ -43,7 +44,7 @@ public class DraftCardManager : MonoBehaviour
     [SerializeField] bool isShopMode = false;
     [SerializeField] int rerollCost = 10;
     [SerializeField] int currentPips = 2;
-
+    [SerializeField] int currentRound = 0;
     [Header("Rarity Weights")]
     [SerializeField] int commonWeight = 70;
     [SerializeField] int rareWeight = 27;
@@ -73,7 +74,7 @@ public class DraftCardManager : MonoBehaviour
 
     private void Start()
     {
-        offerGenerator = new OfferGenerator(allToyUnits, allBonusCards);
+        offerGenerator = new OfferGenerator(allToyUnits, allBonusCards, gridManager);
         Debug.Log("✅ OfferGenerator initialized");
     }
 
@@ -137,8 +138,23 @@ public class DraftCardManager : MonoBehaviour
         {
             Debug.Log("🎯 Using NEW Offer Generator system");
 
-            int roundIndex = 1;
-            int loopIndex = 1;
+            // Calculate round and loop from GameManager
+            // Turn: 1,2,3,4, 5(Battle), 6,7,8,9, 10(Battle), ...
+            // Round: Which draft within the cycle (1-4)
+            // Loop: Which battle cycle (1, 2, 3...)
+
+            int turn = gameManager.currentTurn;
+            int battleTurn = gameManager.currentBattleTurn;
+
+            // Loop index = which battle cycle (0-based for first cycle)
+            int loopIndex = battleTurn - 1; // Turn 1-4: loop=0, Turn 6-9: loop=1
+
+            // Round index = which draft in this cycle (1-4)
+            int roundIndex = turn - (loopIndex * 5); // Turn 1→1, Turn 6→1
+            if (roundIndex > 4) roundIndex = 4; // Cap at 4
+
+            Debug.Log($"📊 Game State: Turn {turn}, Round {roundIndex}/4, Loop {loopIndex}, Stamina {currentStamina}");
+
             int remainingStamina = currentStamina;
 
             List<ToyUnitData> ownedUnits = gridManager.GetPlayerUnits()
@@ -344,6 +360,7 @@ public class DraftCardManager : MonoBehaviour
                     Debug.LogError($"❌ Failed to spend stamina for {utilityData.cardName}!");
                 }
 
+                EventManager.OnCardSelected(utilityData.targetUnit);
                 CompleteSelection();
             }
             else
@@ -461,8 +478,9 @@ public class DraftCardManager : MonoBehaviour
         return true;
     }
 
-    public void ResetStamina()
+    public void BattleEnd()
     {
+        currentRound = 0;
         currentStamina = maxStamina;
         Debug.Log($"🔄 Stamina reset to {maxStamina}");
         OnStaminaChanged?.Invoke(currentStamina, maxStamina);
@@ -549,34 +567,28 @@ public class DraftCardManager : MonoBehaviour
         }
 
         ToyUnitData targetUnitData = utilityData.targetUnit;
-        int addCount = utilityData.effectValue;
+        int originalUnitsPerSlot = targetUnitData.unitsPerSlot; // ✅ Store original
+        int newUnitsPerSlot = utilityData.effectValue; // e.g., +5 → 5 units
 
-        Debug.Log($"➕ Adding {addCount}x {targetUnitData.toyName} to grid");
+        Debug.Log($"➕ CountAdd: Temporarily changing {targetUnitData.toyName}.unitsPerSlot from {originalUnitsPerSlot} to {newUnitsPerSlot}");
 
-        // Spawn units using normal spawn logic
-        int successCount = 0;
-        for (int i = 0; i < addCount; i++)
+        // ✅ Temporarily change unitsPerSlot
+        targetUnitData.unitsPerSlot = newUnitsPerSlot;
+
+        // Spawn using modified unitsPerSlot
+        bool spawned = gridManager.SpawnUnit(targetUnitData, true);
+
+        // ✅ Restore original value IMMEDIATELY
+        targetUnitData.unitsPerSlot = originalUnitsPerSlot;
+
+        if (spawned)
         {
-            bool spawned = gridManager.SpawnUnit(targetUnitData, true);
-            if (spawned)
-            {
-                successCount++;
-            }
-            else
-            {
-                Debug.LogWarning($"⚠️ Could only spawn {successCount}/{addCount} units (grid full or max reached)");
-                break;
-            }
-        }
-
-        if (successCount > 0)
-        {
-            Debug.Log($"✅ Added {successCount}x {targetUnitData.toyName}");
+            Debug.Log($"✅ CountAdd success: Spawned {newUnitsPerSlot}x {targetUnitData.toyName} (restored to {originalUnitsPerSlot})");
             return true;
         }
         else
         {
-            Debug.LogWarning($"❌ Failed to add any units!");
+            Debug.LogWarning($"❌ CountAdd failed to spawn!");
             return false;
         }
     }
@@ -590,9 +602,7 @@ public class DraftCardManager : MonoBehaviour
         }
 
         ToyUnitData targetUnitData = utilityData.targetUnit;
-        int multiplier = utilityData.effectValue;
-
-        Debug.Log($"✖️ Multiplying {targetUnitData.toyName} by {multiplier}");
+        int multiplier = utilityData.effectValue; // e.g., 2 for X2
 
         // Get current count of this unit
         List<RuntimeUnit> playerUnits = gridManager.GetPlayerUnits();
@@ -604,36 +614,29 @@ public class DraftCardManager : MonoBehaviour
             return false;
         }
 
-        // Spawn (multiplier - 1) * currentCount new units
-        // e.g. X2: spawn 1x current count (doubles it)
-        int toSpawn = (multiplier - 1) * currentCount;
+        int originalUnitsPerSlot = targetUnitData.unitsPerSlot; // ✅ Store original
+        int newUnitsPerSlot = currentCount; // e.g., 3 × 2 = 6
 
-        Debug.Log($"   Current: {currentCount}, Multiplier: {multiplier}, Will spawn: {toSpawn}");
+        Debug.Log($"✖️ Multiplier: {targetUnitData.toyName} current: {currentCount}, multiplier: {multiplier}, new total: {newUnitsPerSlot}");
+        Debug.Log($"   Temporarily changing unitsPerSlot from {originalUnitsPerSlot} to {newUnitsPerSlot}");
 
-        int successCount = 0;
-        for (int i = 0; i < toSpawn; i++)
+        // ✅ Temporarily change unitsPerSlot
+        targetUnitData.unitsPerSlot = newUnitsPerSlot;
+
+        // Spawn using modified unitsPerSlot
+        bool spawned = gridManager.SpawnUnit(targetUnitData, true);
+
+        // ✅ Restore original value IMMEDIATELY
+        targetUnitData.unitsPerSlot = originalUnitsPerSlot;
+
+        if (spawned)
         {
-            bool spawned = gridManager.SpawnUnit(targetUnitData, true);
-            if (spawned)
-            {
-                successCount++;
-            }
-            else
-            {
-                Debug.LogWarning($"⚠️ Could only spawn {successCount}/{toSpawn} units (max reached)");
-                break;
-            }
-        }
-
-        if (successCount > 0)
-        {
-            int finalCount = currentCount + successCount;
-            Debug.Log($"✅ Multiplied {targetUnitData.toyName}: {currentCount} → {finalCount}");
+            Debug.Log($"✅ Multiplier success: {targetUnitData.toyName} multiplied to {newUnitsPerSlot} (restored to {originalUnitsPerSlot})");
             return true;
         }
         else
         {
-            Debug.LogWarning($"❌ Failed to multiply units!");
+            Debug.LogWarning($"❌ Multiplier failed to spawn!");
             return false;
         }
     }

@@ -56,7 +56,7 @@ public class DraftCardContent : MonoBehaviour
         isUnit = true;
         selected = false;
 
-        cardName.text = unitData.toyName;
+        cardName.text = $"+{unitData.unitsPerSlot} {unitData.toyName}";
         cardInfo.text = unitData.toyInfo;
         cardImage.sprites = unitData.animationFrames.ToList();
         cardImage.StartAnim();
@@ -105,7 +105,7 @@ public class DraftCardContent : MonoBehaviour
         selected = false;
 
         cardName.text = utilityData.cardName;
-        cardInfo.text = utilityData.cardDescription;
+        cardInfo.text = utilityData.targetUnit.toyInfo;
 
         // ✅ Use target unit's animation frames!
         if (utilityData.targetUnit != null && utilityData.targetUnit.animationFrames != null)

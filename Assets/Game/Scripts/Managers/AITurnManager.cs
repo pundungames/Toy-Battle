@@ -1,11 +1,12 @@
 ﻿// ============================================================================
-// AI TURN MANAGER - AI'ın draft turn'ünü yönetir
-// ✅ UPDATED: Multi-unit spawn support
-// ✅ FIXED: Enemy rotation (face player)
+// AI TURN MANAGER - WITH OFFER GENERATOR
+// ✅ Phase 3: AI uses OfferGenerator like player
+// ✅ Counter-based selection with stamina profiles
 // ============================================================================
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Zenject;
 
@@ -15,21 +16,29 @@ public class AITurnManager : MonoBehaviour
     [Inject] GridManager gridManager;
     [Inject] BonusSystem bonusSystem;
     [Inject] UnlockSystem unlockSystem;
+    [Inject] GameManager gameManager;
 
     [Header("AI Settings")]
-    [SerializeField] float aiThinkDelay = 1f; // AI karar verme süresi
-    [SerializeField] float aiActionDelay = 0.5f; // AI action sonrası bekleme
+    [SerializeField] float aiThinkDelay = 1f;
+    [SerializeField] float aiActionDelay = 0.5f;
 
     [Header("Card Pool")]
     [SerializeField] List<ToyUnitData> allToyUnits;
     [SerializeField] List<BonusCardData> allBonusCards;
 
-    [Header("Rarity Weights")]
-    [SerializeField] int commonWeight = 70;
-    [SerializeField] int rareWeight = 27;
-    [SerializeField] int epicWeight = 3;
+    [Header("AI Difficulty")]
+    [SerializeField] AIDifficulty difficulty = AIDifficulty.Normal;
 
     private bool isAITurnActive = false;
+    private OfferGenerator offerGenerator;
+
+    // ===== INITIALIZATION =====
+
+    private void Start()
+    {
+        offerGenerator = new OfferGenerator(allToyUnits, allBonusCards, gridManager);
+        Debug.Log("✅ AI OfferGenerator initialized");
+    }
 
     // ===== START AI TURN =====
 
@@ -49,200 +58,221 @@ public class AITurnManager : MonoBehaviour
     {
         Debug.Log("🤖 AI is thinking...");
 
-        // AI thinking delay
         yield return new WaitForSeconds(aiThinkDelay);
 
-        // Generate AI draft cards (same logic as player)
+        // Generate AI draft cards using OfferGenerator
         List<object> aiDraftCards = GenerateAIDraftCards();
 
         if (aiDraftCards.Count == 0)
         {
             Debug.LogWarning("⚠️ AI: No cards available!");
-            isAITurnActive = false;
             OnAITurnComplete();
             yield break;
         }
 
-        // AI makes decision
-        object selectedCard = aiController.SelectCard(aiDraftCards);
+        // AI selects best card based on counter score
+        object selectedCard = SelectBestCard(aiDraftCards);
 
         Debug.Log($"🤖 AI selected: {GetCardName(selectedCard)}");
+
+        yield return new WaitForSeconds(aiActionDelay);
 
         // Execute AI action
         ExecuteAIAction(selectedCard);
 
-        // Wait before completing turn
         yield return new WaitForSeconds(aiActionDelay);
 
-        // AI turn complete
-        isAITurnActive = false;
         OnAITurnComplete();
     }
 
-    // ===== GENERATE AI CARDS =====
+    // ===== CARD GENERATION WITH OFFER GENERATOR =====
 
     private List<object> GenerateAIDraftCards()
     {
-        List<object> cards = new List<object>();
-
-        if (allToyUnits == null || allToyUnits.Count == 0)
+        if (offerGenerator == null)
         {
-            Debug.LogError("❌ AITurnManager: allToyUnits is empty!");
-            return cards;
+            Debug.LogError("❌ AI OfferGenerator is NULL!");
+            return new List<object>();
         }
 
-        // Get unlocked units
-        List<ToyUnitData> unlockedUnits = unlockSystem != null ?
-            unlockSystem.GetUnlockedUnits(allToyUnits) :
-            new List<ToyUnitData>(allToyUnits);
+        int turn = gameManager.currentTurn;
+        int battleTurn = gameManager.currentBattleTurn;
 
-        List<ToyUnitData> availableUnits = new List<ToyUnitData>(unlockedUnits);
+        int loopIndex = battleTurn - 1;
+        int roundIndex = turn - (loopIndex * 5);
+        if (roundIndex > 4) roundIndex = 4;
 
-        // Add 2 unique toy units
-        for (int i = 0; i < 2; i++)
+        Debug.Log($"📊 AI Draft: Turn {turn}, Round {roundIndex}/4, Loop {loopIndex}");
+
+        // Get AI's owned units
+        List<ToyUnitData> ownedUnits = gridManager.GetEnemyUnits()
+            .Where(u => u != null && u.data != null)
+            .Select(u => u.data)
+            .Distinct()
+            .ToList();
+
+        // AI always has full stamina (doesn't carry over)
+        int aiStamina = 10;
+
+        List<object> offer = offerGenerator.GenerateUnitOffer(
+            isPlayer: false,
+            roundIndex: roundIndex,
+            loopIndex: loopIndex,
+            remainingStamina: aiStamina,
+            ownedUnits: ownedUnits
+        );
+
+        Debug.Log($"✅ AI received {offer.Count} cards");
+
+        return offer;
+    }
+
+    // ===== AI CARD SELECTION =====
+
+    private object SelectBestCard(List<object> cards)
+    {
+        // Get player's units for counter calculation
+        List<RuntimeUnit> playerUnits = gridManager.GetPlayerUnits();
+
+        object bestCard = null;
+        float bestScore = float.MinValue;
+
+        foreach (var card in cards)
         {
-            if (availableUnits.Count == 0) break;
-
-            ToyUnitData randomUnit = GetWeightedRandomUnit(availableUnits);
-            if (randomUnit != null)
+            if (card is ToyUnitData unitData)
             {
-                cards.Add(randomUnit);
-                availableUnits.Remove(randomUnit);
-            }
-        }
+                float score = CalculateUnitScore(unitData, playerUnits);
 
-        // 15% chance for bonus card
-        if (Random.value < 0.15f && allBonusCards != null && allBonusCards.Count > 0)
-        {
-            BonusCardData randomBonus = allBonusCards[Random.Range(0, allBonusCards.Count)];
-            cards.Add(randomBonus);
-        }
-        else
-        {
-            if (availableUnits.Count > 0)
-            {
-                ToyUnitData randomUnit = GetWeightedRandomUnit(availableUnits);
-                if (randomUnit != null)
+                // Add randomness based on difficulty
+                float randomFactor = GetRandomFactor();
+                score *= randomFactor;
+
+                Debug.Log($"  AI Eval: {unitData.toyName} → Score: {score:F2}");
+
+                if (score > bestScore)
                 {
-                    cards.Add(randomUnit);
+                    bestScore = score;
+                    bestCard = card;
+                }
+            }
+            else if (card is BonusCardData bonusData)
+            {
+                // Bonus cards have fixed score
+                float score = 5f * GetRandomFactor();
+
+                Debug.Log($"  AI Eval: {bonusData.bonusName} → Score: {score:F2}");
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestCard = card;
                 }
             }
         }
 
-        return cards;
+        return bestCard;
     }
 
-    private ToyUnitData GetWeightedRandomUnit(List<ToyUnitData> units)
+    private float CalculateUnitScore(ToyUnitData unitData, List<RuntimeUnit> playerUnits)
     {
-        if (units.Count == 0) return null;
+        int counterScore = CounterMatrix.CalculateCounterScore(unitData.unitID, playerUnits);
 
-        int totalWeight = 0;
-        Dictionary<ToyUnitData, int> weights = new Dictionary<ToyUnitData, int>();
-
-        foreach (var unit in units)
+        // Easy mode: Ignore counters completely
+        if (difficulty == AIDifficulty.Easy)
         {
-            int weight = unit.toyRarityType switch
-            {
-                RarityType.Common => commonWeight,
-                RarityType.Rare => rareWeight,
-                RarityType.Epic => epicWeight,
-                _ => 1
-            };
-
-            weights.Add(unit, weight);
-            totalWeight += weight;
+            counterScore = 5; // Neutral score for everyone
+        }
+        // Hard mode: Emphasize counters
+        else if (difficulty == AIDifficulty.Hard)
+        {
+            counterScore = Mathf.RoundToInt(counterScore * 1.5f);
         }
 
-        int randomValue = Random.Range(0, totalWeight);
-        foreach (var kvp in weights)
+        float rarityBonus = unitData.toyRarityType switch
         {
-            randomValue -= kvp.Value;
-            if (randomValue <= 0)
-                return kvp.Key;
-        }
+            RarityType.Common => 1.0f,
+            RarityType.Rare => 1.5f,
+            RarityType.Epic => 2.0f,
+            _ => 1.0f
+        };
 
-        return units[0];
+        return counterScore * rarityBonus;
     }
 
-    // ===== EXECUTE AI ACTION (FIXED!) =====
-
-    private void ExecuteAIAction(object selectedCard)
+    private float GetRandomFactor()
     {
-        if (selectedCard is ToyUnitData unitData)
+        return difficulty switch
         {
-            // ✅ FIXED: Correct SpawnUnit signature
-            // isPlayer = false for AI/enemy units
+            AIDifficulty.Easy => Random.Range(0.4f, 0.8f),    // Very random (tutorial)
+            AIDifficulty.Normal => Random.Range(0.7f, 1.3f),  // Balanced
+            AIDifficulty.Hard => Random.Range(0.9f, 1.1f),    // Nearly optimal
+            _ => 1.0f
+        };
+    }
+
+    // ===== EXECUTE AI ACTION =====
+
+    private void ExecuteAIAction(object card)
+    {
+        if (card is ToyUnitData unitData)
+        {
             bool spawned = gridManager.SpawnUnit(unitData, false);
 
             if (spawned)
             {
                 Debug.Log($"✅ AI spawned: {unitData.toyName}");
-
-                // ✅ ROTATION FIX: Make sure enemy units face player
-                FixEnemyUnitsRotation();
             }
             else
             {
-                Debug.LogWarning($"❌ AI: Cannot spawn {unitData.toyName} - Grid may be full or prefab missing!");
+                Debug.LogWarning($"⚠️ AI failed to spawn: {unitData.toyName}");
             }
-        }
-        else if (selectedCard is BonusCardData bonusData)
-        {
-            // AI uses bonus
-            Debug.Log($"🤖 AI used bonus: {bonusData.bonusName}");
 
-            if (bonusSystem != null)
-            {
-                // Apply bonus to AI units
-                // bonusSystem.ApplyBonusToEnemy(bonusData);
-            }
+            FixEnemyUnitsRotation();
+        }
+        else if (card is BonusCardData bonusData)
+        {
+            bonusSystem.ApplyBonus(bonusData);
+            Debug.Log($"✅ AI applied bonus: {bonusData.bonusName}");
         }
     }
 
-    // ===== FIX ENEMY ROTATION =====
-
     private void FixEnemyUnitsRotation()
     {
-        // ✅ Get all enemy units and ensure they face player (180 degrees)
         List<RuntimeUnit> enemyUnits = gridManager.GetEnemyUnits();
+        int fixedCount = 0;
 
         foreach (var unit in enemyUnits)
         {
             if (unit != null && unit.gameObject != null)
             {
-                // ✅ Enemy units should face SOUTH (towards player)
-                // Y rotation = 180 means facing down/south
                 unit.transform.rotation = Quaternion.Euler(0, 180, 0);
+                fixedCount++;
             }
         }
 
-        Debug.Log($"🔄 Fixed rotation for {enemyUnits.Count} enemy units");
-    }
-
-    // ===== AI TURN COMPLETE =====
-
-    private void OnAITurnComplete()
-    {
-        Debug.Log("🤖 AI turn complete!");
-
-        // Notify that both turns are complete, game can continue
-        EventManager.OnDraftComplete();
+        Debug.Log($"🔄 Fixed rotation for {fixedCount} enemy units");
     }
 
     // ===== HELPERS =====
 
     private string GetCardName(object card)
     {
-        if (card is ToyUnitData unitData)
-            return unitData.toyName;
-        else if (card is BonusCardData bonusData)
-            return bonusData.bonusName;
-        else
-            return "Unknown";
+        if (card is ToyUnitData unit) return unit.toyName;
+        if (card is BonusCardData bonus) return bonus.bonusName;
+        return "Unknown";
     }
 
-    public bool IsAITurnActive()
+    private void OnAITurnComplete()
     {
-        return isAITurnActive;
+        isAITurnActive = false;
+        Debug.Log("🤖 AI turn complete!");
+        EventManager.OnDraftComplete();
     }
+}
+
+public enum AIDifficulty
+{
+    Easy,
+    Normal,
+    Hard
 }
